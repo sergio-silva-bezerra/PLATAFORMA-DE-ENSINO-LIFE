@@ -31,7 +31,7 @@ export function VirtualClassroom() {
           </div>
           <div className="h-8 w-[1px] bg-gray-200 mx-2"></div>
           <span className="text-xs font-bold text-gray-600 uppercase tracking-wider">
-            DIREÇÃO EM CINEMA - MÓDULO B
+            TÉCNICO EM ENFERMAGEM - MÓDULO B
           </span>
         </div>
         <button className="bg-[#E31E24] p-2 rounded-sm text-white hover:bg-[#C1191F] transition-colors">
@@ -125,8 +125,8 @@ export function VirtualClassroom() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[
-              { prof: 'ADILSON DA SILVA', color: 'bg-[#1a1a2e]' },
-              { prof: 'TEREZA CARLA SOUZA PEREIRA', color: 'bg-[#1a1a2e]' }
+              { title: 'Anatomia e Fisiologia Humana', prof: 'DR. RICARDO SANTOS', color: 'bg-[#1a1a2e]' },
+              { title: 'Fundamentos de Enfermagem', prof: 'DRA. MARIA OLIVEIRA', color: 'bg-[#1a1a2e]' }
             ].map((item, idx) => (
               <div 
                 key={idx}
@@ -137,10 +137,13 @@ export function VirtualClassroom() {
                 
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
                 
-                <div className="absolute top-6 left-6 right-6">
-                  <p className="text-white text-[10px] font-black uppercase tracking-tighter opacity-90">
+                <div className="absolute top-6 left-6 right-6 space-y-1">
+                  <p className="text-white text-[10px] font-black uppercase tracking-tighter opacity-70">
                     Prof. {item.prof}
                   </p>
+                  <h3 className="text-white text-lg font-bold leading-tight uppercase">
+                    {item.title}
+                  </h3>
                 </div>
 
                 {/* Bottom Overlay for hover effect */}

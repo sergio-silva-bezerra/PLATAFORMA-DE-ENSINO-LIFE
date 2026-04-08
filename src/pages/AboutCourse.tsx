@@ -12,7 +12,7 @@ export function AboutCourse() {
       <div className="max-w-7xl mx-auto px-4 py-8 space-y-6">
         {/* Breadcrumbs */}
         <nav className="flex items-center gap-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-          <span>Filmmaker</span>
+          <span>Técnico em Enfermagem</span>
           <ChevronRight className="w-3 h-3" />
           <span className="text-[#E31E24]">Sobre o Curso</span>
         </nav>
@@ -44,9 +44,9 @@ export function AboutCourse() {
           <div className="p-8">
             {activeTab === 'O CURSO' && (
               <div className="space-y-4">
-                <h2 className="text-xl font-bold text-gray-800">Filmmaker</h2>
+                <h2 className="text-xl font-bold text-gray-800">Técnico em Enfermagem</h2>
                 <p className="text-sm text-gray-600 leading-relaxed max-w-3xl">
-                  O curso de Filmmaker da UNAMA prepara o aluno para atuar em todas as etapas da produção audiovisual, desde o roteiro até a pós-produção. Com foco prático e alinhado às demandas do mercado contemporâneo, o curso abrange cinema, publicidade, conteúdo para web e novas mídias.
+                  O curso Técnico em Enfermagem prepara o profissional para atuar na promoção, prevenção, recuperação e reabilitação da saúde, sob a supervisão do enfermeiro. Com foco prático e humanizado, o curso abrange desde cuidados básicos até procedimentos técnicos complexos em diversos ambientes de saúde.
                 </p>
               </div>
             )}
@@ -61,10 +61,10 @@ export function AboutCourse() {
                         <span className="text-[10px] font-bold text-gray-400 uppercase">Carga Horária: 400h</span>
                       </div>
                       <div className="p-4 space-y-2">
-                        <p className="text-xs text-gray-600">• Introdução ao Cinema</p>
-                        <p className="text-xs text-gray-600">• Roteiro I</p>
-                        <p className="text-xs text-gray-600">• Fotografia e Iluminação</p>
-                        <p className="text-xs text-gray-600">• Edição e Montagem</p>
+                        <p className="text-xs text-gray-600">• Anatomia e Fisiologia Humana</p>
+                        <p className="text-xs text-gray-600">• Fundamentos de Enfermagem</p>
+                        <p className="text-xs text-gray-600">• Ética e Bioética Profissional</p>
+                        <p className="text-xs text-gray-600">• Microbiologia e Parasitologia</p>
                       </div>
                     </div>
                   ))}
@@ -76,9 +76,9 @@ export function AboutCourse() {
                 <h2 className="text-xl font-bold text-gray-800">Corpo Docente</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {[
-                    { name: 'Tereza Carla Souza Pereira', role: 'Mestre em Cinema' },
-                    { name: 'Franthiesco Anthonio Ballerini Manso', role: 'Doutor em Comunicação' },
-                    { name: 'Adilson da Silva', role: 'Especialista em Pós-Produção' },
+                    { name: 'Dr. Ricardo Santos', role: 'Doutor em Ciências da Saúde' },
+                    { name: 'Dra. Maria Oliveira', role: 'Mestre em Enfermagem' },
+                    { name: 'Carlos Mendes', role: 'Especialista em Bioética' },
                   ].map((prof) => (
                     <div key={prof.name} className="flex items-center gap-4 p-4 border border-gray-100 rounded-lg">
                       <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center text-gray-400 font-bold">
@@ -114,7 +114,7 @@ export function AboutCourse() {
           </div>
           <div className="space-y-4">
             <h4 className="text-[10px] font-black uppercase tracking-widest opacity-60">Coordenação do seu curso</h4>
-            <p className="text-xs font-bold">Coordenação Acadêmica Filmmaker</p>
+            <p className="text-xs font-bold">Coordenação Acadêmica de Enfermagem</p>
           </div>
           <div className="flex justify-end items-center">
             <div className="flex items-center gap-2">

@@ -6,24 +6,24 @@ import { cn } from '../lib/utils';
 const subjects = [
   {
     id: '1',
-    name: 'Análise Fílmica e Crítica Cinematográfica',
-    tutor: 'Tereza Carla Souza Pereira',
+    name: 'Anatomia e Fisiologia Humana',
+    tutor: 'Dr. Ricardo Santos',
     startDate: '30/03/2026',
     grade: '--',
     average: 0,
   },
   {
     id: '2',
-    name: 'Direção em Cinema',
-    tutor: 'Franthiesco Anthonio Ballerini Manso',
+    name: 'Fundamentos de Enfermagem',
+    tutor: 'Dra. Maria Oliveira',
     startDate: '20/01/2026',
     grade: '--',
     average: 40,
   },
   {
     id: '3',
-    name: 'Laboratório de Projetos Inovadores',
-    tutor: 'Adilson da Silva',
+    name: 'Ética e Bioética Profissional',
+    tutor: 'Carlos Mendes',
     startDate: '20/01/2026',
     grade: '--',
     average: 60,
@@ -37,7 +37,7 @@ export function StudentDashboard() {
     <div className="max-w-7xl mx-auto px-4 py-8 space-y-8 pb-24">
       {/* Course Title */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-800">Filmmaker</h1>
+        <h1 className="text-2xl font-bold text-gray-800">Técnico em Enfermagem</h1>
         <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">
           RR - BOA VISTA (GARDEN SHOPPING - UNAMA)
         </p>

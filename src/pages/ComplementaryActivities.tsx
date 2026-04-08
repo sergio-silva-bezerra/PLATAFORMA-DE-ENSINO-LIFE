@@ -46,7 +46,7 @@ export function ComplementaryActivities() {
       <div className="max-w-7xl mx-auto px-4 py-8 space-y-6">
         {/* Breadcrumbs */}
         <nav className="flex items-center gap-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-          <span>Filmmaker</span>
+          <span>Técnico em Enfermagem</span>
           <ChevronRight className="w-3 h-3" />
           <span className="text-[#E31E24]">Atividades Complementares</span>
         </nav>

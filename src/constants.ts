@@ -1,20 +1,20 @@
 import { Student, Course, Subject, Payment, Request } from './types';
 
 export const MOCK_STUDENTS: Student[] = [
-  { id: '1', name: 'Sérgio Silva Bezerra', email: 'sergio@example.com', registration: '04098356', course: 'Filmmaker', status: 'Ativo', financialStatus: 'Em dia' },
+  { id: '1', name: 'Sérgio Silva Bezerra', email: 'sergio@example.com', registration: '04098356', course: 'Técnico em Enfermagem', status: 'Ativo', financialStatus: 'Em dia' },
   { id: '2', name: 'Ana Oliveira', email: 'ana@example.com', registration: '04098357', course: 'Design Gráfico', status: 'Ativo', financialStatus: 'Pendente' },
-  { id: '3', name: 'Carlos Santos', email: 'carlos@example.com', registration: '04098358', course: 'Filmmaker', status: 'Trancado', financialStatus: 'Atrasado' },
+  { id: '3', name: 'Carlos Santos', email: 'carlos@example.com', registration: '04098358', course: 'Técnico em Enfermagem', status: 'Trancado', financialStatus: 'Atrasado' },
 ];
 
 export const MOCK_COURSES: Course[] = [
-  { id: '1', name: 'Filmmaker', modality: 'Semipresencial', duration: '4 Semestres', coordinators: ['Tereza Carla Souza Pereira'] },
+  { id: '1', name: 'Técnico em Enfermagem', modality: 'Semipresencial', duration: '4 Semestres', coordinators: ['Dra. Maria Oliveira'] },
   { id: '2', name: 'Design Gráfico', modality: 'EAD', duration: '6 Semestres', coordinators: ['Marcos Silva'] },
 ];
 
 export const MOCK_SUBJECTS: Subject[] = [
-  { id: '1', name: 'Análise Fílmica e Crítica Cinematográfica', courseId: '1', tutor: 'Tereza Carla Souza Pereira', startDate: '2026-03-30' },
-  { id: '2', name: 'Direção em Cinema', courseId: '1', tutor: 'Franthiesco Anthonio Ballerini Manso', startDate: '2026-01-20' },
-  { id: '3', name: 'Laboratório de Projetos Inovadores', courseId: '1', tutor: 'Adilson da Silva', startDate: '2026-01-20' },
+  { id: '1', name: 'Anatomia e Fisiologia Humana', courseId: '1', tutor: 'Dr. Ricardo Santos', startDate: '2026-03-30' },
+  { id: '2', name: 'Fundamentos de Enfermagem', courseId: '1', tutor: 'Dra. Maria Oliveira', startDate: '2026-01-20' },
+  { id: '3', name: 'Ética e Bioética Profissional', courseId: '1', tutor: 'Carlos Mendes', startDate: '2026-01-20' },
 ];
 
 export const MOCK_PAYMENTS: Payment[] = [

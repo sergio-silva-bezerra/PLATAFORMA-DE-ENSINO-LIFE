@@ -7,33 +7,33 @@ const scheduleData = [
   {
     day: 'Segunda-feira',
     classes: [
-      { time: '19:00 - 20:40', subject: 'Análise Fílmica e Crítica Cinematográfica', room: 'Sala 302 - Bloco A', tutor: 'Tereza Carla Souza Pereira' },
-      { time: '20:50 - 22:30', subject: 'Direção em Cinema', room: 'Laboratório de Vídeo', tutor: 'Franthiesco Anthonio Ballerini Manso' },
+      { time: '19:00 - 20:40', subject: 'Anatomia e Fisiologia Humana', room: 'Laboratório de Anatomia', tutor: 'Dr. Ricardo Santos' },
+      { time: '20:50 - 22:30', subject: 'Fundamentos de Enfermagem', room: 'Sala de Práticas', tutor: 'Dra. Maria Oliveira' },
     ]
   },
   {
     day: 'Terça-feira',
     classes: [
-      { time: '19:00 - 22:30', subject: 'Laboratório de Projetos Inovadores', room: 'Sala 105 - Bloco B', tutor: 'Adilson da Silva' },
+      { time: '19:00 - 22:30', subject: 'Ética e Bioética Profissional', room: 'Sala 105 - Bloco B', tutor: 'Carlos Mendes' },
     ]
   },
   {
     day: 'Quarta-feira',
     classes: [
-      { time: '19:00 - 20:40', subject: 'Análise Fílmica e Crítica Cinematográfica', room: 'Sala 302 - Bloco A', tutor: 'Tereza Carla Souza Pereira' },
-      { time: '20:50 - 22:30', subject: 'Direção em Cinema', room: 'Laboratório de Vídeo', tutor: 'Franthiesco Anthonio Ballerini Manso' },
+      { time: '19:00 - 20:40', subject: 'Anatomia e Fisiologia Humana', room: 'Laboratório de Anatomia', tutor: 'Dr. Ricardo Santos' },
+      { time: '20:50 - 22:30', subject: 'Fundamentos de Enfermagem', room: 'Sala de Práticas', tutor: 'Dra. Maria Oliveira' },
     ]
   },
   {
     day: 'Quinta-feira',
     classes: [
-      { time: '19:00 - 22:30', subject: 'Atividades Complementares / Estágio', room: 'Campo / Externo', tutor: '-' },
+      { time: '19:00 - 22:30', subject: 'Saúde Coletiva', room: 'Auditório Principal', tutor: 'Dra. Helena Souza' },
     ]
   },
   {
     day: 'Sexta-feira',
     classes: [
-      { time: '19:00 - 22:30', subject: 'Seminários Temáticos', room: 'Auditório Principal', tutor: 'Convidado' },
+      { time: '19:00 - 22:30', subject: 'Microbiologia e Parasitologia', room: 'Laboratório de Ciências', tutor: 'Prof. Marcos Lima' },
     ]
   }
 ];
@@ -45,7 +45,7 @@ export function Schedule() {
     <div className="max-w-7xl mx-auto px-4 py-8 space-y-8 pb-24">
       {/* Breadcrumbs */}
       <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-gray-400">
-        <span>Filmmaker</span>
+        <span>Técnico em Enfermagem</span>
         <ChevronRight className="w-3 h-3" />
         <span className="text-[#E31E24]">Quadro de Horários</span>
       </div>

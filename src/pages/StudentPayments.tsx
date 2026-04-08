@@ -4,12 +4,12 @@ import { cn } from '../lib/utils';
 import { Link } from 'react-router-dom';
 
 const payments = [
-  { id: '1', description: 'Mensalidade Reposição de Disciplina - Digital - EAD', period: 'DEZ/2025 - Filmmaker', value: 'R$ 154,82', dueDate: '01/03/2026', status: 'Atrasado', canNegotiate: true },
-  { id: '2', description: 'Acordo', period: 'OUT/2025 - Filmmaker', value: 'R$ 112,34', dueDate: '02/03/2026', status: 'Atrasado', canNegotiate: true },
-  { id: '3', description: 'Acordo', period: 'OUT/2025 - Filmmaker', value: 'R$ 111,34', dueDate: '30/03/2026', status: 'Atrasado', canNegotiate: true },
-  { id: '4', description: 'Mensalidade Reposição de Disciplina - Digital - EAD', period: 'JAN/2026 - Filmmaker', value: 'R$ 150,32', dueDate: '01/04/2026', status: 'A vencer', canNegotiate: false },
-  { id: '5', description: 'Acordo', period: 'OUT/2025 - Filmmaker', value: 'R$ 109,12', dueDate: '29/04/2026', status: 'A vencer', canNegotiate: false },
-  { id: '6', description: 'Mensalidade Reposição de Disciplina - Digital - EAD', period: 'FEV/2026 - Filmmaker', value: 'R$ 150,32', dueDate: '01/05/2026', status: 'A vencer', canNegotiate: false },
+  { id: '1', description: 'Mensalidade Reposição de Disciplina - Digital - EAD', period: 'DEZ/2025 - Técnico em Enfermagem', value: 'R$ 154,82', dueDate: '01/03/2026', status: 'Atrasado', canNegotiate: true },
+  { id: '2', description: 'Acordo', period: 'OUT/2025 - Técnico em Enfermagem', value: 'R$ 112,34', dueDate: '02/03/2026', status: 'Atrasado', canNegotiate: true },
+  { id: '3', description: 'Acordo', period: 'OUT/2025 - Técnico em Enfermagem', value: 'R$ 111,34', dueDate: '30/03/2026', status: 'Atrasado', canNegotiate: true },
+  { id: '4', description: 'Mensalidade Reposição de Disciplina - Digital - EAD', period: 'JAN/2026 - Técnico em Enfermagem', value: 'R$ 150,32', dueDate: '01/04/2026', status: 'A vencer', canNegotiate: false },
+  { id: '5', description: 'Acordo', period: 'OUT/2025 - Técnico em Enfermagem', value: 'R$ 109,12', dueDate: '29/04/2026', status: 'A vencer', canNegotiate: false },
+  { id: '6', description: 'Mensalidade Reposição de Disciplina - Digital - EAD', period: 'FEV/2026 - Técnico em Enfermagem', value: 'R$ 150,32', dueDate: '01/05/2026', status: 'A vencer', canNegotiate: false },
 ];
 
 export function StudentPayments() {
