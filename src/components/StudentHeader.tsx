@@ -79,13 +79,13 @@ export function StudentHeader() {
         </div>
 
         <div className="flex items-center gap-6">
-          <button className="p-2 text-gray-400 hover:bg-gray-50 rounded-full transition-colors relative">
+          <button className="p-2 text-gray-400 hover:bg-gray-50 rounded-sm transition-colors relative">
             <Bell className="w-6 h-6" />
             <span className="absolute top-2 right-2 w-2 h-2 bg-green-500 rounded-full border-2 border-white"></span>
           </button>
           
           <div className="flex items-center gap-3 group relative">
-            <div className="w-10 h-10 bg-blue-50 rounded-full border border-blue-100 flex items-center justify-center text-blue-500">
+            <div className="w-10 h-10 bg-blue-50 rounded-sm border border-blue-100 flex items-center justify-center text-blue-500">
               <User className="w-6 h-6" />
             </div>
             <div className="text-left hidden sm:block">
@@ -97,10 +97,10 @@ export function StudentHeader() {
             </div>
 
             {/* User Dropdown */}
-            <div className="absolute top-full right-0 mt-2 w-48 bg-white border border-gray-100 rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
+            <div className="absolute top-full right-0 mt-2 w-48 bg-white border border-gray-100 rounded-sm shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
               <button 
                 onClick={handleLogout}
-                className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-500 hover:bg-red-50 rounded-xl transition-colors"
+                className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-500 hover:bg-red-50 rounded-sm transition-colors"
               >
                 <LogOut className="w-4 h-4" />
                 Sair do Portal
@@ -156,7 +156,7 @@ export function StudentHeader() {
                         >
                           <span>{item.label}</span>
                           {item.badge && (
-                            <span className="bg-[#E31E24] text-white text-[8px] px-1.5 py-0.5 rounded font-black uppercase">
+                            <span className="bg-[#E31E24] text-white text-[8px] px-1.5 py-0.5 rounded-sm font-black uppercase">
                               {item.badge}
                             </span>
                           )}

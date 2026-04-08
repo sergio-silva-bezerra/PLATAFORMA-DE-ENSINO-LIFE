@@ -11,10 +11,10 @@ export function Courses() {
           <p className="text-gray-500">Gerencie a estrutura curricular e o corpo docente.</p>
         </div>
         <div className="flex gap-3">
-          <button className="bg-white text-gray-700 border border-gray-200 px-6 py-2.5 rounded-xl font-semibold hover:bg-gray-50 transition-colors shadow-sm">
+          <button className="bg-white text-gray-700 border border-gray-200 px-6 py-2.5 rounded-sm font-semibold hover:bg-gray-50 transition-colors shadow-sm">
             Nova Disciplina
           </button>
-          <button className="bg-[#E31E24] text-white px-6 py-2.5 rounded-xl font-semibold flex items-center gap-2 hover:bg-[#C1191F] transition-colors shadow-sm">
+          <button className="bg-[#E31E24] text-white px-6 py-2.5 rounded-sm font-semibold flex items-center gap-2 hover:bg-[#C1191F] transition-colors shadow-sm">
             <Plus className="w-5 h-5" />
             Novo Curso
           </button>
@@ -26,9 +26,9 @@ export function Courses() {
           <h3 className="text-lg font-bold text-gray-900">Cursos Ativos</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {MOCK_COURSES.map((course) => (
-              <div key={course.id} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all group cursor-pointer">
+              <div key={course.id} className="bg-white p-6 rounded-sm border border-gray-100 shadow-sm hover:shadow-md transition-all group cursor-pointer">
                 <div className="flex items-start justify-between mb-4">
-                  <div className="bg-[#E31E24]/10 p-3 rounded-xl text-[#E31E24]">
+                  <div className="bg-[#E31E24]/10 p-3 rounded-sm text-[#E31E24]">
                     <BookOpen className="w-6 h-6" />
                   </div>
                   <span className="px-2 py-1 bg-blue-50 text-blue-600 text-[10px] font-bold uppercase rounded-md">
@@ -59,9 +59,9 @@ export function Courses() {
             <h3 className="text-lg font-bold text-gray-900 mb-6">Disciplinas do Semestre</h3>
             <div className="space-y-4">
               {MOCK_SUBJECTS.map((subject) => (
-                <div key={subject.id} className="flex items-center justify-between p-4 rounded-xl border border-gray-50 hover:border-[#E31E24]/20 hover:bg-gray-50/50 transition-all">
+                <div key={subject.id} className="flex items-center justify-between p-4 rounded-sm border border-gray-50 hover:border-[#E31E24]/20 hover:bg-gray-50/50 transition-all">
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center text-gray-400">
+                    <div className="w-12 h-12 bg-gray-100 rounded-sm flex items-center justify-center text-gray-400">
                       <Calendar className="w-6 h-6" />
                     </div>
                     <div>
@@ -80,7 +80,7 @@ export function Courses() {
         </div>
 
         <div className="space-y-6">
-          <div className="bg-[#151619] text-white p-6 rounded-2xl shadow-xl">
+          <div className="bg-[#151619] text-white p-6 rounded-sm shadow-xl">
             <h3 className="text-lg font-bold mb-4">Resumo Pedagógico</h3>
             <div className="space-y-6">
               <div className="flex items-center justify-between">
@@ -108,7 +108,7 @@ export function Courses() {
             <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">Ações Rápidas</h3>
             <div className="space-y-2">
               {['Lançar Notas', 'Quadro de Horários', 'Alocação de Tutores', 'Relatórios Finais'].map((action) => (
-                <button key={action} className="w-full text-left px-4 py-3 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:text-[#E31E24] transition-all flex items-center justify-between group">
+                <button key={action} className="w-full text-left px-4 py-3 rounded-sm text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:text-[#E31E24] transition-all flex items-center justify-between group">
                   {action}
                   <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all" />
                 </button>

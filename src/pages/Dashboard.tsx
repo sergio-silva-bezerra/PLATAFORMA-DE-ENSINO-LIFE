@@ -45,13 +45,13 @@ export function Dashboard() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat) => (
-          <div key={stat.label} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+          <div key={stat.label} className="bg-white p-6 rounded-sm border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
             <div className="flex items-start justify-between">
-              <div className={cn("p-3 rounded-xl text-white", stat.color)}>
+              <div className={cn("p-3 rounded-sm text-white", stat.color)}>
                 <stat.icon className="w-6 h-6" />
               </div>
               <div className={cn(
-                "flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full",
+                "flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-sm",
                 stat.trendUp ? "bg-green-50 text-green-600" : "bg-red-50 text-red-600"
               )}>
                 {stat.trendUp ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
@@ -76,7 +76,7 @@ export function Dashboard() {
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#9ca3af', fontSize: 12}} />
                 <YAxis axisLine={false} tickLine={false} tick={{fill: '#9ca3af', fontSize: 12}} />
                 <Tooltip 
-                  contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)'}}
+                  contentStyle={{borderRadius: '4px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)'}}
                   cursor={{fill: '#f9fafb'}}
                 />
                 <Bar dataKey="alunos" fill="#E31E24" radius={[4, 4, 0, 0]} barSize={40} />
@@ -85,7 +85,7 @@ export function Dashboard() {
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+        <div className="bg-white p-6 rounded-sm border border-gray-100 shadow-sm">
           <h3 className="text-lg font-bold text-gray-900 mb-6">Desempenho Financeiro</h3>
           <div className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
@@ -100,7 +100,7 @@ export function Dashboard() {
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#9ca3af', fontSize: 12}} />
                 <YAxis axisLine={false} tickLine={false} tick={{fill: '#9ca3af', fontSize: 12}} />
                 <Tooltip 
-                  contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)'}}
+                  contentStyle={{borderRadius: '4px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)'}}
                 />
                 <Area type="monotone" dataKey="financeiro" stroke="#8b5cf6" fillOpacity={1} fill="url(#colorFin)" strokeWidth={3} />
               </AreaChart>

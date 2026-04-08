@@ -45,7 +45,7 @@ export function PedagogicalPerformance() {
           <p className="text-gray-500">Análise estatística de notas, frequência e engajamento dos alunos.</p>
         </div>
         <div className="flex gap-3">
-          <button className="flex items-center gap-2 bg-white border border-gray-200 text-gray-600 px-6 py-3 rounded-xl font-bold text-sm hover:bg-gray-50 transition-all">
+          <button className="flex items-center gap-2 bg-white border border-gray-200 text-gray-600 px-6 py-3 rounded-sm font-bold text-sm hover:bg-gray-50 transition-all">
             <Download className="w-5 h-5" />
             Exportar PDF
           </button>
@@ -64,9 +64,9 @@ export function PedagogicalPerformance() {
           { label: 'Engajamento', value: '78%', icon: TrendingUp, color: 'bg-purple-500', trend: '-3%' },
           { label: 'Alunos em Alerta', value: '12', icon: AlertCircle, color: 'bg-red-500', trend: '-2' },
         ].map((stat, idx) => (
-          <div key={idx} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4">
+          <div key={idx} className="bg-white p-6 rounded-sm border border-gray-100 shadow-sm space-y-4">
             <div className="flex items-center justify-between">
-              <div className={`${stat.color} p-3 rounded-xl text-white`}>
+              <div className={`${stat.color} p-3 rounded-sm text-white`}>
                 <stat.icon className="w-5 h-5" />
               </div>
               <span className={`text-xs font-bold ${stat.trend.startsWith('+') ? 'text-green-500' : 'text-red-500'}`}>
@@ -135,7 +135,7 @@ export function PedagogicalPerformance() {
             </div>
             <div className="w-full md:w-1/2 space-y-3">
               {GRADE_DISTRIBUTION.map((item, idx) => (
-                <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-sm">
                   <div className="flex items-center gap-2">
                     <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }}></div>
                     <span className="text-xs font-bold text-gray-600">{item.name}</span>

@@ -26,7 +26,7 @@ export function PedagogicalSidebar() {
     <aside className="w-64 bg-white border-r border-gray-100 flex flex-col h-screen sticky top-0">
       <div className="p-8">
         <div className="flex items-center gap-3">
-          <div className="bg-[#E31E24] p-2 rounded-lg">
+          <div className="bg-[#E31E24] p-2 rounded-sm">
             <HeartPulse className="text-white w-6 h-6" />
           </div>
           <span className="font-black text-xl tracking-tighter text-gray-900">Life</span>
@@ -40,7 +40,7 @@ export function PedagogicalSidebar() {
             key={item.path}
             to={item.path}
             className={({ isActive }) => cn(
-              "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all group",
+              "flex items-center gap-3 px-4 py-3 rounded-sm text-sm font-bold transition-all group",
               isActive 
                 ? "bg-[#E31E24] text-white shadow-lg shadow-[#E31E24]/20" 
                 : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
@@ -53,13 +53,13 @@ export function PedagogicalSidebar() {
       </nav>
 
       <div className="p-4 border-t border-gray-50 space-y-1">
-        <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-gray-500 hover:bg-gray-50 hover:text-gray-900 transition-all">
+        <button className="w-full flex items-center gap-3 px-4 py-3 rounded-sm text-sm font-bold text-gray-500 hover:bg-gray-50 hover:text-gray-900 transition-all">
           <Settings className="w-5 h-5" />
           Configurações
         </button>
         <NavLink
           to="/login"
-          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-red-500 hover:bg-red-50 transition-all"
+          className="w-full flex items-center gap-3 px-4 py-3 rounded-sm text-sm font-bold text-red-500 hover:bg-red-50 transition-all"
         >
           <LogOut className="w-5 h-5" />
           Sair do Portal

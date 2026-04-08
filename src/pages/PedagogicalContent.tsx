@@ -106,7 +106,7 @@ export function PedagogicalContent() {
         </div>
         <button 
           onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-2 bg-[#E31E24] text-white px-6 py-3 rounded-xl font-bold text-sm shadow-lg shadow-[#E31E24]/20 hover:bg-[#C1191F] transition-all"
+          className="flex items-center gap-2 bg-[#E31E24] text-white px-6 py-3 rounded-sm font-bold text-sm shadow-lg shadow-[#E31E24]/20 hover:bg-[#C1191F] transition-all"
         >
           <Plus className="w-5 h-5" />
           Novo Conteúdo
@@ -120,8 +120,8 @@ export function PedagogicalContent() {
           { label: 'Vídeos Publicados', value: contents.filter(c => c.type === 'Video').length, icon: Video, color: 'bg-purple-500' },
           { label: 'Documentos PDF', value: contents.filter(c => c.type === 'PDF').length, icon: FileText, color: 'bg-orange-500' },
         ].map((stat, idx) => (
-          <div key={idx} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-4">
-            <div className={`${stat.color} p-3 rounded-xl text-white`}>
+          <div key={idx} className="bg-white p-6 rounded-sm border border-gray-100 shadow-sm flex items-center gap-4">
+            <div className={`${stat.color} p-3 rounded-sm text-white`}>
               <stat.icon className="w-6 h-6" />
             </div>
             <div>
@@ -133,7 +133,7 @@ export function PedagogicalContent() {
       </div>
 
       {/* Filters & Table */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-sm border border-gray-100 shadow-sm overflow-hidden">
         <div className="p-6 border-b border-gray-100 flex flex-col md:flex-row gap-4 items-center justify-between">
           <div className="relative w-full md:w-96">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -142,7 +142,7 @@ export function PedagogicalContent() {
               placeholder="Buscar por título ou disciplina..." 
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#E31E24]/20 focus:border-[#E31E24]"
+              className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-sm text-sm focus:outline-none focus:ring-2 focus:ring-[#E31E24]/20 focus:border-[#E31E24]"
             />
           </div>
           <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 w-full md:w-auto">
@@ -151,7 +151,7 @@ export function PedagogicalContent() {
                 key={t}
                 onClick={() => setFilter(t)}
                 className={cn(
-                  "px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap",
+                  "px-4 py-2 rounded-sm text-xs font-bold transition-all whitespace-nowrap",
                   filter === t 
                     ? "bg-[#E31E24] text-white shadow-lg shadow-[#E31E24]/20" 
                     : "bg-gray-50 text-gray-500 hover:bg-gray-100"
@@ -205,13 +205,13 @@ export function PedagogicalContent() {
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-2">
-                      <button className="p-2 text-gray-400 hover:text-[#E31E24] hover:bg-gray-50 rounded-lg transition-colors" title="Visualizar">
+                      <button className="p-2 text-gray-400 hover:text-[#E31E24] hover:bg-gray-50 rounded-sm transition-colors" title="Visualizar">
                         <Eye className="w-4 h-4" />
                       </button>
-                      <button className="p-2 text-gray-400 hover:text-blue-500 hover:bg-gray-50 rounded-lg transition-colors" title="Editar">
+                      <button className="p-2 text-gray-400 hover:text-blue-500 hover:bg-gray-50 rounded-sm transition-colors" title="Editar">
                         <Edit2 className="w-4 h-4" />
                       </button>
-                      <button className="p-2 text-gray-400 hover:text-red-500 hover:bg-gray-50 rounded-lg transition-colors" title="Excluir">
+                      <button className="p-2 text-gray-400 hover:text-red-500 hover:bg-gray-50 rounded-sm transition-colors" title="Excluir">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
@@ -232,7 +232,7 @@ export function PedagogicalContent() {
       {/* New Content Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200">
+          <div className="bg-white rounded-sm w-full max-w-lg overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200">
             <div className="bg-[#E31E24] p-6 text-white">
               <h3 className="text-xl font-bold">Postar Novo Conteúdo</h3>
               <p className="text-white/80 text-xs mt-1">Preencha os dados abaixo para disponibilizar o material.</p>
@@ -280,13 +280,13 @@ export function PedagogicalContent() {
                 <button 
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="flex-1 py-3 border border-gray-200 text-gray-500 rounded-xl font-bold text-sm hover:bg-gray-50 transition-all"
+                  className="flex-1 py-3 border border-gray-200 text-gray-500 rounded-sm font-bold text-sm hover:bg-gray-50 transition-all"
                 >
                   Cancelar
                 </button>
                 <button 
                   type="submit"
-                  className="flex-1 py-3 bg-[#E31E24] text-white rounded-xl font-bold text-sm shadow-lg shadow-[#E31E24]/20 hover:bg-[#C1191F] transition-all"
+                  className="flex-1 py-3 bg-[#E31E24] text-white rounded-sm font-bold text-sm shadow-lg shadow-[#E31E24]/20 hover:bg-[#C1191F] transition-all"
                 >
                   Publicar Agora
                 </button>

@@ -26,7 +26,7 @@ export function Requests() {
   return (
     <div className="space-y-8 relative">
       {showSuccess && (
-        <div className="fixed top-8 right-8 bg-[#E31E24] text-white px-6 py-4 rounded-2xl shadow-2xl z-[60] flex items-center gap-3 animate-in slide-in-from-right duration-300">
+        <div className="fixed top-8 right-8 bg-[#E31E24] text-white px-6 py-4 rounded-sm shadow-2xl z-[60] flex items-center gap-3 animate-in slide-in-from-right duration-300">
           <CheckCircle className="w-6 h-6" />
           <div>
             <p className="font-bold">Solicitação Aprovada!</p>
@@ -41,7 +41,7 @@ export function Requests() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-4">
-          <div className="p-3 bg-amber-50 text-amber-600 rounded-xl">
+          <div className="p-3 bg-amber-50 text-amber-600 rounded-sm">
             <Clock className="w-6 h-6" />
           </div>
           <div>
@@ -73,18 +73,18 @@ export function Requests() {
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-sm border border-gray-100 shadow-sm overflow-hidden">
         <div className="p-6 border-b border-gray-100 flex flex-col md:flex-row gap-4 items-center justify-between">
           <div className="relative w-full md:w-96">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
             <input 
               type="text" 
               placeholder="Buscar por aluno ou tipo de solicitação..." 
-              className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#E31E24]/20 focus:border-[#E31E24]"
+              className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-sm text-sm focus:outline-none focus:ring-2 focus:ring-[#E31E24]/20 focus:border-[#E31E24]"
             />
           </div>
           <div className="flex gap-2">
-            <button className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">
+            <button className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-sm text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">
               <Filter className="w-4 h-4" />
               Filtros
             </button>
@@ -148,10 +148,10 @@ export function Requests() {
       {/* Analysis Modal */}
       {isModalOpen && selectedRequest && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200">
+          <div className="bg-white rounded-sm w-full max-w-2xl overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200">
             <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-gray-900 text-white rounded-xl">
+                <div className="p-2 bg-gray-900 text-white rounded-sm">
                   <FileText className="w-5 h-5" />
                 </div>
                 <div>
@@ -195,9 +195,9 @@ export function Requests() {
                 </div>
               </div>
 
-              <div className="p-6 bg-gray-50 rounded-2xl border border-gray-100 space-y-4">
+              <div className="p-6 bg-gray-50 rounded-sm border border-gray-100 space-y-4">
                 <h3 className="text-xs font-bold text-gray-900 uppercase tracking-widest">Documentos Anexados</h3>
-                <div className="flex items-center justify-between p-3 bg-white rounded-xl border border-gray-200">
+                <div className="flex items-center justify-between p-3 bg-white rounded-sm border border-gray-200">
                   <div className="flex items-center gap-3">
                     <FileText className="w-4 h-4 text-gray-400" />
                     <span className="text-xs font-medium text-gray-700">Comprovante_Residencia.pdf</span>
@@ -210,13 +210,13 @@ export function Requests() {
                 <div className="flex gap-3 pt-4">
                   <button 
                     onClick={() => setIsModalOpen(false)}
-                    className="flex-1 px-6 py-3 border border-gray-200 text-gray-600 rounded-xl text-sm font-bold hover:bg-gray-50 transition-colors"
+                    className="flex-1 px-6 py-3 border border-gray-200 text-gray-600 rounded-sm text-sm font-bold hover:bg-gray-50 transition-colors"
                   >
                     Indeferir
                   </button>
                   <button 
                     onClick={() => handleApprove(selectedRequest.id)}
-                    className="flex-[2] px-6 py-3 bg-[#E31E24] text-white rounded-xl text-sm font-bold hover:bg-[#C1191F] transition-all shadow-lg shadow-[#E31E24]/20 flex items-center justify-center gap-2"
+                    className="flex-[2] px-6 py-3 bg-[#E31E24] text-white rounded-sm text-sm font-bold hover:bg-[#C1191F] transition-all shadow-lg shadow-[#E31E24]/20 flex items-center justify-center gap-2"
                   >
                     <Send className="w-4 h-4" />
                     Aprovar e Enviar Documento
@@ -224,7 +224,7 @@ export function Requests() {
                 </div>
               ) : (
                 <div className="pt-4">
-                  <div className="bg-green-50 border border-green-100 p-4 rounded-xl flex items-center gap-3 text-green-700">
+                  <div className="bg-green-50 border border-green-100 p-4 rounded-sm flex items-center gap-3 text-green-700">
                     <Check className="w-5 h-5" />
                     <p className="text-sm font-bold">Esta solicitação já foi concluída e o documento enviado.</p>
                   </div>

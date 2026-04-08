@@ -18,8 +18,8 @@ export function PedagogicalDashboard() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat, idx) => (
-          <div key={idx} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-4">
-            <div className={`${stat.color} p-3 rounded-xl text-white`}>
+          <div key={idx} className="bg-white p-6 rounded-sm border border-gray-100 shadow-sm flex items-center gap-4">
+            <div className={`${stat.color} p-3 rounded-sm text-white`}>
               <stat.icon className="w-6 h-6" />
             </div>
             <div>
@@ -39,7 +39,7 @@ export function PedagogicalDashboard() {
               { course: 'Produção Audiovisual', module: 'Módulo A', progress: 100, status: 'Concluído' },
               { course: 'Roteiro para Cinema', module: 'Módulo C', progress: 30, status: 'Iniciando' },
             ].map((item, idx) => (
-              <div key={idx} className="p-4 bg-gray-50 rounded-xl space-y-3">
+              <div key={idx} className="p-4 bg-gray-50 rounded-sm space-y-3">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-bold text-gray-800">{item.course}</p>
@@ -52,9 +52,9 @@ export function PedagogicalDashboard() {
                     {item.status}
                   </span>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-1.5">
+                <div className="w-full bg-gray-200 rounded-sm h-1.5">
                   <div 
-                    className="bg-[#E31E24] h-1.5 rounded-full transition-all" 
+                    className="bg-[#E31E24] h-1.5 rounded-sm transition-all" 
                     style={{ width: `${item.progress}%` }}
                   ></div>
                 </div>
@@ -63,7 +63,7 @@ export function PedagogicalDashboard() {
           </div>
         </div>
 
-        <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm space-y-6">
+        <div className="bg-white p-8 rounded-sm border border-gray-100 shadow-sm space-y-6">
           <h2 className="text-xl font-bold text-gray-900">Alertas de Desempenho</h2>
           <div className="space-y-4">
             {[
@@ -71,9 +71,9 @@ export function PedagogicalDashboard() {
               { student: 'Marcia Gomes', issue: 'Baixa frequência em Roteiro', type: 'Atenção' },
               { student: 'Lucas Ferreira', issue: 'Atividade pendente há 3 dias', type: 'Alerta' },
             ].map((alert, idx) => (
-              <div key={idx} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+              <div key={idx} className="flex items-center justify-between p-4 bg-gray-50 rounded-sm">
                 <div className="flex items-center gap-3">
-                  <div className={`p-2 rounded-lg ${
+                  <div className={`p-2 rounded-sm ${
                     alert.type === 'Positivo' ? 'bg-green-100 text-green-600' : 
                     alert.type === 'Atenção' ? 'bg-orange-100 text-orange-600' : 'bg-red-100 text-red-600'
                   }`}>

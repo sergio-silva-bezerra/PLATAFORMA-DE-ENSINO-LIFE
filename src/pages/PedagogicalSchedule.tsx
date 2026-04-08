@@ -28,7 +28,7 @@ export function PedagogicalSchedule() {
           <h1 className="text-3xl font-bold text-gray-900">Cronograma de Aulas</h1>
           <p className="text-gray-500">Gerencie o calendário acadêmico, aulas presenciais e prazos de entrega.</p>
         </div>
-        <button className="flex items-center gap-2 bg-[#E31E24] text-white px-6 py-3 rounded-xl font-bold text-sm shadow-lg shadow-[#E31E24]/20 hover:bg-[#C1191F] transition-all">
+        <button className="flex items-center gap-2 bg-[#E31E24] text-white px-6 py-3 rounded-sm font-bold text-sm shadow-lg shadow-[#E31E24]/20 hover:bg-[#C1191F] transition-all">
           <Plus className="w-5 h-5" />
           Novo Evento
         </button>
@@ -36,7 +36,7 @@ export function PedagogicalSchedule() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Calendar View (Simplified) */}
-        <div className="lg:col-span-1 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-6">
+        <div className="lg:col-span-1 bg-white p-6 rounded-sm border border-gray-100 shadow-sm space-y-6">
           <div className="flex items-center justify-between">
             <h2 className="font-bold text-gray-900">Abril 2026</h2>
             <div className="flex gap-2">
@@ -53,7 +53,7 @@ export function PedagogicalSchedule() {
               <div 
                 key={i} 
                 className={cn(
-                  "aspect-square flex items-center justify-center text-xs font-bold rounded-lg cursor-pointer transition-all",
+                  "aspect-square flex items-center justify-center text-xs font-bold rounded-sm cursor-pointer transition-all",
                   i + 1 === 10 ? "bg-[#E31E24] text-white shadow-lg shadow-[#E31E24]/20" : "text-gray-600 hover:bg-gray-50"
                 )}
               >
@@ -93,9 +93,9 @@ export function PedagogicalSchedule() {
 
           <div className="space-y-4">
             {events.map((event) => (
-              <div key={event.id} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between group hover:border-[#E31E24]/30 transition-all">
+              <div key={event.id} className="bg-white p-6 rounded-sm border border-gray-100 shadow-sm flex items-center justify-between group hover:border-[#E31E24]/30 transition-all">
                 <div className="flex items-center gap-6">
-                  <div className="flex flex-col items-center justify-center w-16 h-16 bg-gray-50 rounded-2xl border border-gray-100 group-hover:bg-[#E31E24]/5 group-hover:border-[#E31E24]/20 transition-all">
+                  <div className="flex flex-col items-center justify-center w-16 h-16 bg-gray-50 rounded-sm border border-gray-100 group-hover:bg-[#E31E24]/5 group-hover:border-[#E31E24]/20 transition-all">
                     <span className="text-[10px] font-black text-gray-400 uppercase">{new Date(event.date).toLocaleDateString('pt-BR', { month: 'short' })}</span>
                     <span className="text-2xl font-black text-gray-900 group-hover:text-[#E31E24]">{new Date(event.date).getDate()}</span>
                   </div>
@@ -122,7 +122,7 @@ export function PedagogicalSchedule() {
                     </div>
                   </div>
                 </div>
-                <button className="p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors">
+                <button className="p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-50 rounded-sm transition-colors">
                   <MoreVertical className="w-5 h-5" />
                 </button>
               </div>

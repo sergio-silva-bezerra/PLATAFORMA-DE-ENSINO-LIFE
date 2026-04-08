@@ -34,17 +34,17 @@ export function VirtualClassroom() {
             DIREÇÃO EM CINEMA - MÓDULO B
           </span>
         </div>
-        <button className="bg-[#E31E24] p-2 rounded-lg text-white hover:bg-[#C1191F] transition-colors">
+        <button className="bg-[#E31E24] p-2 rounded-sm text-white hover:bg-[#C1191F] transition-colors">
           <Settings className="w-5 h-5" />
         </button>
       </header>
 
       {/* Navigation Bar */}
       <div className="px-6 mt-4">
-        <nav className="bg-[#E31E24] rounded-full h-12 flex items-center justify-around relative px-4">
+        <nav className="bg-[#E31E24] rounded-sm h-12 flex items-center justify-around relative px-4">
           {/* Active Indicator (Início) */}
           <div className="absolute left-[10%] -top-4 flex flex-col items-center">
-            <div className="bg-[#C1191F] p-3 rounded-full shadow-lg border-4 border-white">
+            <div className="bg-[#C1191F] p-3 rounded-sm shadow-lg border-4 border-white">
               <Home className="w-5 h-5 text-white" />
             </div>
           </div>
@@ -118,7 +118,7 @@ export function VirtualClassroom() {
             <input 
               type="text" 
               placeholder="Pesquisar disciplina"
-              className="w-full bg-gray-100 border-none rounded-lg py-3 pl-4 pr-10 text-sm font-medium focus:ring-2 focus:ring-[#E31E24]/20"
+              className="w-full bg-gray-100 border-none rounded-sm py-3 pl-4 pr-10 text-sm font-medium focus:ring-2 focus:ring-[#E31E24]/20"
             />
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
           </div>
@@ -130,7 +130,7 @@ export function VirtualClassroom() {
             ].map((item, idx) => (
               <div 
                 key={idx}
-                className={`${item.color} rounded-2xl aspect-[4/3] relative overflow-hidden group cursor-pointer shadow-lg hover:shadow-xl transition-all hover:-translate-y-1`}
+                className={`${item.color} rounded-sm aspect-[4/3] relative overflow-hidden group cursor-pointer shadow-lg hover:shadow-xl transition-all hover:-translate-y-1`}
               >
                 {/* Background Pattern/Image Placeholder */}
                 <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
@@ -145,7 +145,7 @@ export function VirtualClassroom() {
 
                 {/* Bottom Overlay for hover effect */}
                 <div className="absolute inset-0 bg-[#E31E24]/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                   <span className="bg-white text-[#E31E24] px-4 py-2 rounded-full font-bold text-xs uppercase tracking-widest">Acessar</span>
+                   <span className="bg-white text-[#E31E24] px-4 py-2 rounded-sm font-bold text-xs uppercase tracking-widest">Acessar</span>
                 </div>
               </div>
             ))}

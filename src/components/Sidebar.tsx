@@ -32,7 +32,7 @@ export function Sidebar() {
   return (
     <aside className="w-64 bg-white border-r border-gray-200 flex flex-col h-screen sticky top-0">
       <div className="p-6 flex items-center gap-3 border-b border-gray-100">
-        <div className="bg-[#E31E24] p-2 rounded-lg">
+        <div className="bg-[#E31E24] p-2 rounded-sm">
           <HeartPulse className="text-white w-6 h-6" />
         </div>
         <div className="flex flex-col">
@@ -47,7 +47,7 @@ export function Sidebar() {
             key={item.path}
             to={item.path}
             className={({ isActive }) => cn(
-              "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group",
+              "flex items-center gap-3 px-4 py-3 rounded-sm transition-all duration-200 group",
               isActive 
                 ? "bg-[#E31E24]/10 text-[#E31E24] font-semibold shadow-sm" 
                 : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
@@ -65,7 +65,7 @@ export function Sidebar() {
       <div className="p-4 border-t border-gray-100">
         <button 
           onClick={handleLogout}
-          className="flex items-center gap-3 px-4 py-3 w-full rounded-xl text-red-500 hover:bg-red-50 transition-colors"
+          className="flex items-center gap-3 px-4 py-3 w-full rounded-sm text-red-500 hover:bg-red-50 transition-colors"
         >
           <LogOut className="w-5 h-5" />
           <span className="font-medium">Sair</span>

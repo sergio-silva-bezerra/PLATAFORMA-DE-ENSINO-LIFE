@@ -39,8 +39,8 @@ export function SecretariatDocuments() {
           { label: 'Validados', value: documents.filter(d => d.status === 'Validado').length, icon: CheckCircle, color: 'bg-green-500' },
           { label: 'Recusados', value: documents.filter(d => d.status === 'Recusado').length, icon: XCircle, color: 'bg-red-500' },
         ].map((stat, idx) => (
-          <div key={idx} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-4">
-            <div className={`${stat.color} p-3 rounded-xl text-white`}>
+          <div key={idx} className="bg-white p-6 rounded-sm border border-gray-100 shadow-sm flex items-center gap-4">
+            <div className={`${stat.color} p-3 rounded-sm text-white`}>
               <stat.icon className="w-6 h-6" />
             </div>
             <div>
@@ -51,14 +51,14 @@ export function SecretariatDocuments() {
         ))}
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-sm border border-gray-100 shadow-sm overflow-hidden">
         <div className="p-6 border-b border-gray-100 flex flex-col md:flex-row gap-4 items-center justify-between">
           <div className="relative w-full md:w-96">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
             <input 
               type="text" 
               placeholder="Buscar por aluno ou documento..." 
-              className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#E31E24]/20 focus:border-[#E31E24]"
+              className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-sm text-sm focus:outline-none focus:ring-2 focus:ring-[#E31E24]/20 focus:border-[#E31E24]"
             />
           </div>
           <div className="flex gap-2">
@@ -67,7 +67,7 @@ export function SecretariatDocuments() {
                 key={s}
                 onClick={() => setFilter(s)}
                 className={cn(
-                  "px-4 py-2 rounded-xl text-xs font-bold transition-all",
+                  "px-4 py-2 rounded-sm text-xs font-bold transition-all",
                   filter === s 
                     ? "bg-[#E31E24] text-white shadow-lg shadow-[#E31E24]/20" 
                     : "bg-gray-50 text-gray-500 hover:bg-gray-100"
@@ -118,28 +118,28 @@ export function SecretariatDocuments() {
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-2">
-                      <button className="p-2 text-gray-400 hover:text-[#E31E24] hover:bg-gray-50 rounded-lg transition-colors" title="Visualizar">
+                      <button className="p-2 text-gray-400 hover:text-[#E31E24] hover:bg-gray-50 rounded-sm transition-colors" title="Visualizar">
                         <Eye className="w-4 h-4" />
                       </button>
                       {doc.status === 'Pendente' && (
                         <>
                           <button 
                             onClick={() => handleStatusChange(doc.id, 'Validado')}
-                            className="p-2 text-green-500 hover:bg-green-50 rounded-lg transition-colors" 
+                            className="p-2 text-green-500 hover:bg-green-50 rounded-sm transition-colors" 
                             title="Validar"
                           >
                             <CheckCircle className="w-4 h-4" />
                           </button>
                           <button 
                             onClick={() => handleStatusChange(doc.id, 'Recusado')}
-                            className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors" 
+                            className="p-2 text-red-500 hover:bg-red-50 rounded-sm transition-colors" 
                             title="Recusar"
                           >
                             <XCircle className="w-4 h-4" />
                           </button>
                         </>
                       )}
-                      <button className="p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors" title="Download">
+                      <button className="p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-50 rounded-sm transition-colors" title="Download">
                         <Download className="w-4 h-4" />
                       </button>
                     </div>

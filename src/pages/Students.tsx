@@ -11,24 +11,24 @@ export function Students() {
           <h1 className="text-2xl font-bold text-gray-900">Secretaria: Gestão de Alunos</h1>
           <p className="text-gray-500">Visualize e gerencie todos os alunos matriculados.</p>
         </div>
-        <button className="bg-[#E31E24] text-white px-6 py-2.5 rounded-xl font-semibold flex items-center gap-2 hover:bg-[#C1191F] transition-colors shadow-sm">
+        <button className="bg-[#E31E24] text-white px-6 py-2.5 rounded-sm font-semibold flex items-center gap-2 hover:bg-[#C1191F] transition-colors shadow-sm">
           <Plus className="w-5 h-5" />
           Novo Aluno
         </button>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-sm border border-gray-100 shadow-sm overflow-hidden">
         <div className="p-6 border-b border-gray-100 flex flex-col md:flex-row gap-4 items-center justify-between">
           <div className="relative w-full md:w-96">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
             <input 
               type="text" 
               placeholder="Buscar por nome, CPF ou matrícula..." 
-              className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#E31E24]/20 focus:border-[#E31E24]"
+              className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-sm text-sm focus:outline-none focus:ring-2 focus:ring-[#E31E24]/20 focus:border-[#E31E24]"
             />
           </div>
           <div className="flex items-center gap-2 w-full md:w-auto">
-            <button className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">
+            <button className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-sm text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">
               <Filter className="w-4 h-4" />
               Filtros
             </button>

@@ -27,9 +27,9 @@ export function SecretariatDashboard() {
               if (stat.label === 'Documentos para Validar') navigate('/secretaria/documentos');
               if (stat.label === 'Novos Alunos') navigate('/secretaria/alunos');
             }}
-            className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-4 hover:shadow-md transition-all cursor-pointer group"
+            className="bg-white p-6 rounded-sm border border-gray-100 shadow-sm flex items-center gap-4 hover:shadow-md transition-all cursor-pointer group"
           >
-            <div className={`${stat.color} p-3 rounded-xl text-white group-hover:scale-110 transition-transform`}>
+            <div className={`${stat.color} p-3 rounded-sm text-white group-hover:scale-110 transition-transform`}>
               <stat.icon className="w-6 h-6" />
             </div>
             <div>
@@ -61,7 +61,7 @@ export function SecretariatDashboard() {
               <div 
                 key={idx} 
                 onClick={() => navigate('/secretaria/solicitacoes')}
-                className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors cursor-pointer"
+                className="flex items-center justify-between p-4 bg-gray-50 rounded-sm hover:bg-gray-100 transition-colors cursor-pointer"
               >
                 <div>
                   <p className="font-bold text-gray-800">{req.student}</p>
@@ -90,7 +90,7 @@ export function SecretariatDashboard() {
               { student: 'Marcia Gomes', issue: 'Histórico Pendente', status: 'Atenção' },
               { student: 'Lucas Ferreira', issue: 'Foto de Perfil', status: 'Normal' },
             ].map((alert, idx) => (
-              <div key={idx} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+              <div key={idx} className="flex items-center justify-between p-4 bg-gray-50 rounded-sm">
                 <div>
                   <p className="font-bold text-gray-800">{alert.student}</p>
                   <p className="text-xs text-gray-500">{alert.issue}</p>

@@ -18,8 +18,8 @@ export function FinancialDashboard() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat, idx) => (
-          <div key={idx} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-4">
-            <div className={`${stat.color} p-3 rounded-xl text-white`}>
+          <div key={idx} className="bg-white p-6 rounded-sm border border-gray-100 shadow-sm flex items-center gap-4">
+            <div className={`${stat.color} p-3 rounded-sm text-white`}>
               <stat.icon className="w-6 h-6" />
             </div>
             <div>
@@ -40,7 +40,7 @@ export function FinancialDashboard() {
               { student: 'Carlos Eduardo', value: 'R$ 1.200,00', method: 'Cartão', date: 'Há 2 horas', status: 'Confirmado' },
               { student: 'Juliana Lima', value: 'R$ 320,00', method: 'Boleto', date: 'Há 5 horas', status: 'Atrasado' },
             ].map((pay, idx) => (
-              <div key={idx} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors cursor-pointer">
+              <div key={idx} className="flex items-center justify-between p-4 bg-gray-50 rounded-sm hover:bg-gray-100 transition-colors cursor-pointer">
                 <div>
                   <p className="font-bold text-gray-800">{pay.student}</p>
                   <div className="flex items-center gap-2">
@@ -70,7 +70,7 @@ export function FinancialDashboard() {
               { student: 'Marcia Gomes', value: 'R$ 1.100,00', status: 'Aguardando' },
               { student: 'Lucas Ferreira', value: 'R$ 850,00', status: 'Aprovado' },
             ].map((neg, idx) => (
-              <div key={idx} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+              <div key={idx} className="flex items-center justify-between p-4 bg-gray-50 rounded-sm">
                 <div>
                   <p className="font-bold text-gray-800">{neg.student}</p>
                   <p className="text-xs text-gray-500">{neg.value}</p>

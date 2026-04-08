@@ -37,13 +37,13 @@ export function Login() {
 
   return (
     <div className="min-h-screen bg-[#F8F9FA] flex items-center justify-center p-4 font-sans">
-      <div className="max-w-5xl w-full bg-white rounded-[32px] shadow-2xl overflow-hidden flex flex-col md:flex-row border border-gray-100">
+      <div className="max-w-5xl w-full bg-white rounded-sm shadow-2xl overflow-hidden flex flex-col md:flex-row border border-gray-100">
         
         {/* Left Side - Visual/Branding */}
         <div className="md:w-1/2 bg-[#E31E24] p-12 text-white flex flex-col justify-between relative overflow-hidden">
           <div className="relative z-10">
             <div className="flex items-center gap-3 mb-12">
-              <div className="bg-white p-2 rounded-lg">
+              <div className="bg-white p-2 rounded-sm">
                 <HeartPulse className="text-[#E31E24] w-8 h-8" />
               </div>
               <div className="flex flex-col">
@@ -52,7 +52,7 @@ export function Login() {
               </div>
             </div>
             
-            <div className="mb-8 rounded-2xl overflow-hidden shadow-2xl border-4 border-white/20">
+            <div className="mb-8 rounded-sm overflow-hidden shadow-2xl border-4 border-white/20">
               <img 
                 src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=800&q=80" 
                 alt="Profissionais da Saúde" 
@@ -67,7 +67,7 @@ export function Login() {
 
           <div className="relative z-10 pt-12">
              <div className="flex items-center gap-4">
-                <div className="w-12 h-1 bg-white/30 rounded-full overflow-hidden">
+                <div className="w-12 h-1 bg-white/30 rounded-sm overflow-hidden">
                    <div className="bg-white h-full w-1/3"></div>
                 </div>
                 <span className="text-xs font-bold uppercase tracking-widest opacity-60">Versão 2.0.26</span>
@@ -86,7 +86,7 @@ export function Login() {
             <button 
               onClick={() => setRole('aluno')}
               className={cn(
-                "flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all group",
+                "flex flex-col items-center gap-2 p-4 rounded-sm border-2 transition-all group",
                 role === 'aluno' 
                   ? "border-[#E31E24] bg-[#E31E24]/5 text-[#E31E24]" 
                   : "border-gray-100 hover:border-gray-200 text-gray-400"
@@ -99,7 +99,7 @@ export function Login() {
             <button 
               onClick={() => setRole('admin')}
               className={cn(
-                "flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all group",
+                "flex flex-col items-center gap-2 p-4 rounded-sm border-2 transition-all group",
                 role === 'admin' 
                   ? "border-[#E31E24] bg-[#E31E24]/5 text-[#E31E24]" 
                   : "border-gray-100 hover:border-gray-200 text-gray-400"
@@ -112,7 +112,7 @@ export function Login() {
             <button 
               onClick={() => setRole('secretaria')}
               className={cn(
-                "flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all group",
+                "flex flex-col items-center gap-2 p-4 rounded-sm border-2 transition-all group",
                 role === 'secretaria' 
                   ? "border-[#E31E24] bg-[#E31E24]/5 text-[#E31E24]" 
                   : "border-gray-100 hover:border-gray-200 text-gray-400"
@@ -125,7 +125,7 @@ export function Login() {
             <button 
               onClick={() => setRole('financeiro')}
               className={cn(
-                "flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all group",
+                "flex flex-col items-center gap-2 p-4 rounded-sm border-2 transition-all group",
                 role === 'financeiro' 
                   ? "border-[#E31E24] bg-[#E31E24]/5 text-[#E31E24]" 
                   : "border-gray-100 hover:border-gray-200 text-gray-400"
@@ -138,7 +138,7 @@ export function Login() {
             <button 
               onClick={() => setRole('pedagogico')}
               className={cn(
-                "flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all group",
+                "flex flex-col items-center gap-2 p-4 rounded-sm border-2 transition-all group",
                 role === 'pedagogico' 
                   ? "border-[#E31E24] bg-[#E31E24]/5 text-[#E31E24]" 
                   : "border-gray-100 hover:border-gray-200 text-gray-400"
@@ -151,7 +151,7 @@ export function Login() {
 
           <form onSubmit={handleLogin} className="space-y-5">
             {error && (
-              <div className="bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-xl text-xs font-bold animate-shake">
+              <div className="bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-sm text-xs font-bold animate-shake">
                 {error}
               </div>
             )}
@@ -164,7 +164,7 @@ export function Login() {
                   value={identifier}
                   onChange={(e) => setIdentifier(e.target.value)}
                   placeholder={role === 'aluno' ? "Digite seus dados" : `Usuário ${role}`}
-                  className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl text-sm focus:outline-none focus:ring-4 focus:ring-[#E31E24]/10 focus:border-[#E31E24] transition-all"
+                  className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-sm text-sm focus:outline-none focus:ring-4 focus:ring-[#E31E24]/10 focus:border-[#E31E24] transition-all"
                   required
                 />
               </div>
@@ -179,7 +179,7 @@ export function Login() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl text-sm focus:outline-none focus:ring-4 focus:ring-[#E31E24]/10 focus:border-[#E31E24] transition-all"
+                  className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-sm text-sm focus:outline-none focus:ring-4 focus:ring-[#E31E24]/10 focus:border-[#E31E24] transition-all"
                   required
                 />
               </div>
@@ -195,7 +195,7 @@ export function Login() {
 
             <button 
               type="submit"
-              className="w-full bg-[#E31E24] text-white py-4 rounded-2xl font-black text-sm uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-[#C1191F] transition-all shadow-xl shadow-[#E31E24]/20 group mt-8"
+              className="w-full bg-[#E31E24] text-white py-4 rounded-sm font-black text-sm uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-[#C1191F] transition-all shadow-xl shadow-[#E31E24]/20 group mt-8"
             >
               Entrar no Portal
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />

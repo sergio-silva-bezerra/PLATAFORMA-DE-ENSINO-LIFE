@@ -111,7 +111,7 @@ export function StudentSecretariat() {
             </div>
           )}
 
-          <div className="bg-blue-50 border border-blue-100 rounded-lg p-6 flex gap-4">
+          <div className="bg-blue-50 border border-blue-100 rounded-sm p-6 flex gap-4">
             <AlertCircle className="w-6 h-6 text-blue-500 shrink-0" />
             <div className="space-y-1">
               <p className="text-sm font-bold text-blue-900">Informação Importante</p>
@@ -123,7 +123,7 @@ export function StudentSecretariat() {
         </div>
 
         <div className="space-y-6">
-          <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6 space-y-6">
+          <div className="bg-white rounded-sm border border-gray-200 shadow-sm p-6 space-y-6">
             <h3 className="text-sm font-bold text-gray-800 uppercase tracking-tight">Status do Processo</h3>
             <div className="space-y-6">
               {[
@@ -148,7 +148,7 @@ export function StudentSecretariat() {
             </div>
           </div>
 
-          <div className="bg-gray-900 rounded-lg p-6 text-white space-y-4">
+          <div className="bg-gray-900 rounded-sm p-6 text-white space-y-4">
             <h3 className="text-sm font-bold uppercase tracking-widest">Dúvidas?</h3>
             <p className="text-xs text-gray-400 leading-relaxed">Consulte nossa base de conhecimento ou entre em contato com o suporte acadêmico.</p>
             <button className="w-full py-2.5 bg-white text-gray-900 rounded text-[10px] font-bold uppercase tracking-wider hover:bg-gray-100 transition-colors">

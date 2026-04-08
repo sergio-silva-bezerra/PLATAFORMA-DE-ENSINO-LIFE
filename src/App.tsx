@@ -125,7 +125,7 @@ export default function App() {
             <h1 className="text-3xl font-bold text-gray-900">Gestão de Negociações</h1>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {[1, 2].map((i) => (
-                <div key={i} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4">
+                <div key={i} className="bg-white p-6 rounded-sm border border-gray-100 shadow-sm space-y-4">
                   <div className="flex justify-between items-start">
                     <div>
                       <p className="font-bold text-gray-800">Proposta #2026-00{i}</p>
@@ -137,7 +137,7 @@ export default function App() {
                     <span className="text-gray-500">Valor Total:</span>
                     <span className="font-bold text-gray-800">R$ 1.250,00</span>
                   </div>
-                  <button className="w-full py-2 bg-[#E31E24] text-white rounded-lg text-xs font-bold">Ver Detalhes</button>
+                  <button className="w-full py-2 bg-[#E31E24] text-white rounded-sm text-xs font-bold">Ver Detalhes</button>
                 </div>
               ))}
             </div>
@@ -148,7 +148,7 @@ export default function App() {
             <h1 className="text-3xl font-bold text-gray-900">Relatórios Financeiros</h1>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {['Faturamento Mensal', 'Inadimplência', 'Balanço por Curso'].map((rep) => (
-                <div key={rep} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:bg-gray-50 cursor-pointer">
+                <div key={rep} className="bg-white p-6 rounded-sm border border-gray-100 shadow-sm hover:bg-gray-50 cursor-pointer">
                   <BarChart3 className="w-8 h-8 text-purple-500 mb-4" />
                   <h3 className="font-bold text-gray-800">{rep}</h3>
                   <p className="text-xs text-gray-500 mt-2">Gerar relatório detalhado em PDF/Excel.</p>
@@ -183,7 +183,7 @@ export default function App() {
             <h1 className="text-3xl font-bold text-gray-800">Biblioteca Digital</h1>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {['Minha Biblioteca', 'Pearson', 'Biblioteca Virtual'].map((lib) => (
-                <div key={lib} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all cursor-pointer group">
+                <div key={lib} className="bg-white p-6 rounded-sm border border-gray-100 shadow-sm hover:shadow-md transition-all cursor-pointer group">
                   <BookOpen className="w-8 h-8 text-[#E31E24] mb-4 group-hover:scale-110 transition-transform" />
                   <h3 className="font-bold text-gray-800">{lib}</h3>
                   <p className="text-xs text-gray-500 mt-2">Acesse milhares de títulos e periódicos online.</p>
@@ -197,7 +197,7 @@ export default function App() {
             <h1 className="text-3xl font-bold text-gray-800">Links Úteis</h1>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {['Portal do MEC', 'Enade', 'Canal do Aluno', 'Suporte Técnico'].map((link) => (
-                <div key={link} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex items-center justify-between hover:bg-gray-50 cursor-pointer">
+                <div key={link} className="bg-white p-4 rounded-sm border border-gray-100 shadow-sm flex items-center justify-between hover:bg-gray-50 cursor-pointer">
                   <span className="text-sm font-bold text-gray-700">{link}</span>
                   <ExternalLink className="w-4 h-4 text-gray-400" />
                 </div>

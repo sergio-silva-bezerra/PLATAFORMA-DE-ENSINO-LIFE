@@ -12,11 +12,11 @@ export function Financial() {
           <p className="text-gray-500">Controle de mensalidades, inadimplência e faturamento.</p>
         </div>
         <div className="flex gap-3">
-          <button className="bg-white text-gray-700 border border-gray-200 px-6 py-2.5 rounded-xl font-semibold hover:bg-gray-50 transition-colors shadow-sm flex items-center gap-2">
+          <button className="bg-white text-gray-700 border border-gray-200 px-6 py-2.5 rounded-sm font-semibold hover:bg-gray-50 transition-colors shadow-sm flex items-center gap-2">
             <Download className="w-4 h-4" />
             Exportar Relatório
           </button>
-          <button className="bg-[#E31E24] text-white px-6 py-2.5 rounded-xl font-semibold hover:bg-[#C1191F] transition-colors shadow-sm">
+          <button className="bg-[#E31E24] text-white px-6 py-2.5 rounded-sm font-semibold hover:bg-[#C1191F] transition-colors shadow-sm">
             Gerar Boletos em Lote
           </button>
         </div>
@@ -25,10 +25,10 @@ export function Financial() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
           <div className="flex items-center justify-between mb-4">
-            <div className="p-2 bg-green-50 text-green-600 rounded-lg">
+            <div className="p-2 bg-green-50 text-green-600 rounded-sm">
               <ArrowUpRight className="w-5 h-5" />
             </div>
-            <span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded-full">+14.2%</span>
+            <span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded-sm">+14.2%</span>
           </div>
           <p className="text-sm text-gray-500 font-medium">Recebido (Mês)</p>
           <p className="text-2xl font-bold text-gray-900 mt-1">R$ 84.230,00</p>
@@ -55,17 +55,17 @@ export function Financial() {
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-sm border border-gray-100 shadow-sm overflow-hidden">
         <div className="p-6 border-b border-gray-100 flex flex-col md:flex-row gap-4 items-center justify-between">
           <div className="relative w-full md:w-96">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
             <input 
               type="text" 
               placeholder="Buscar por aluno ou número do boleto..." 
-              className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#E31E24]/20 focus:border-[#E31E24]"
+              className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-sm text-sm focus:outline-none focus:ring-2 focus:ring-[#E31E24]/20 focus:border-[#E31E24]"
             />
           </div>
-          <button className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">
+          <button className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-sm text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">
             <Filter className="w-4 h-4" />
             Filtrar por Status
           </button>
