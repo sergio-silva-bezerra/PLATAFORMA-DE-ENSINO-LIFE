@@ -19,16 +19,6 @@ const tabs = [
     path: '/aluno/solicitacoes',
     sections: [
       {
-        title: 'ACADÊMICO',
-        items: [
-          { label: 'Segunda chamada', path: '/aluno/secretaria?type=segunda-chamada' },
-          { label: 'Dispensa de disciplinas', path: '/aluno/secretaria?type=dispensa' },
-          { label: 'Mudança de Curso', path: '/aluno/secretaria?type=mudanca-curso' },
-          { label: 'Transferência de Faculdade', path: '/aluno/secretaria?type=transferencia-faculdade' },
-          { label: 'Transferência de Polo de apoio presencial EAD', path: '/aluno/secretaria?type=transferencia-polo' },
-        ]
-      },
-      {
         title: 'ALTERAÇÕES ACADÊMICAS',
         items: [
           { label: 'Mudança de Turma', path: '/aluno/secretaria?type=mudanca-turma' },
