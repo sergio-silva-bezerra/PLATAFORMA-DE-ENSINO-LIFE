@@ -8,7 +8,9 @@ import {
   FileText, 
   Settings, 
   LogOut,
-  HeartPulse
+  HeartPulse,
+  Handshake,
+  Package
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 
@@ -18,6 +20,8 @@ const navItems = [
   { icon: BookOpen, label: 'Pedagógico (Cursos)', path: '/admin/cursos' },
   { icon: DollarSign, label: 'Financeiro', path: '/admin/financeiro' },
   { icon: FileText, label: 'Solicitações', path: '/admin/solicitacoes' },
+  { icon: Handshake, label: 'Convênios', path: '/admin/convenios' },
+  { icon: Package, label: 'Insumos', path: '/admin/insumos' },
   { icon: HeartPulse, label: 'Portal do Aluno', path: '/aluno' },
 ];
 

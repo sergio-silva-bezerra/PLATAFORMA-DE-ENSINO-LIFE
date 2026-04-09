@@ -6,7 +6,9 @@ import {
   FileText, 
   LogOut,
   HeartPulse,
-  ClipboardList
+  ClipboardList,
+  Globe,
+  ShieldPlus
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 
@@ -15,6 +17,8 @@ const navItems = [
   { icon: Users, label: 'Alunos', path: '/secretaria/alunos' },
   { icon: FileText, label: 'Solicitações', path: '/secretaria/solicitacoes' },
   { icon: ClipboardList, label: 'Documentos', path: '/secretaria/documentos' },
+  { icon: Globe, label: 'SISTEC/MEC', path: '/secretaria/sistec' },
+  { icon: ShieldPlus, label: 'Dossiê de Saúde', path: '/secretaria/saude' },
 ];
 
 export function SecretariatSidebar() {

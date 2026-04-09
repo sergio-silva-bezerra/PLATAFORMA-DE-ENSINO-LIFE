@@ -24,7 +24,7 @@ export function DebtNegotiation() {
       <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-8 space-y-12">
         <div className="flex flex-col md:flex-row justify-between items-start gap-4">
           <div>
-            <h2 className="text-xl font-bold text-gray-800 uppercase tracking-tight">FILMMAKER - UNAMA - Alcindo Cacela</h2>
+            <h2 className="text-xl font-bold text-gray-800 uppercase tracking-tight">TÉCNICO EM ENFERMAGEM - LIFE - Alcindo Cacela</h2>
           </div>
           <div className="text-right">
             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">RESPONSÁVEL FINANCEIRO</p>

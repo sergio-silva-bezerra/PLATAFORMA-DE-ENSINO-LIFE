@@ -2,6 +2,7 @@ import React from 'react';
 import { Play, FileText, Calendar, GraduationCap, HelpCircle, ChevronLeft, ChevronRight, ExternalLink } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '../lib/utils';
+import { GamificationBadges } from '../components/GamificationBadges';
 
 const subjects = [
   {
@@ -39,7 +40,7 @@ export function StudentDashboard() {
       <div>
         <h1 className="text-2xl font-bold text-gray-800">Técnico em Enfermagem</h1>
         <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">
-          RR - BOA VISTA (GARDEN SHOPPING - UNAMA)
+          RR - BOA VISTA (GARDEN SHOPPING - LIFE)
         </p>
       </div>
 
@@ -228,6 +229,8 @@ export function StudentDashboard() {
           </div>
 
           {/* Quick Links */}
+          <GamificationBadges />
+
           <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
             <div className="bg-gray-50 px-4 py-2 border-b border-gray-100">
               <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Acesso Rápido</p>

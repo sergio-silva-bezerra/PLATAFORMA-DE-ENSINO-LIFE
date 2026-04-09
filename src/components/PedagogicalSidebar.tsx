@@ -8,7 +8,10 @@ import {
   Calendar,
   BarChart3,
   Settings,
-  LogOut
+  LogOut,
+  MapPin,
+  ShieldAlert,
+  Microscope
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 
@@ -19,6 +22,9 @@ const menuItems = [
   { icon: BookOpen, label: 'Conteúdos', path: '/pedagogico/conteudos' },
   { icon: Calendar, label: 'Cronograma', path: '/pedagogico/cronograma' },
   { icon: BarChart3, label: 'Desempenho', path: '/pedagogico/desempenho' },
+  { icon: MapPin, label: 'Preceptoria', path: '/pedagogico/preceptoria' },
+  { icon: ShieldAlert, label: 'Biossegurança', path: '/pedagogico/biosseguranca' },
+  { icon: Microscope, label: 'Laboratórios', path: '/pedagogico/laboratorios' },
 ];
 
 export function PedagogicalSidebar() {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { DollarSign, CreditCard, TrendingUp, AlertCircle } from 'lucide-react';
+import { DollarSign, CreditCard, TrendingUp, AlertCircle, MessageSquare, PenTool, CheckCircle2 } from 'lucide-react';
 
 export function FinancialDashboard() {
   const stats = [
@@ -30,9 +30,12 @@ export function FinancialDashboard() {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm space-y-6">
-          <h2 className="text-xl font-bold text-gray-900">Pagamentos Recentes</h2>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 bg-white p-8 rounded-sm border border-gray-100 shadow-sm space-y-6">
+          <div className="flex justify-between items-center">
+            <h2 className="text-xl font-bold text-gray-900">Pagamentos Recentes</h2>
+            <button className="text-xs font-bold text-[#E31E24] hover:underline">Ver Todos</button>
+          </div>
           <div className="space-y-4">
             {[
               { student: 'Sérgio Silva Bezerra', value: 'R$ 450,00', method: 'PIX', date: 'Há 5 min', status: 'Confirmado' },
@@ -62,27 +65,37 @@ export function FinancialDashboard() {
           </div>
         </div>
 
-        <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm space-y-6">
-          <h2 className="text-xl font-bold text-gray-900">Negociações em Aberto</h2>
-          <div className="space-y-4">
-            {[
-              { student: 'Roberto Silva', value: 'R$ 2.450,00', status: 'Em Análise' },
-              { student: 'Marcia Gomes', value: 'R$ 1.100,00', status: 'Aguardando' },
-              { student: 'Lucas Ferreira', value: 'R$ 850,00', status: 'Aprovado' },
-            ].map((neg, idx) => (
-              <div key={idx} className="flex items-center justify-between p-4 bg-gray-50 rounded-sm">
-                <div>
-                  <p className="font-bold text-gray-800">{neg.student}</p>
-                  <p className="text-xs text-gray-500">{neg.value}</p>
-                </div>
-                <span className={`text-[10px] font-bold uppercase px-2 py-1 rounded ${
-                  neg.status === 'Em Análise' ? 'bg-blue-100 text-blue-600' : 
-                  neg.status === 'Aguardando' ? 'bg-orange-100 text-orange-600' : 'bg-green-100 text-green-600'
-                }`}>
-                  {neg.status}
-                </span>
+        <div className="space-y-6">
+          <div className="bg-white p-6 rounded-sm border border-gray-100 shadow-sm space-y-4">
+            <h3 className="font-bold text-gray-800 flex items-center gap-2">
+              <MessageSquare className="w-5 h-5 text-green-500" />
+              Régua de Cobrança
+            </h3>
+            <p className="text-xs text-gray-500">Automação de lembretes via WhatsApp para reduzir a inadimplência.</p>
+            <div className="space-y-2">
+              <div className="flex justify-between text-xs">
+                <span>Lembretes Enviados (Hoje):</span>
+                <span className="font-bold">142</span>
               </div>
-            ))}
+              <div className="flex justify-between text-xs">
+                <span>Taxa de Resposta:</span>
+                <span className="font-bold text-green-600">65%</span>
+              </div>
+            </div>
+            <button className="w-full py-2 bg-green-600 text-white text-xs font-bold rounded-sm">Configurar Régua</button>
+          </div>
+
+          <div className="bg-white p-6 rounded-sm border border-gray-100 shadow-sm space-y-4">
+            <h3 className="font-bold text-gray-800 flex items-center gap-2">
+              <PenTool className="w-5 h-5 text-blue-500" />
+              Matrícula Digital
+            </h3>
+            <p className="text-xs text-gray-500">Contratos assinados eletronicamente com validade jurídica.</p>
+            <div className="flex items-center gap-2 p-3 bg-blue-50 rounded-sm border border-blue-100">
+              <CheckCircle2 className="w-4 h-4 text-blue-600" />
+              <span className="text-[10px] font-bold text-blue-800">12 Contratos Pendentes</span>
+            </div>
+            <button className="w-full py-2 bg-blue-600 text-white text-xs font-bold rounded-sm">Gerenciar Assinaturas</button>
           </div>
         </div>
       </div>

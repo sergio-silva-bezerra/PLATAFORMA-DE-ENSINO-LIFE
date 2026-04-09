@@ -29,6 +29,14 @@ import { SecretariatSidebar } from './components/SecretariatSidebar';
 import { FinancialSidebar } from './components/FinancialSidebar';
 import { PedagogicalSidebar } from './components/PedagogicalSidebar';
 import { Login } from './pages/Login';
+import HealthDossier from './pages/HealthDossier';
+import SistecExport from './pages/SistecExport';
+import PreceptorshipPortal from './pages/PreceptorshipPortal';
+import BiosafetyModule from './pages/BiosafetyModule';
+import LabManagement from './pages/LabManagement';
+import AgreementsDashboard from './pages/AgreementsDashboard';
+import InventoryReport from './pages/InventoryReport';
+import { AITutor } from './components/AITutor';
 
 function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -93,6 +101,7 @@ function StudentLayout({ children }: { children: React.ReactNode }) {
       <main className="w-full">
         {children}
       </main>
+      <AITutor />
     </div>
   );
 }
@@ -110,12 +119,16 @@ export default function App() {
         <Route path="/admin/cursos" element={<AdminLayout><Courses /></AdminLayout>} />
         <Route path="/admin/financeiro" element={<AdminLayout><Financial /></AdminLayout>} />
         <Route path="/admin/solicitacoes" element={<AdminLayout><Requests /></AdminLayout>} />
+        <Route path="/admin/convenios" element={<AdminLayout><AgreementsDashboard /></AdminLayout>} />
+        <Route path="/admin/insumos" element={<AdminLayout><InventoryReport /></AdminLayout>} />
         
         {/* Secretariat Routes */}
         <Route path="/secretaria" element={<SecretariatLayout><SecretariatDashboard /></SecretariatLayout>} />
         <Route path="/secretaria/alunos" element={<SecretariatLayout><Students /></SecretariatLayout>} />
         <Route path="/secretaria/solicitacoes" element={<SecretariatLayout><Requests /></SecretariatLayout>} />
         <Route path="/secretaria/documentos" element={<SecretariatLayout><SecretariatDocuments /></SecretariatLayout>} />
+        <Route path="/secretaria/sistec" element={<SecretariatLayout><SistecExport /></SecretariatLayout>} />
+        <Route path="/secretaria/saude" element={<SecretariatLayout><HealthDossier /></SecretariatLayout>} />
 
         {/* Financial Routes */}
         <Route path="/financeiro" element={<FinancialLayout><FinancialDashboard /></FinancialLayout>} />
@@ -165,6 +178,9 @@ export default function App() {
         <Route path="/pedagogico/conteudos" element={<PedagogicalLayout><PedagogicalContent /></PedagogicalLayout>} />
         <Route path="/pedagogico/cronograma" element={<PedagogicalLayout><PedagogicalSchedule /></PedagogicalLayout>} />
         <Route path="/pedagogico/desempenho" element={<PedagogicalLayout><PedagogicalPerformance /></PedagogicalLayout>} />
+        <Route path="/pedagogico/preceptoria" element={<PedagogicalLayout><PreceptorshipPortal /></PedagogicalLayout>} />
+        <Route path="/pedagogico/biosseguranca" element={<PedagogicalLayout><BiosafetyModule /></PedagogicalLayout>} />
+        <Route path="/pedagogico/laboratorios" element={<PedagogicalLayout><LabManagement /></PedagogicalLayout>} />
 
         {/* Student Routes */}
         <Route path="/aluno" element={<StudentLayout><StudentDashboard /></StudentLayout>} />
