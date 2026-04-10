@@ -40,7 +40,7 @@ export function StudentDashboard() {
       <div>
         <h1 className="text-2xl font-bold text-gray-800">Técnico em Enfermagem</h1>
         <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">
-          RR - BOA VISTA (GARDEN SHOPPING - LIFE)
+          RR - BOA VISTA
         </p>
       </div>
 
