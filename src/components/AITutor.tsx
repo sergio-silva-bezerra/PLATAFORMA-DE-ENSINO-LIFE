@@ -3,7 +3,7 @@ import { Bot, Send, X, Minimize2, Maximize2, Loader2, Sparkles } from 'lucide-re
 import { GoogleGenAI } from "@google/genai";
 
 // Use the platform-provided API key as per guidelines
-const ai = new GoogleGenAI({ apiKey: (process.env as any).GEMINI_API_KEY });
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 export function AITutor() {
   const [isOpen, setIsOpen] = useState(false);
