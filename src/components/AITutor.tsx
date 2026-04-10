@@ -2,9 +2,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Bot, Send, X, Minimize2, Maximize2, Loader2, Sparkles } from 'lucide-react';
 import { GoogleGenAI } from "@google/genai";
 
-// Use the platform-provided API key as per guidelines
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-
 export function AITutor() {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
@@ -14,6 +11,20 @@ export function AITutor() {
   ]);
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const aiRef = useRef<any>(null);
+
+  const getAI = () => {
+    if (aiRef.current) return aiRef.current;
+    
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      console.warn("GEMINI_API_KEY não configurada.");
+      return null;
+    }
+    
+    aiRef.current = new GoogleGenAI({ apiKey });
+    return aiRef.current;
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -25,6 +36,12 @@ export function AITutor() {
 
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
+
+    const ai = getAI();
+    if (!ai) {
+      setMessages(prev => [...prev, { role: 'ai', content: "O Tutor IA está temporariamente indisponível (Chave de API não configurada)." }]);
+      return;
+    }
 
     const userMessage = input.trim();
     setInput('');
