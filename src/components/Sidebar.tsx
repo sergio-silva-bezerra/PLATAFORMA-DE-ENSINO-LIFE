@@ -25,11 +25,13 @@ const navItems = [
   { icon: HeartPulse, label: 'Portal do Aluno', path: '/aluno' },
 ];
 
+import { db, logOut } from '../lib/firebase';
+
 export function Sidebar() {
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    // Here you could also clear session/local storage if needed
+  const handleLogout = async () => {
+    await logOut();
     navigate('/login');
   };
 

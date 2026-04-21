@@ -18,10 +18,13 @@ const navItems = [
   { icon: TrendingUp, label: 'Relatórios', path: '/financeiro/relatorios' },
 ];
 
+import { logOut } from '../lib/firebase';
+
 export function FinancialSidebar() {
   const navigate = useNavigate();
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await logOut();
     navigate('/login');
   };
 

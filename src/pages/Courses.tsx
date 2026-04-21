@@ -34,18 +34,34 @@ export function Courses() {
 
   const handleCreateCourse = async (e: React.FormEvent) => {
     e.preventDefault();
-    await createCourse(newCourse.name, newCourse.modality, newCourse.duration);
-    setShowCourseModal(false);
-    setNewCourse({ name: '', modality: 'Presencial', duration: '' });
-    fetchData();
+    setLoading(true);
+    try {
+      await createCourse(newCourse.name, newCourse.modality, newCourse.duration);
+      setShowCourseModal(false);
+      setNewCourse({ name: '', modality: 'Presencial', duration: '' });
+      await fetchData();
+    } catch (error: any) {
+      console.error("Failed to create course:", error);
+      alert("Erro ao criar curso. Verifique suas permissões.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleCreateSubject = async (e: React.FormEvent) => {
     e.preventDefault();
-    await createSubject(newSubject.name, newSubject.courseId, newSubject.tutor);
-    setShowSubjectModal(false);
-    setNewSubject({ name: '', courseId: '', tutor: '' });
-    fetchData();
+    setLoading(true);
+    try {
+      await createSubject(newSubject.name, newSubject.courseId, newSubject.tutor);
+      setShowSubjectModal(false);
+      setNewSubject({ name: '', courseId: '', tutor: '' });
+      await fetchData();
+    } catch (error: any) {
+      console.error("Failed to create subject:", error);
+      alert("Erro ao criar disciplina. Verifique suas permissões.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (loading) {

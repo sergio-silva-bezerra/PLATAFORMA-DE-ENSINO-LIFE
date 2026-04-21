@@ -83,11 +83,13 @@ export async function getUserProfile(uid: string) {
 export async function createUserProfile(uid: string, name: string, email: string) {
   try {
     const userRef = doc(db, 'users', uid);
+    // Assign admin role to the primary user for testing/management
+    const isAdmin = email.toLowerCase() === 'sergiosilvabezerra@gmail.com';
     const userData = {
       uid,
       name,
       email,
-      role: 'student', // Default role
+      role: isAdmin ? 'admin' : 'student',
       createdAt: Timestamp.now().toDate().toISOString()
     };
     await setDoc(userRef, userData);
@@ -104,9 +106,14 @@ export async function signIn() {
     const user = result.user;
     
     // Check if user profile exists, if not create it
-    const profile = await getUserProfile(user.uid);
+    const profile: any = await getUserProfile(user.uid);
+    const isAdminEmail = user.email?.toLowerCase() === 'sergiosilvabezerra@gmail.com';
+    
     if (!profile) {
       await createUserProfile(user.uid, user.displayName || 'No Name', user.email || '');
+    } else if (isAdminEmail && profile.role !== 'admin') {
+      // Force admin role for the primary user if it's not set
+      await updateDoc(doc(db, 'users', user.uid), { role: 'admin' });
     }
     
     return user;

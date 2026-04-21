@@ -21,10 +21,13 @@ const navItems = [
   { icon: ShieldPlus, label: 'Dossiê de Saúde', path: '/secretaria/saude' },
 ];
 
+import { logOut } from '../lib/firebase';
+
 export function SecretariatSidebar() {
   const navigate = useNavigate();
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await logOut();
     navigate('/login');
   };
 

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Lock, User, ArrowRight, CreditCard, HeartPulse, UserCog, BookOpen } from 'lucide-react';
+import { Lock, User, ArrowRight, CreditCard, HeartPulse, UserCog, BookOpen, LogIn } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { signIn } from '../lib/firebase';
 
 export function Login() {
   const navigate = useNavigate();
@@ -9,17 +10,40 @@ export function Login() {
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleGoogleLogin = async () => {
+    setIsLoading(true);
+    setError('');
+    try {
+      await signIn();
+      // After sign in, redirect based on role or default to student
+      if (role === 'aluno') navigate('/aluno');
+      else if (role === 'admin') navigate('/admin');
+      else if (role === 'pedagogico') navigate('/pedagogico');
+      else if (role === 'secretaria') navigate('/secretaria');
+      else if (role === 'financeiro') navigate('/financeiro');
+      else if (role === 'professor') navigate('/professor/sala-virtual');
+      else navigate('/aluno');
+    } catch (err: any) {
+      console.error("Google login failed:", err);
+      setError("Falha na autenticação com Google. Tente novamente.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
+    // For testing and demo, we still allow mock login
+    // But we warn that some features requiring real DB access might fail if not truly authenticated
     if (role === 'aluno') {
       navigate('/aluno');
       return;
     }
 
-    // Simple mock validation for admin roles
     const credentials: Record<string, { id: string; pass: string; path: string }> = {
       admin: { id: 'admin', pass: 'admin123', path: '/admin' },
       secretaria: { id: 'secretaria', pass: 'sec123', path: '/secretaria' },
@@ -169,6 +193,29 @@ export function Login() {
                 {error}
               </div>
             )}
+
+            {/* Real Auth Option - MANDATORY for DB CRUD operations */}
+            <div className="space-y-3">
+              <button 
+                type="button"
+                onClick={handleGoogleLogin}
+                disabled={isLoading}
+                className="w-full bg-white border-2 border-gray-100 text-gray-700 py-3 rounded-sm font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-gray-50 transition-all shadow-sm group"
+              >
+                {isLoading ? (
+                  <div className="w-4 h-4 border-2 border-[#E31E24] border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <LogIn className="w-4 h-4 text-[#E31E24]" />
+                )}
+                Acessar com Google (Recomendado)
+              </button>
+              <div className="flex items-center gap-2">
+                <div className="h-[1px] bg-gray-100 flex-1"></div>
+                <span className="text-[10px] font-bold text-gray-300 uppercase tracking-widest">ou use acesso rápido</span>
+                <div className="h-[1px] bg-gray-100 flex-1"></div>
+              </div>
+            </div>
+
             <div className="space-y-1.5">
               <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">CPF, E-mail ou Matrícula</label>
               <div className="relative">

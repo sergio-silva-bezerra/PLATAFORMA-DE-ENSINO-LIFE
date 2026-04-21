@@ -28,7 +28,16 @@ const menuItems = [
   { icon: BookOpen, label: 'Ambiente Virtual', path: '/professor/sala-virtual' },
 ];
 
+import { logOut } from '../lib/firebase';
+import { useNavigate } from 'react-router-dom';
+
 export function PedagogicalSidebar() {
+  const navigate = useNavigate();
+  const handleLogout = async () => {
+    await logOut();
+    navigate('/login');
+  };
+
   return (
     <aside className="w-64 bg-white border-r border-gray-100 flex flex-col h-screen sticky top-0">
       <div className="p-8">
@@ -64,13 +73,13 @@ export function PedagogicalSidebar() {
           <Settings className="w-5 h-5" />
           Configurações
         </button>
-        <NavLink
-          to="/login"
+        <button
+          onClick={handleLogout}
           className="w-full flex items-center gap-3 px-4 py-3 rounded-sm text-sm font-bold text-red-500 hover:bg-red-50 transition-all"
         >
           <LogOut className="w-5 h-5" />
           Sair do Portal
-        </NavLink>
+        </button>
       </div>
     </aside>
   );
