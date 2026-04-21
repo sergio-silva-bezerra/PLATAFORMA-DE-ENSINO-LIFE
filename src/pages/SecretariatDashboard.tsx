@@ -5,10 +5,10 @@ import { Users, FileText, ClipboardList, Clock } from 'lucide-react';
 export function SecretariatDashboard() {
   const navigate = useNavigate();
   const stats = [
-    { label: 'Novos Alunos', value: '124', icon: Users, color: 'bg-blue-500' },
-    { label: 'Solicitações Pendentes', value: '45', icon: FileText, color: 'bg-orange-500' },
-    { label: 'Documentos para Validar', value: '12', icon: ClipboardList, color: 'bg-purple-500' },
-    { label: 'Tempo Médio Resposta', value: '2.4 dias', icon: Clock, color: 'bg-green-500' },
+    { label: 'Novos Alunos', value: '124', icon: Users, color: 'bg-red-600' },
+    { label: 'Solicitações Pendentes', value: '45', icon: FileText, color: 'bg-red-500' },
+    { label: 'Documentos para Validar', value: '12', icon: ClipboardList, color: 'bg-red-400' },
+    { label: 'Tempo Médio Resposta', value: '2.4 dias', icon: Clock, color: 'bg-red-700' },
   ];
 
   return (
@@ -70,9 +70,9 @@ export function SecretariatDashboard() {
                 <div className="text-right">
                   <span className="text-[10px] font-medium text-gray-400 block mb-1">{req.date}</span>
                   <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-full ${
-                    req.status === 'Novo' ? 'bg-blue-500 text-white' : 
-                    req.status === 'Em Análise' ? 'bg-orange-100 text-orange-600' : 
-                    req.status === 'Concluído' ? 'bg-green-100 text-green-600' : 'bg-gray-200 text-gray-600'
+                    req.status === 'Novo' ? 'bg-red-600 text-white' : 
+                    req.status === 'Em Análise' ? 'bg-red-100 text-red-600' : 
+                    req.status === 'Concluído' ? 'bg-gray-100 text-gray-500' : 'bg-gray-200 text-gray-600'
                   }`}>
                     {req.status}
                   </span>
@@ -96,8 +96,8 @@ export function SecretariatDashboard() {
                   <p className="text-xs text-gray-500">{alert.issue}</p>
                 </div>
                 <span className={`text-[10px] font-bold uppercase px-2 py-1 rounded ${
-                  alert.status === 'Crítico' ? 'bg-red-100 text-red-600' : 
-                  alert.status === 'Atenção' ? 'bg-orange-100 text-orange-600' : 'bg-blue-100 text-blue-600'
+                  alert.status === 'Crítico' ? 'bg-red-600 text-white shadow-sm' : 
+                  alert.status === 'Atenção' ? 'bg-red-100 text-red-600' : 'bg-red-50 text-red-500'
                 }`}>
                   {alert.status}
                 </span>

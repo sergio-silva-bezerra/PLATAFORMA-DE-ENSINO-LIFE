@@ -29,10 +29,10 @@ const data = [
 ];
 
 const stats = [
-  { label: 'Total de Alunos', value: '1,284', icon: Users, color: 'bg-blue-500', trend: '+12%', trendUp: true },
-  { label: 'Cursos Ativos', value: '24', icon: GraduationCap, color: 'bg-[#E31E24]', trend: '+2', trendUp: true },
-  { label: 'Receita Mensal', value: 'R$ 142.5k', icon: TrendingUp, color: 'bg-purple-500', trend: '+8.4%', trendUp: true },
-  { label: 'Inadimplência', value: '4.2%', icon: AlertCircle, color: 'bg-red-500', trend: '-0.5%', trendUp: false },
+  { label: 'Total de Alunos', value: '1,284', icon: Users, color: 'bg-red-600', trend: '+12%', trendUp: true },
+  { label: 'Cursos Ativos', value: '24', icon: GraduationCap, color: 'bg-red-500', trend: '+2', trendUp: true },
+  { label: 'Receita Mensal', value: 'R$ 142.5k', icon: TrendingUp, color: 'bg-red-400', trend: '+8.4%', trendUp: true },
+  { label: 'Inadimplência', value: '4.2%', icon: AlertCircle, color: 'bg-red-700', trend: '-0.5%', trendUp: false },
 ];
 
 export function Dashboard() {
@@ -52,7 +52,7 @@ export function Dashboard() {
               </div>
               <div className={cn(
                 "flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-sm",
-                stat.trendUp ? "bg-green-50 text-green-600" : "bg-red-50 text-red-600"
+                stat.trendUp ? "bg-red-50 text-red-600" : "bg-gray-100 text-gray-500"
               )}>
                 {stat.trendUp ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
                 {stat.trend}
@@ -92,8 +92,8 @@ export function Dashboard() {
               <AreaChart data={data}>
                 <defs>
                   <linearGradient id="colorFin" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.1}/>
-                    <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#E31E24" stopOpacity={0.1}/>
+                    <stop offset="95%" stopColor="#E31E24" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
@@ -102,7 +102,7 @@ export function Dashboard() {
                 <Tooltip 
                   contentStyle={{borderRadius: '4px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)'}}
                 />
-                <Area type="monotone" dataKey="financeiro" stroke="#8b5cf6" fillOpacity={1} fill="url(#colorFin)" strokeWidth={3} />
+                <Area type="monotone" dataKey="financeiro" stroke="#E31E24" fillOpacity={1} fill="url(#colorFin)" strokeWidth={3} />
               </AreaChart>
             </ResponsiveContainer>
           </div>

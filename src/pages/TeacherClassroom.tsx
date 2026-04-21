@@ -215,10 +215,10 @@ export function TeacherClassroom() {
               {/* Status Section */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {[
-                  { label: 'Disciplinas', value: subjects.length.toString().padStart(2, '0'), color: 'bg-blue-50 text-blue-600', icon: BookOpen },
-                  { label: 'Avaliações Ativas', value: assessments.length.toString().padStart(2, '0'), color: 'bg-orange-50 text-orange-600', icon: Clock },
-                  { label: 'Novos Fóruns', value: '00', color: 'bg-purple-50 text-purple-600', icon: MessageSquare },
-                  { label: 'Materiais Publicados', value: contents.length.toString().padStart(2, '0'), color: 'bg-green-50 text-green-600', icon: CheckCircle2 },
+                  { label: 'Disciplinas', value: subjects.length.toString().padStart(2, '0'), color: 'bg-red-50 text-red-600', icon: BookOpen },
+                  { label: 'Avaliações Ativas', value: assessments.length.toString().padStart(2, '0'), color: 'bg-red-100/50 text-red-700', icon: Clock },
+                  { label: 'Novos Fóruns', value: '00', color: 'bg-red-200/30 text-red-800', icon: MessageSquare },
+                  { label: 'Materiais Publicados', value: contents.length.toString().padStart(2, '0'), color: 'bg-red-50 text-red-500', icon: CheckCircle2 },
                 ].map((stat, idx) => (
                   <div key={idx} className={`${stat.color} p-6 rounded-sm border border-current/10 flex items-center justify-between`}>
                     <div>

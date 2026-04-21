@@ -71,11 +71,11 @@ export function StudentHeader() {
         <div className="flex items-center gap-6">
           <button className="p-2 text-gray-400 hover:bg-gray-50 rounded-sm transition-colors relative">
             <Bell className="w-6 h-6" />
-            <span className="absolute top-2 right-2 w-2 h-2 bg-green-500 rounded-full border-2 border-white"></span>
+            <span className="absolute top-2 right-2 w-2 h-2 bg-red-600 rounded-full border-2 border-white"></span>
           </button>
           
           <div className="flex items-center gap-3 group relative">
-            <div className="w-10 h-10 bg-blue-50 rounded-sm border border-blue-100 flex items-center justify-center text-blue-500">
+            <div className="w-10 h-10 bg-red-50 rounded-sm border border-red-100 flex items-center justify-center text-red-500">
               <User className="w-6 h-6" />
             </div>
             <div className="text-left hidden sm:block">

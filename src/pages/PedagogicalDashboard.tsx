@@ -24,10 +24,10 @@ export function PedagogicalDashboard() {
   }, []);
 
   const stats = [
-    { label: 'Cursos Ativos', value: coursesCount.toString(), icon: GraduationCap, color: 'bg-purple-500' },
-    { label: 'Disciplinas', value: subjectsCount.toString(), icon: BookOpen, color: 'bg-blue-500' },
-    { label: 'Matrículas Reais', value: '0', icon: Users, color: 'bg-green-500' },
-    { label: 'Frequência Média', value: 'N/A', icon: Clock, color: 'bg-orange-500' },
+    { label: 'Cursos Ativos', value: coursesCount.toString(), icon: GraduationCap, color: 'bg-red-600' },
+    { label: 'Disciplinas', value: subjectsCount.toString(), icon: BookOpen, color: 'bg-red-500' },
+    { label: 'Matrículas Reais', value: '0', icon: Users, color: 'bg-red-400' },
+    { label: 'Frequência Média', value: 'N/A', icon: Clock, color: 'bg-red-700' },
   ];
 
   if (loading) {

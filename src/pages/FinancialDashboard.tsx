@@ -3,10 +3,10 @@ import { DollarSign, CreditCard, TrendingUp, AlertCircle, MessageSquare, PenTool
 
 export function FinancialDashboard() {
   const stats = [
-    { label: 'Receita Mensal', value: 'R$ 45.230,00', icon: DollarSign, color: 'bg-green-500' },
-    { label: 'Pagamentos Pendentes', value: 'R$ 12.450,00', icon: CreditCard, color: 'bg-blue-500' },
-    { label: 'Crescimento', value: '+12.5%', icon: TrendingUp, color: 'bg-purple-500' },
-    { label: 'Inadimplência', value: '4.2%', icon: AlertCircle, color: 'bg-red-500' },
+    { label: 'Receita Mensal', value: 'R$ 45.230,00', icon: DollarSign, color: 'bg-red-600' },
+    { label: 'Pagamentos Pendentes', value: 'R$ 12.450,00', icon: CreditCard, color: 'bg-red-500' },
+    { label: 'Crescimento', value: '+12.5%', icon: TrendingUp, color: 'bg-red-400' },
+    { label: 'Inadimplência', value: '4.2%', icon: AlertCircle, color: 'bg-red-700' },
   ];
 
   return (
@@ -49,8 +49,8 @@ export function FinancialDashboard() {
                   <div className="flex items-center gap-2">
                     <p className="text-xs text-gray-500">{pay.method}</p>
                     <span className={`text-[8px] font-bold uppercase px-1.5 py-0.5 rounded ${
-                      pay.status === 'Confirmado' ? 'bg-green-100 text-green-600' : 
-                      pay.status === 'Pendente' ? 'bg-blue-100 text-blue-600' : 'bg-red-100 text-red-600'
+                      pay.status === 'Confirmado' ? 'bg-red-600 text-white' : 
+                      pay.status === 'Pendente' ? 'bg-red-100 text-red-600' : 'bg-red-50 text-red-500'
                     }`}>
                       {pay.status}
                     </span>
@@ -68,7 +68,7 @@ export function FinancialDashboard() {
         <div className="space-y-6">
           <div className="bg-white p-6 rounded-sm border border-gray-100 shadow-sm space-y-4">
             <h3 className="font-bold text-gray-800 flex items-center gap-2">
-              <MessageSquare className="w-5 h-5 text-green-500" />
+              <MessageSquare className="w-5 h-5 text-red-500" />
               Régua de Cobrança
             </h3>
             <p className="text-xs text-gray-500">Automação de lembretes via WhatsApp para reduzir a inadimplência.</p>
@@ -79,23 +79,23 @@ export function FinancialDashboard() {
               </div>
               <div className="flex justify-between text-xs">
                 <span>Taxa de Resposta:</span>
-                <span className="font-bold text-green-600">65%</span>
+                <span className="font-bold text-red-600">65%</span>
               </div>
             </div>
-            <button className="w-full py-2 bg-green-600 text-white text-xs font-bold rounded-sm">Configurar Régua</button>
+            <button className="w-full py-2 bg-red-600 text-white text-xs font-bold rounded-sm hover:bg-red-700 transition-colors">Configurar Régua</button>
           </div>
 
           <div className="bg-white p-6 rounded-sm border border-gray-100 shadow-sm space-y-4">
             <h3 className="font-bold text-gray-800 flex items-center gap-2">
-              <PenTool className="w-5 h-5 text-blue-500" />
+              <PenTool className="w-5 h-5 text-red-500" />
               Matrícula Digital
             </h3>
             <p className="text-xs text-gray-500">Contratos assinados eletronicamente com validade jurídica.</p>
-            <div className="flex items-center gap-2 p-3 bg-blue-50 rounded-sm border border-blue-100">
-              <CheckCircle2 className="w-4 h-4 text-blue-600" />
-              <span className="text-[10px] font-bold text-blue-800">12 Contratos Pendentes</span>
+            <div className="flex items-center gap-2 p-3 bg-red-50 rounded-sm border border-red-100">
+              <CheckCircle2 className="w-4 h-4 text-red-600" />
+              <span className="text-[10px] font-bold text-red-800">12 Contratos Pendentes</span>
             </div>
-            <button className="w-full py-2 bg-blue-600 text-white text-xs font-bold rounded-sm">Gerenciar Assinaturas</button>
+            <button className="w-full py-2 bg-red-600 text-white text-xs font-bold rounded-sm hover:bg-red-700 transition-colors">Gerenciar Assinaturas</button>
           </div>
         </div>
       </div>

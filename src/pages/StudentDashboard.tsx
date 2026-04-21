@@ -56,7 +56,7 @@ export function StudentDashboard() {
               <span className="font-bold">Bem-vindo ao seu novo Ambiente Real de Aprendizagem.</span>
             </div>
           </div>
-          <button className="bg-[#4CAF50] text-white px-8 py-3 rounded-sm font-black text-[10px] uppercase tracking-widest hover:bg-[#43a047] transition-all shadow-xl shadow-[#4CAF50]/20">
+          <button className="bg-red-500 text-white px-8 py-3 rounded-sm font-black text-[10px] uppercase tracking-widest hover:bg-red-600 transition-all shadow-xl shadow-red-500/20">
             PERSONALIZAR PERFIL
           </button>
         </div>
@@ -157,7 +157,7 @@ export function StudentDashboard() {
                     <div>
                       <p className="text-[8px] text-gray-400 font-black uppercase tracking-widest">Progresso</p>
                       <div className="w-32 bg-gray-200 h-1.5 rounded-sm overflow-hidden mt-1">
-                        <div className="bg-green-500 h-full w-[0%]"></div>
+                        <div className="bg-red-600 h-full w-[0%]"></div>
                       </div>
                     </div>
                   </div>
@@ -208,7 +208,7 @@ export function StudentDashboard() {
       </div>
 
       {/* Floating Help Button */}
-      <button className="fixed bottom-8 right-8 bg-[#4CAF50] text-white p-4 rounded-sm shadow-2xl hover:scale-110 transition-transform z-50">
+      <button className="fixed bottom-8 right-8 bg-red-600 text-white p-4 rounded-sm shadow-2xl hover:scale-110 transition-transform z-50">
         <HelpCircle className="w-8 h-8" />
       </button>
     </div>

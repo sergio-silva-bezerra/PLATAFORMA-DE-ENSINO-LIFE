@@ -4,16 +4,16 @@ import { Award, Star, Zap, Shield, Heart, Microscope } from 'lucide-react';
 export function GamificationBadges() {
   const badges = [
     { id: 1, name: 'Sinais Vitais', icon: Heart, color: 'text-red-500', bg: 'bg-red-50', level: 'Especialista', progress: 100 },
-    { id: 2, name: 'Biossegurança', icon: Shield, color: 'text-blue-500', bg: 'bg-blue-50', level: 'Avançado', progress: 85 },
-    { id: 3, name: 'Anatomia', icon: Microscope, color: 'text-purple-500', bg: 'bg-purple-50', level: 'Iniciante', progress: 40 },
-    { id: 4, name: 'Ética Profissional', icon: Award, color: 'text-amber-500', bg: 'bg-amber-50', level: 'Intermediário', progress: 60 },
+    { id: 2, name: 'Biossegurança', icon: Shield, color: 'text-red-600', bg: 'bg-red-100', level: 'Avançado', progress: 85 },
+    { id: 3, name: 'Anatomia', icon: Microscope, color: 'text-red-700', bg: 'bg-red-100/50', level: 'Iniciante', progress: 40 },
+    { id: 4, name: 'Ética Profissional', icon: Award, color: 'text-red-400', bg: 'bg-red-50', level: 'Intermediário', progress: 60 },
   ];
 
   return (
     <div className="bg-white p-6 rounded-sm border border-gray-100 shadow-sm">
       <div className="flex justify-between items-center mb-6">
         <h3 className="font-bold text-gray-800 flex items-center gap-2">
-          <Zap className="w-5 h-5 text-yellow-500 fill-yellow-500" />
+          <Zap className="w-5 h-5 text-red-500 fill-red-500" />
           Selos de Competência
         </h3>
         <span className="text-[10px] font-bold text-gray-400 uppercase">Nível 12</span>
@@ -27,7 +27,7 @@ export function GamificationBadges() {
                 <badge.icon className={`w-5 h-5 ${badge.color}`} />
               </div>
               {badge.progress === 100 && (
-                <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
+                <Star className="w-3 h-3 text-red-600 fill-red-600" />
               )}
             </div>
             <div>
@@ -41,7 +41,7 @@ export function GamificationBadges() {
               </div>
               <div className="w-full bg-gray-200 h-1 rounded-full overflow-hidden">
                 <div 
-                  className={`h-full transition-all duration-1000 ${badge.progress === 100 ? 'bg-green-500' : 'bg-[#E31E24]'}`}
+                  className={`h-full transition-all duration-1000 ${badge.progress === 100 ? 'bg-red-600' : 'bg-red-400'}`}
                   style={{ width: `${badge.progress}%` }}
                 />
               </div>

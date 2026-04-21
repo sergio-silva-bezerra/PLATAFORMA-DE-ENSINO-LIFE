@@ -306,7 +306,7 @@ export function VirtualClassroom() {
                       <div key={a.id} className="bg-white p-8 rounded-sm border border-gray-100 shadow-sm space-y-6">
                         <div className="flex justify-between items-start">
                           <div className="p-3 bg-gray-50 rounded-sm text-gray-400"><ClipboardList className="w-6 h-6" /></div>
-                          <span className="px-3 py-1 bg-blue-100 text-blue-700 text-[10px] font-black uppercase rounded-sm">Em Aberto</span>
+                          <span className="px-3 py-1 bg-red-100 text-red-700 text-[10px] font-black uppercase rounded-sm">Em Aberto</span>
                         </div>
                         <div>
                           <h4 className="text-xl font-bold uppercase tracking-tight mb-2">{a.title}</h4>

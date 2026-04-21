@@ -89,7 +89,7 @@ export function AITutor() {
         <div className="flex items-center gap-2">
           <Bot className="w-5 h-5" />
           <span className="font-bold text-sm">Tutor IA Enfermagem</span>
-          <Sparkles className="w-3 h-3 text-yellow-300 animate-pulse" />
+          <Sparkles className="w-3 h-3 text-red-100 animate-pulse" />
         </div>
         <div className="flex items-center gap-2">
           <button onClick={() => setIsMinimized(!isMinimized)} className="hover:bg-white/20 p-1 rounded">

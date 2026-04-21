@@ -30,9 +30,9 @@ export function StudentPayments() {
         <h1 className="text-3xl font-bold text-gray-800">Pagamentos</h1>
         <div className="flex items-center justify-between">
           <p className="text-sm text-gray-500">Veja seus pagamentos pendentes e o histórico de títulos quitados. Clique nas setas para visualizar seu detalhamento.</p>
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-green-50 border border-green-100 rounded-lg">
-            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-            <span className="text-[10px] font-bold text-green-700 uppercase tracking-widest">Conectado ao Setor Financeiro</span>
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-red-50 border border-red-100 rounded-lg">
+            <div className="w-2 h-2 bg-red-600 rounded-full animate-pulse"></div>
+            <span className="text-[10px] font-bold text-red-700 uppercase tracking-widest">Conectado ao Setor Financeiro</span>
           </div>
         </div>
       </div>
@@ -84,7 +84,7 @@ export function StudentPayments() {
                   <td className="px-6 py-4">
                     <span className={cn(
                       "px-3 py-1 rounded-full text-[10px] font-bold text-white uppercase tracking-wider",
-                      p.status === 'Atrasado' ? "bg-red-500" : "bg-blue-400"
+                      p.status === 'Atrasado' ? "bg-red-600" : "bg-red-400"
                     )}>
                       {p.status}
                     </span>

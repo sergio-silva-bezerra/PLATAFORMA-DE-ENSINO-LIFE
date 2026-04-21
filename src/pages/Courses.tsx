@@ -97,7 +97,7 @@ export function Courses() {
                     <div className="bg-[#E31E24]/10 p-3 rounded-sm text-[#E31E24]">
                       <BookOpen className="w-6 h-6" />
                     </div>
-                    <span className="px-2 py-1 bg-blue-50 text-blue-600 text-[10px] font-bold uppercase rounded-md">
+                    <span className="px-2 py-1 bg-red-50 text-red-600 text-[10px] font-bold uppercase rounded-md">
                       {course.modality}
                     </span>
                   </div>
