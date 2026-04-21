@@ -119,3 +119,57 @@ export async function signIn() {
 export async function logOut() {
   await signOut(auth);
 }
+
+// Generic Firestore Helpers
+export async function addDocument(collectionName: string, data: any) {
+  try {
+    const docRef = doc(collection(db, collectionName));
+    await setDoc(docRef, {
+      ...data,
+      id: docRef.id,
+      createdAt: Timestamp.now().toDate().toISOString()
+    });
+    return docRef.id;
+  } catch (err) {
+    return handleFirestoreError(err, 'create', collectionName);
+  }
+}
+
+export async function getCollection(collectionName: string, constraints: any[] = []) {
+  try {
+    const q = query(collection(db, collectionName), ...constraints);
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  } catch (err) {
+    return handleFirestoreError(err, 'list', collectionName);
+  }
+}
+
+export async function updateDocument(collectionName: string, id: string, data: any) {
+  try {
+    const docRef = doc(db, collectionName, id);
+    await updateDoc(docRef, {
+      ...data,
+      updatedAt: Timestamp.now().toDate().toISOString()
+    });
+  } catch (err) {
+    return handleFirestoreError(err, 'update', `${collectionName}/${id}`);
+  }
+}
+
+// Specialized Actions
+export async function createCourse(name: string, modality: string, duration: string) {
+  return addDocument('courses', { name, modality, duration, coordinators: [] });
+}
+
+export async function createSubject(name: string, courseId: string, tutorName: string) {
+  return addDocument('subjects', { name, courseId, tutorName, startDate: Timestamp.now().toDate().toISOString() });
+}
+
+export async function publishContent(subjectId: string, title: string, type: 'video' | 'pdf' | 'audio', url: string) {
+  return addDocument('contents', { subjectId, title, type, url });
+}
+
+export async function createAssessment(subjectId: string, title: string, dueDate: string) {
+  return addDocument('assessments', { subjectId, title, dueDate, status: 'Ativo' });
+}
