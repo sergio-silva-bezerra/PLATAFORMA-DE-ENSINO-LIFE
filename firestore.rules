@@ -1,0 +1,102 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() { return request.auth != null; }
+    function isVerified() { return isSignedIn() && request.auth.token.email_verified == true; }
+    function getUserData() { return get(/databases/$(database)/documents/users/$(request.auth.uid)).data; }
+    function hasRole(role) { return isSignedIn() && getUserData().role == role; }
+    function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
+    function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+
+    // Validation Blueprints
+    function isValidUser(data) {
+      return data.uid == request.auth.uid 
+        && data.name is string && data.name.size() <= 100
+        && data.email is string && data.email.size() <= 100
+        && data.role in ['admin', 'financial', 'pedagogical', 'student', 'secretariat']
+        && (data.role == 'student' || !isSignedIn()); // New users default to student or assigned by admin
+    }
+
+    function isValidPayment(data) {
+      return data.studentId is string && data.studentId.size() <= 128
+        && data.amount is number && data.amount >= 0
+        && data.status in ['Pago', 'Pendente', 'Atrasado'];
+    }
+
+    function isValidRequest(data) {
+      return data.studentId is string && data.studentId.size() <= 128
+        && data.type is string && data.type.size() <= 100
+        && data.status in ['Aberto', 'Em Análise', 'Concluído'];
+    }
+
+    // --- Collections ---
+
+    match /users/{userId} {
+      allow get: if isSignedIn();
+      allow list: if hasRole('admin');
+      allow create: if isSignedIn() && isOwner(userId) && isValidUser(incoming());
+      allow update: if isSignedIn() && isOwner(userId) 
+        && incoming().diff(existing()).affectedKeys().hasOnly(['name'])
+        && isValidUser(incoming());
+    }
+
+    match /courses/{courseId} {
+      allow read: if isSignedIn();
+      allow write: if hasRole('admin') || hasRole('pedagogical');
+    }
+
+    match /subjects/{subjectId} {
+      allow read: if isSignedIn();
+      allow write: if hasRole('admin') || hasRole('pedagogical');
+    }
+
+    match /enrollments/{enrollmentId} {
+      allow read: if hasRole('admin') || isOwner(existing().studentId);
+      allow write: if hasRole('admin') || hasRole('pedagogical');
+    }
+
+    match /payments/{paymentId} {
+      allow get: if isSignedIn() && (hasRole('financial') || isOwner(existing().studentId));
+      allow list: if isSignedIn() && (hasRole('financial') || resource.data.studentId == request.auth.uid);
+      allow create, update: if hasRole('financial') && isValidPayment(incoming());
+    }
+
+    match /requests/{requestId} {
+      allow get: if isSignedIn() && (hasRole('secretariat') || isOwner(existing().studentId));
+      allow list: if isSignedIn() && (hasRole('secretariat') || resource.data.studentId == request.auth.uid);
+      allow create: if isSignedIn() && isOwner(incoming().studentId) && isValidRequest(incoming());
+      allow update: if (hasRole('secretariat') || isOwner(existing().studentId)) && isValidRequest(incoming());
+    }
+
+    match /grades/{gradeId} {
+      allow read: if isSignedIn() && (hasRole('pedagogical') || hasRole('teacher') || isOwner(existing().studentId));
+      allow write: if (hasRole('pedagogical') || hasRole('teacher')) && incoming().value is string;
+    }
+
+    match /contents/{contentId} {
+      allow read: if isSignedIn();
+      allow write: if hasRole('admin') || hasRole('teacher') || hasRole('pedagogical');
+    }
+
+    match /assessments/{assessmentId} {
+      allow read: if isSignedIn();
+      allow write: if hasRole('admin') || hasRole('teacher') || hasRole('pedagogical');
+    }
+
+    match /submissions/{submissionId} {
+      allow get: if isSignedIn() && (hasRole('teacher') || isOwner(existing().studentId));
+      allow list: if isSignedIn() && (hasRole('teacher') || resource.data.studentId == request.auth.uid);
+      allow create: if isSignedIn() && isOwner(incoming().studentId);
+      allow update: if hasRole('teacher') && incoming().diff(existing()).affectedKeys().hasOnly(['grade', 'feedback', 'status']);
+    }
+  }
+}

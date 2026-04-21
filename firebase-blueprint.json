@@ -1,0 +1,178 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "System user information and role assignments",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "financial", "pedagogical", "student", "secretariat", "teacher"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "name", "email", "role"]
+    },
+    "Course": {
+      "title": "Course",
+      "description": "Educational course provided by the school",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "modality": { "type": "string", "enum": ["EAD", "Semipresencial", "Presencial"] },
+        "duration": { "type": "string" },
+        "coordinators": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["name", "modality", "duration"]
+    },
+    "Subject": {
+      "title": "Subject",
+      "description": "Course subjects and assigned tutors",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "courseId": { "type": "string" },
+        "tutorId": { "type": "string" },
+        "tutorName": { "type": "string" },
+        "startDate": { "type": "string", "format": "date" }
+      },
+      "required": ["name", "courseId"]
+    },
+    "Enrollment": {
+      "title": "Enrollment",
+      "description": "Student enrollment in a specific course",
+      "type": "object",
+      "properties": {
+        "studentId": { "type": "string" },
+        "courseId": { "type": "string" },
+        "status": { "type": "string", "enum": ["Ativo", "Inativo", "Trancado"] },
+        "registrationDate": { "type": "string", "format": "date-time" }
+      },
+      "required": ["studentId", "courseId", "status"]
+    },
+    "Payment": {
+      "title": "Payment",
+      "description": "Financial records for students",
+      "type": "object",
+      "properties": {
+        "studentId": { "type": "string" },
+        "amount": { "type": "number" },
+        "dueDate": { "type": "string", "format": "date" },
+        "status": { "type": "string", "enum": ["Pago", "Pendente", "Atrasado"] },
+        "description": { "type": "string" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["studentId", "amount", "dueDate", "status"]
+    },
+    "Request": {
+      "title": "Request",
+      "description": "Secretariat service requests",
+      "type": "object",
+      "properties": {
+        "studentId": { "type": "string" },
+        "type": { "type": "string" },
+        "status": { "type": "string", "enum": ["Aberto", "Em Análise", "Concluído"] },
+        "protocol": { "type": "string" },
+        "description": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["studentId", "type", "status"]
+    },
+    "Grade": {
+      "title": "Grade",
+      "description": "Student grades for subjects",
+      "type": "object",
+      "properties": {
+        "studentId": { "type": "string" },
+        "subjectId": { "type": "string" },
+        "value": { "type": "string" },
+        "assessmentType": { "type": "string" },
+        "date": { "type": "string", "format": "date" }
+      },
+      "required": ["studentId", "subjectId", "value"]
+    },
+    "Content": {
+      "title": "Content",
+      "description": "Educational materials uploaded by teachers",
+      "type": "object",
+      "properties": {
+        "subjectId": { "type": "string" },
+        "title": { "type": "string" },
+        "type": { "type": "string", "enum": ["video", "pdf", "audio", "other"] },
+        "url": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["subjectId", "title", "type", "url"]
+    },
+    "Assessment": {
+      "title": "Assessment",
+      "description": "Tests and assignments created by teachers",
+      "type": "object",
+      "properties": {
+        "subjectId": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "dueDate": { "type": "string", "format": "date-time" },
+        "totalPoints": { "type": "number" }
+      },
+      "required": ["subjectId", "title", "dueDate"]
+    },
+    "Submission": {
+      "title": "Submission",
+      "description": "Student work submissions for assessments",
+      "type": "object",
+      "properties": {
+        "assessmentId": { "type": "string" },
+        "studentId": { "type": "string" },
+        "fileUrl": { "type": "string" },
+        "grade": { "type": "number" },
+        "feedback": { "type": "string" },
+        "status": { "type": "string", "enum": ["Pendente", "Corrigido"] },
+        "submittedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["assessmentId", "studentId", "status"]
+    }
+  },
+  "firestore": {
+    "users": {
+      "schema": "User",
+      "description": "Global users collection"
+    },
+    "courses": {
+      "schema": "Course",
+      "description": "Available courses"
+    },
+    "subjects": {
+      "schema": "Subject",
+      "description": "Subjects mapping"
+    },
+    "enrollments": {
+      "schema": "Enrollment",
+      "description": "Student course enrollments"
+    },
+    "payments": {
+      "schema": "Payment",
+      "description": "Billing records"
+    },
+    "requests": {
+      "schema": "Request",
+      "description": "Service requests"
+    },
+    "grades": {
+      "schema": "Grade",
+      "description": "Academic grades"
+    },
+    "contents": {
+      "schema": "Content",
+      "description": "Subject materials"
+    },
+    "assessments": {
+      "schema": "Assessment",
+      "description": "Subject assignments"
+    },
+    "submissions": {
+      "schema": "Submission",
+      "description": "Student submissions"
+    }
+  }
+}

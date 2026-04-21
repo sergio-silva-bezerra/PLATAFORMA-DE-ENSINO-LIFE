@@ -17,6 +17,7 @@ import { StudentSecretariat } from './pages/StudentSecretariat';
 import { AboutCourse } from './pages/AboutCourse';
 import { ComplementaryActivities } from './pages/ComplementaryActivities';
 import { VirtualClassroom } from './pages/VirtualClassroom';
+import { TeacherClassroom } from './pages/TeacherClassroom';
 import { Schedule } from './pages/Schedule';
 import { SecretariatDashboard } from './pages/SecretariatDashboard';
 import { SecretariatDocuments } from './pages/SecretariatDocuments';
@@ -192,6 +193,7 @@ export default function App() {
         <Route path="/aluno/sobre-curso" element={<StudentLayout><AboutCourse /></StudentLayout>} />
         <Route path="/aluno/atividades-complementares" element={<StudentLayout><ComplementaryActivities /></StudentLayout>} />
         <Route path="/aluno/sala-virtual" element={<VirtualClassroom />} />
+        <Route path="/professor/sala-virtual" element={<TeacherClassroom />} />
         <Route path="/aluno/horarios" element={<StudentLayout><Schedule /></StudentLayout>} />
         <Route path="/aluno/solicitacoes" element={<Navigate to="/aluno/secretaria" replace />} />
         <Route path="/aluno/biblioteca" element={<StudentLayout>
