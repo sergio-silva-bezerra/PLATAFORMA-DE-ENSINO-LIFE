@@ -15,7 +15,10 @@ import {
   FileText,
   Music,
   Clock,
-  Loader2
+  Loader2,
+  Download,
+  Eye,
+  X
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { getCollection } from '../lib/firebase';
@@ -26,9 +29,12 @@ export function VirtualClassroom() {
   const [subjects, setSubjects] = useState<any[]>([]);
   const [contents, setContents] = useState<any[]>([]);
   const [assessments, setAssessments] = useState<any[]>([]);
+  const [courses, setCourses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedSubject, setSelectedSubject] = useState<any>(null);
   const [activeView, setActiveView] = useState<'inicio' | 'conteudo' | 'avaliacao'>('inicio');
+  const [showCurriculumModal, setShowCurriculumModal] = useState(false);
+  const [viewingCurriculum, setViewingCurriculum] = useState<any>(null);
 
   useEffect(() => {
     fetchData();
@@ -40,9 +46,12 @@ export function VirtualClassroom() {
       const subs = await getCollection('subjects');
       const conts = await getCollection('contents');
       const assess = await getCollection('assessments');
+      const coursesData = await getCollection('courses');
+      
       setSubjects(subs);
       setContents(conts);
       setAssessments(assess);
+      setCourses(coursesData);
     } catch (err) {
       console.error("Error fetching student classroom data:", err);
     } finally {
@@ -215,7 +224,7 @@ export function VirtualClassroom() {
                     </button>
                     <h2 className="text-4xl font-black uppercase tracking-tighter">{selectedSubject.name}</h2>
                     <p className="text-gray-400 font-bold uppercase tracking-widest text-xs">Professor Corresponsável: {selectedSubject.tutorName}</p>
-                    <div className="flex gap-4 pt-4">
+                    <div className="flex flex-wrap gap-4 pt-4">
                       <div className="bg-white/5 border border-white/10 p-4 rounded-sm">
                         <p className="text-[10px] font-black text-gray-500 uppercase">Arquivos</p>
                         <p className="text-xl font-black">{filteredContents.length}</p>
@@ -224,6 +233,21 @@ export function VirtualClassroom() {
                         <p className="text-[10px] font-black text-gray-500 uppercase">Avaliações</p>
                         <p className="text-xl font-black">{filteredAssessments.length}</p>
                       </div>
+                      {courses.find(c => c.id === selectedSubject.courseId) && (
+                        <button 
+                          onClick={() => {
+                            setViewingCurriculum(courses.find(c => c.id === selectedSubject.courseId));
+                            setShowCurriculumModal(true);
+                          }}
+                          className="bg-[#E31E24]/20 border border-[#E31E24]/50 p-4 rounded-sm hover:bg-[#E31E24]/30 transition-colors"
+                        >
+                          <p className="text-[10px] font-black text-[#E31E24] uppercase">Matriz Curricular</p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <Eye className="w-4 h-4 text-white" />
+                            <span className="text-lg font-black text-white uppercase">Ver Grade</span>
+                          </div>
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -345,6 +369,66 @@ export function VirtualClassroom() {
             </button>
           )}
         </div>
+
+        {/* Curriculum View Modal */}
+        <AnimatePresence>
+          {showCurriculumModal && viewingCurriculum && (
+            <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4">
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="bg-white w-full max-w-2xl rounded-sm shadow-2xl p-8 overflow-hidden flex flex-col max-h-[90vh]"
+              >
+                <div className="flex justify-between items-center mb-6">
+                  <div>
+                    <h2 className="text-xl font-bold text-gray-900 uppercase tracking-tight">Matriz Curricular</h2>
+                    <p className="text-[10px] font-black text-[#E31E24] uppercase tracking-widest">{viewingCurriculum.name}</p>
+                  </div>
+                  <button onClick={() => setShowCurriculumModal(false)}><X className="w-6 h-6 text-gray-400" /></button>
+                </div>
+                
+                <div className="flex-1 overflow-y-auto pr-4 custom-scrollbar text-left">
+                  {viewingCurriculum.curriculumText ? (
+                    <div className="bg-gray-50 p-6 rounded-sm border border-gray-100 whitespace-pre-wrap text-sm text-gray-700 font-medium leading-relaxed font-sans">
+                      {viewingCurriculum.curriculumText}
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center py-20 text-center">
+                      <FileText className="w-12 h-12 text-gray-100 mb-4" />
+                      <p className="text-gray-400 font-bold uppercase text-xs">Visualização de texto não disponível para este curso.</p>
+                    </div>
+                  )}
+                </div>
+
+                <div className="pt-6 mt-6 border-t border-gray-100 flex items-center justify-between">
+                  <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest leading-none">
+                    Documento Oficial • {viewingCurriculum.modality}
+                  </p>
+                  <div className="flex items-center gap-3">
+                    <button 
+                      onClick={() => setShowCurriculumModal(false)}
+                      className="px-6 py-2.5 rounded-sm font-bold text-[10px] uppercase tracking-widest text-gray-400 hover:text-gray-600 transition-colors"
+                    >
+                      Fechar
+                    </button>
+                    {viewingCurriculum.curriculumUrl && (
+                      <a 
+                        href={viewingCurriculum.curriculumUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 bg-[#E31E24] text-white px-8 py-2.5 rounded-sm font-black text-[10px] uppercase tracking-widest shadow-xl shadow-[#E31E24]/20 hover:bg-[#C1191F] transition-all"
+                      >
+                        <Download className="w-4 h-4" />
+                        Baixar PDF
+                      </a>
+                    )}
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
       </main>
     </div>
   );

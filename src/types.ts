@@ -14,6 +14,8 @@ export interface Course {
   modality: 'EAD' | 'Semipresencial' | 'Presencial';
   duration: string;
   coordinators: string[];
+  curriculumUrl?: string;
+  curriculumText?: string;
 }
 
 export interface Subject {

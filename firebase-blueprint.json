@@ -21,7 +21,9 @@
         "name": { "type": "string" },
         "modality": { "type": "string", "enum": ["EAD", "Semipresencial", "Presencial"] },
         "duration": { "type": "string" },
-        "coordinators": { "type": "array", "items": { "type": "string" } }
+        "coordinators": { "type": "array", "items": { "type": "string" } },
+        "curriculumUrl": { "type": "string", "description": "URL to the curriculum PDF" },
+        "curriculumText": { "type": "string", "description": "Text version of the curriculum" }
       },
       "required": ["name", "modality", "duration"]
     },

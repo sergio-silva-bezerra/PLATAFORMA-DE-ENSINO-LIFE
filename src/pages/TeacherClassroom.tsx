@@ -18,7 +18,9 @@ import {
   ChevronRight,
   X,
   Loader2,
-  AlertTriangle
+  AlertTriangle,
+  Download,
+  Eye
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
@@ -31,6 +33,7 @@ export function TeacherClassroom() {
   const [activeTab, setActiveTab] = useState<'inicio' | 'conteudo' | 'avaliacoes' | 'alunos' | 'forum'>('inicio');
   const [selectedSubject, setSelectedSubject] = useState<any>(null);
   const [subjects, setSubjects] = useState<any[]>([]);
+  const [courses, setCourses] = useState<any[]>([]);
   const [contents, setContents] = useState<any[]>([]);
   const [assessments, setAssessments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -39,6 +42,8 @@ export function TeacherClassroom() {
   // Modals
   const [showContentModal, setShowContentModal] = useState(false);
   const [showAssessmentModal, setShowAssessmentModal] = useState(false);
+  const [showCurriculumModal, setShowCurriculumModal] = useState(false);
+  const [viewingCurriculum, setViewingCurriculum] = useState<any>(null);
 
   // Forms
   const [newContent, setNewContent] = useState({ subjectId: '', title: '', type: 'pdf' as any, url: '' });
@@ -86,22 +91,27 @@ export function TeacherClassroom() {
       const subs = await getCollection('subjects', [where('tutorEmail', '==', email.toLowerCase())]) as any[];
       
       const subjectIds = subs.map(s => s.id);
+      const courseIds = [...new Set(subs.map(s => s.courseId))];
       
       if (subjectIds.length > 0) {
-        // Fetch contents and assessments only for these subjects
+        // Fetch contents, assessments and courses
         const allConts = await getCollection('contents') as any[];
         const allAssess = await getCollection('assessments') as any[];
+        const allCourses = await getCollection('courses') as any[];
         
         const filteredConts = allConts.filter(c => subjectIds.includes(c.subjectId));
         const filteredAssess = allAssess.filter(a => subjectIds.includes(a.subjectId));
+        const filteredCourses = allCourses.filter(c => courseIds.includes(c.id));
         
         setSubjects(subs);
         setContents(filteredConts);
         setAssessments(filteredAssess);
+        setCourses(filteredCourses);
       } else {
         setSubjects([]);
         setContents([]);
         setAssessments([]);
+        setCourses([]);
       }
     } catch (err) {
       console.error("Error fetching teacher data by email:", err);
@@ -130,21 +140,26 @@ export function TeacherClassroom() {
       }
       
       const subjectIds = subs.map(s => s.id);
+      const courseIds = [...new Set(subs.map(s => s.courseId))];
       
       if (subjectIds.length > 0) {
         const allConts = await getCollection('contents') as any[];
         const allAssess = await getCollection('assessments') as any[];
+        const allCourses = await getCollection('courses') as any[];
         
         const filteredConts = allConts.filter(c => subjectIds.includes(c.subjectId));
         const filteredAssess = allAssess.filter(a => subjectIds.includes(a.subjectId));
+        const filteredCourses = allCourses.filter(c => courseIds.includes(c.id));
         
         setSubjects(subs);
         setContents(filteredConts);
         setAssessments(filteredAssess);
+        setCourses(filteredCourses);
       } else {
         setSubjects([]);
         setContents([]);
         setAssessments([]);
+        setCourses([]);
       }
     } catch (err) {
       console.error("Error fetching teacher data:", err);
@@ -384,6 +399,43 @@ export function TeacherClassroom() {
                             <span className="font-bold text-gray-500 uppercase tracking-widest">ID: {item.id}</span>
                             <span className="font-black text-[#E31E24] uppercase">Tutor: {item.tutorName}</span>
                           </div>
+
+                          {/* Matriz Curricular Section for Teacher */}
+                          {courses.find(c => c.id === item.courseId) && (
+                            <div className="pt-2 border-t border-gray-50">
+                              <div className="flex items-center justify-between">
+                                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Matriz Curricular</span>
+                                <div className="flex items-center gap-2">
+                                  {courses.find(c => c.id === item.courseId)?.curriculumText && (
+                                    <button 
+                                      onClick={() => {
+                                        setViewingCurriculum(courses.find(c => c.id === item.courseId));
+                                        setShowCurriculumModal(true);
+                                      }}
+                                      className="text-[9px] font-bold text-blue-600 hover:underline uppercase"
+                                    >
+                                      Ver Texto
+                                    </button>
+                                  )}
+                                  {courses.find(c => c.id === item.courseId)?.curriculumUrl && (
+                                    <a 
+                                      href={courses.find(c => c.id === item.courseId)?.curriculumUrl}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="flex items-center gap-1 text-[9px] font-bold text-green-600 hover:underline uppercase"
+                                    >
+                                      <Download className="w-3 h-3" />
+                                      PDF
+                                    </a>
+                                  )}
+                                  {!courses.find(c => c.id === item.courseId)?.curriculumText && !courses.find(c => c.id === item.courseId)?.curriculumUrl && (
+                                    <span className="text-[9px] font-bold text-gray-300 uppercase italic">Não disponível</span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
                           <button 
                             onClick={() => {
                               setSelectedSubject(item);
@@ -756,6 +808,58 @@ export function TeacherClassroom() {
           </div>
         </button>
       </div>
+      {/* Curriculum View Modal */}
+      {showCurriculumModal && viewingCurriculum && (
+        <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-2xl rounded-sm shadow-2xl p-8 animate-in fade-in zoom-in duration-200 overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900 uppercase tracking-tight">Matriz Curricular</h2>
+                <p className="text-[10px] font-black text-[#E31E24] uppercase tracking-widest">{viewingCurriculum.name}</p>
+              </div>
+              <button onClick={() => setShowCurriculumModal(false)}><X className="w-6 h-6 text-gray-400" /></button>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto pr-4 custom-scrollbar">
+              {viewingCurriculum.curriculumText ? (
+                <div className="bg-gray-50 p-6 rounded-sm border border-gray-100 whitespace-pre-wrap text-sm text-gray-700 font-medium leading-relaxed">
+                  {viewingCurriculum.curriculumText}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-20 text-center">
+                  <FileText className="w-12 h-12 text-gray-100 mb-4" />
+                  <p className="text-gray-400 font-bold uppercase text-xs">Nenhum texto disponível para esta matriz.</p>
+                </div>
+              )}
+            </div>
+
+            <div className="pt-6 mt-6 border-t border-gray-100 flex items-center justify-between">
+              <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest leading-none">
+                Visualização oficial • {viewingCurriculum.modality}
+              </p>
+              <div className="flex items-center gap-3">
+                <button 
+                  onClick={() => setShowCurriculumModal(false)}
+                  className="px-6 py-2.5 rounded-sm font-bold text-[10px] uppercase tracking-widest text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  Fechar
+                </button>
+                {viewingCurriculum.curriculumUrl && (
+                  <a 
+                    href={viewingCurriculum.curriculumUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 bg-[#E31E24] text-white px-8 py-2.5 rounded-sm font-black text-[10px] uppercase tracking-widest shadow-xl shadow-[#E31E24]/20 hover:bg-[#C1191F] transition-all"
+                  >
+                    <Download className="w-4 h-4" />
+                    Baixar PDF
+                  </a>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

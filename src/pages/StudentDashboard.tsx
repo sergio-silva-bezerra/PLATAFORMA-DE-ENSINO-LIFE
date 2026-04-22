@@ -1,21 +1,35 @@
 import React, { useEffect, useState } from 'react';
-import { Play, FileText, Calendar, GraduationCap, HelpCircle, ChevronLeft, ChevronRight, ExternalLink, Loader2 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Play, FileText, Calendar, GraduationCap, HelpCircle, ChevronLeft, ChevronRight, ExternalLink, Loader2, Download, Eye, X } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { cn } from '../lib/utils';
 import { GamificationBadges } from '../components/GamificationBadges';
-import { getCollection } from '../lib/firebase';
+import { getCollection, auth } from '../lib/firebase';
+import { where } from 'firebase/firestore';
+import { motion, AnimatePresence } from 'motion/react';
 
 const timeline = ['2024.2', '2025.1', '2025.2', '2026.1', '2026.2'];
 
 export function StudentDashboard() {
+  const navigate = useNavigate();
   const [subjects, setSubjects] = useState<any[]>([]);
+  const [course, setCourse] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [showCurriculumModal, setShowCurriculumModal] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const data = await getCollection('subjects');
-        setSubjects(data);
+        const subjectsData = await getCollection('subjects');
+        setSubjects(subjectsData);
+
+        // Fetch student's course (Curriculum)
+        // For now, if there's at least one subject, we grab its courseId as a proxy for the student's current course
+        if (subjectsData.length > 0) {
+          const courseId = subjectsData[0].courseId;
+          const coursesData = await getCollection('courses');
+          const studentCourse = coursesData.find((c: any) => c.id === courseId);
+          setCourse(studentCourse);
+        }
       } catch (err) {
         console.error("Error fetching student dashboard data:", err);
       } finally {
@@ -186,26 +200,86 @@ export function StudentDashboard() {
             </div>
             <div className="divide-y divide-gray-50">
               {[
-                { label: 'Secretaria Digital', icon: FileText, path: '/aluno/secretaria' },
-                { label: 'Biblioteca Virtual', icon: GraduationCap, path: '/aluno/sala-virtual' },
-                { label: 'Chat de Suporte', icon: HelpCircle, path: '/aluno/ajuda' },
+                { label: 'Secretaria Digital', icon: FileText, onClick: () => navigate('/aluno/secretaria') },
+                { label: 'Matriz Curricular', icon: GraduationCap, onClick: () => setShowCurriculumModal(true) },
+                { label: 'Biblioteca Virtual', icon: BookOpen, onClick: () => navigate('/aluno/sala-virtual') },
               ].map((item) => (
-                <Link 
+                <button 
                   key={item.label} 
-                  to={item.path}
-                  className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors group"
+                  onClick={item.onClick}
+                  className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors group text-left cursor-pointer"
                 >
                   <div className="flex items-center gap-4">
                     <item.icon className="w-4 h-4 text-[#E31E24]" />
                     <span className="text-xs font-bold text-gray-700">{item.label}</span>
                   </div>
                   <ChevronRight className="w-4 h-4 text-gray-300 group-hover:translate-x-1 group-hover:text-[#E31E24] transition-all" />
-                </Link>
+                </button>
               ))}
             </div>
           </div>
         </div>
       </div>
+
+      {/* Curriculum View Modal */}
+      <AnimatePresence>
+        {showCurriculumModal && (
+          <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white w-full max-w-2xl rounded-sm shadow-2xl p-8 overflow-hidden flex flex-col max-h-[90vh]"
+            >
+              <div className="flex justify-between items-center mb-6">
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900 uppercase tracking-tight">Matriz Curricular</h2>
+                  <p className="text-[10px] font-black text-[#E31E24] uppercase tracking-widest">{course?.name || 'Seu Curso'}</p>
+                </div>
+                <button onClick={() => setShowCurriculumModal(false)}><X className="w-6 h-6 text-gray-400" /></button>
+              </div>
+              
+              <div className="flex-1 overflow-y-auto pr-4 custom-scrollbar">
+                {course?.curriculumText ? (
+                  <div className="bg-gray-50 p-6 rounded-sm border border-gray-100 whitespace-pre-wrap text-sm text-gray-700 font-medium leading-relaxed">
+                    {course.curriculumText}
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-20 text-center">
+                    <FileText className="w-12 h-12 text-gray-100 mb-4" />
+                    <p className="text-gray-400 font-bold uppercase text-xs">A matriz curricular em breve estará disponível para consulta via texto.</p>
+                  </div>
+                )}
+              </div>
+
+              <div className="pt-6 mt-6 border-t border-gray-100 flex items-center justify-between">
+                <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest leading-none">
+                  Documento Oficial • {course?.modality || 'Técnico'}
+                </p>
+                <div className="flex items-center gap-3">
+                  <button 
+                    onClick={() => setShowCurriculumModal(false)}
+                    className="px-6 py-2.5 rounded-sm font-bold text-[10px] uppercase tracking-widest text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    Fechar
+                  </button>
+                  {course?.curriculumUrl && (
+                    <a 
+                      href={course.curriculumUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 bg-[#E31E24] text-white px-8 py-2.5 rounded-sm font-black text-[10px] uppercase tracking-widest shadow-xl shadow-[#E31E24]/20 hover:bg-[#C1191F] transition-all"
+                    >
+                      <Download className="w-4 h-4" />
+                      Baixar PDF
+                    </a>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* Floating Help Button */}
       <button className="fixed bottom-8 right-8 bg-red-600 text-white p-4 rounded-sm shadow-2xl hover:scale-110 transition-transform z-50">

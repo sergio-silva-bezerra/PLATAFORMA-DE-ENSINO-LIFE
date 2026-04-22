@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { BookOpen, Users, Calendar, ArrowRight, Plus, X, Loader2, Link as LinkIcon } from 'lucide-react';
-import { getCollection, createCourse, createSubject, db } from '../lib/firebase';
+import { BookOpen, Users, Calendar, ArrowRight, Plus, X, Loader2, Link as LinkIcon, FileText, Upload, Download, Eye } from 'lucide-react';
+import { getCollection, createCourse, createSubject, db, updateCourseCurriculum } from '../lib/firebase';
 import { where } from 'firebase/firestore';
 import { Course, Subject } from '../types';
 
@@ -11,11 +11,13 @@ export function Courses() {
   const [loading, setLoading] = useState(true);
   const [showCourseModal, setShowCourseModal] = useState(false);
   const [showSubjectModal, setShowSubjectModal] = useState(false);
+  const [showCurriculumModal, setShowCurriculumModal] = useState(false);
   const [expandedCourse, setExpandedCourse] = useState<string | null>(null);
 
   // Form states
   const [newCourse, setNewCourse] = useState({ name: '', modality: 'Presencial' as any, duration: '' });
   const [newSubject, setNewSubject] = useState({ name: '', courseId: '', tutorId: '', tutorName: '', tutorEmail: '' });
+  const [curriculumForm, setCurriculumForm] = useState({ courseId: '', url: '', text: '' });
 
   useEffect(() => {
     fetchData();
@@ -76,6 +78,30 @@ export function Courses() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleUpdateCurriculum = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      await updateCourseCurriculum(curriculumForm.courseId, curriculumForm.url, curriculumForm.text);
+      setShowCurriculumModal(false);
+      await fetchData();
+    } catch (error) {
+      console.error("Failed to update curriculum:", error);
+      alert("Erro ao atualizar matriz curricular.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleOpenCurriculum = (course: Course) => {
+    setCurriculumForm({
+      courseId: course.id,
+      url: course.curriculumUrl || '',
+      text: course.curriculumText || ''
+    });
+    setShowCurriculumModal(true);
   };
 
   if (loading) {
@@ -155,17 +181,64 @@ export function Courses() {
 
                     {isExpanded && (
                       <div className="border-t border-gray-50 bg-gray-50/30 p-6 space-y-4">
-                        <div className="flex items-center justify-between">
-                          <h5 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Matriz Curricular</h5>
+                        <div className="flex items-center justify-between bg-white p-4 rounded-sm border border-gray-100 shadow-sm">
+                          <div className="flex items-center gap-6">
+                            <div className="flex flex-col">
+                              <h5 className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-tight">Matriz Curricular</h5>
+                              <p className="text-[9px] text-gray-400 font-bold uppercase mt-0.5">Gestão de Grade Acadêmica</p>
+                            </div>
+                            
+                            <div className="h-6 w-[1px] bg-gray-100 hidden md:block"></div>
+
+                            {course.curriculumUrl || course.curriculumText ? (
+                              <div className="flex items-center gap-3">
+                                <button 
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleOpenCurriculum(course);
+                                  }}
+                                  className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-[#E31E24] bg-red-50 px-4 py-2 rounded-sm hover:bg-red-100 transition-all cursor-pointer"
+                                >
+                                  <Eye className="w-3.5 h-3.5" />
+                                  Visualizar / Editar
+                                </button>
+                                {course.curriculumUrl && (
+                                  <a 
+                                    href={course.curriculumUrl} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-500 bg-gray-100 px-4 py-2 rounded-sm hover:bg-gray-200 transition-all"
+                                  >
+                                    <Download className="w-3.5 h-3.5" />
+                                    PDF
+                                  </a>
+                                )}
+                              </div>
+                            ) : (
+                              <button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleOpenCurriculum(course);
+                                }}
+                                className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-white bg-[#E31E24] px-4 py-2 rounded-sm hover:bg-[#C1191F] transition-all cursor-pointer shadow-lg shadow-[#E31E24]/20"
+                              >
+                                <Upload className="w-3.5 h-3.5" />
+                                Upload Matriz Curricular
+                              </button>
+                            )}
+                          </div>
+                          
                           <button 
                             onClick={(e) => {
                               e.stopPropagation();
                               setNewSubject({...newSubject, courseId: course.id});
                               setShowSubjectModal(true);
                             }}
-                            className="text-[10px] font-black text-[#E31E24] hover:underline uppercase tracking-widest"
+                            className="bg-gray-900 text-white px-4 py-2 rounded-sm text-[10px] font-black uppercase tracking-widest hover:bg-black transition-all shadow-lg shadow-black/10 flex items-center gap-2"
                           >
-                            + Adicionar Disciplina
+                            <Plus className="w-3.5 h-3.5" />
+                            Adicionar Disciplina
                           </button>
                         </div>
                         
@@ -417,6 +490,61 @@ export function Courses() {
                 <p className="text-[9px] text-gray-400 italic">Este e-mail será usado para o login provisório do docente.</p>
               </div>
               <button type="submit" className="w-full bg-[#E31E24] text-white py-4 rounded-sm font-black text-xs uppercase tracking-widest mt-4">Criar Disciplina</button>
+            </form>
+          </div>
+        </div>
+      )}
+      {/* Curriculum Modal */}
+      {showCurriculumModal && (
+        <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-2xl rounded-sm shadow-2xl p-8 animate-in fade-in zoom-in duration-200">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold text-gray-900 uppercase tracking-tight">Matriz Curricular</h2>
+              <button onClick={() => setShowCurriculumModal(false)}><X className="w-6 h-6 text-gray-400" /></button>
+            </div>
+            <form onSubmit={handleUpdateCurriculum} className="space-y-6">
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">URL do PDF da Matriz</label>
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 bg-gray-50 border border-gray-100 rounded-sm p-3 flex items-center gap-3">
+                    <FileText className="w-5 h-5 text-gray-400" />
+                    <input 
+                      type="url" 
+                      value={curriculumForm.url}
+                      onChange={e => setCurriculumForm({...curriculumForm, url: e.target.value})}
+                      className="bg-transparent border-none outline-none w-full text-sm"
+                      placeholder="https://exemplo.com/matriz.pdf"
+                    />
+                  </div>
+                </div>
+                <p className="text-[9px] text-gray-400 italic">Insira o link direto para o arquivo PDF (OneDrive, Dropbox, Google Drive, etc).</p>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Texto da Matriz (Visualização Rápida)</label>
+                <textarea 
+                  value={curriculumForm.text}
+                  onChange={e => setCurriculumForm({...curriculumForm, text: e.target.value})}
+                  className="w-full bg-gray-50 border border-gray-100 rounded-sm p-3 text-sm h-64 resize-none focus:ring-2 focus:ring-[#E31E24]/20"
+                  placeholder="Descreva as disciplinas e a grade curricular em formato de texto..."
+                />
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4 border-t border-gray-50">
+                <button 
+                  type="button"
+                  onClick={() => setShowCurriculumModal(false)}
+                  className="px-6 py-3 rounded-sm font-bold text-xs uppercase tracking-widest text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  type="submit" 
+                  className="bg-gray-900 text-white px-8 py-3 rounded-sm font-black text-xs uppercase tracking-widest shadow-xl shadow-black/10 hover:bg-black transition-all"
+                >
+                  Salvar Matriz
+                </button>
+              </div>
             </form>
           </div>
         </div>

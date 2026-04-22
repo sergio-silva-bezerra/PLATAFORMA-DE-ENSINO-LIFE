@@ -58,6 +58,14 @@ service cloud.firestore {
         && (data.tutorEmail == null || (data.tutorEmail is string && data.tutorEmail.size() <= 150));
     }
 
+    function isValidCourse(data) {
+      return data.name is string && data.name.size() <= 150
+        && data.modality in ['EAD', 'Semipresencial', 'Presencial']
+        && data.duration is string && data.duration.size() <= 50
+        && (data.curriculumUrl == null || (data.curriculumUrl is string && data.curriculumUrl.size() <= 500))
+        && (data.curriculumText == null || (data.curriculumText is string && data.curriculumText.size() <= 10000));
+    }
+
     // --- Collections ---
 
     match /users/{userId} {
@@ -71,7 +79,7 @@ service cloud.firestore {
 
     match /courses/{courseId} {
       allow read: if true;
-      allow write: if isSignedIn();
+      allow write: if (hasRole('admin') || hasRole('pedagogical')) && isValidCourse(incoming());
     }
 
     match /subjects/{subjectId} {

@@ -218,3 +218,7 @@ export async function getTeachers() {
 export async function getTeacherSubjects(tutorId: string) {
   return getCollection('subjects', [where('tutorId', '==', tutorId)]);
 }
+
+export async function updateCourseCurriculum(courseId: string, url: string, text: string) {
+  return updateDocument('courses', courseId, { curriculumUrl: url, curriculumText: text });
+}
