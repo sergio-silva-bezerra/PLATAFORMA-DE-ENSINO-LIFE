@@ -49,12 +49,17 @@ export function PedagogicalContent() {
 
       const contentsWithNames = (contentsData as Content[]).map(content => {
         const subject = (subjectsData as Subject[]).find(s => s.id === content.subjectId);
-        const teacher = (usersData as any[]).find(u => u.uid === content.teacherId);
+        // Robust teacher lookup: try matching by teacherId (UID) or even email if the ID looks like one
+        const teacher = (usersData as any[]).find(u => 
+          u.uid === content.teacherId || 
+          u.id === content.teacherId || 
+          u.email === content.teacherId
+        );
         
         return {
           ...content,
           subjectName: content.subjectName && content.subjectName !== 'N/A' && content.subjectName !== 'Disciplina Geral' ? content.subjectName : (subject?.name || 'Disciplina do Curso'),
-          teacherName: content.teacherName && content.teacherName !== 'Professor' && content.teacherName !== 'Docente Cadastrado' ? content.teacherName : (teacher?.name || 'Docente da Instituição')
+          teacherName: teacher?.name || (subject as any)?.tutorName || content.teacherName || 'Docente da Instituição'
         };
       });
 
@@ -237,7 +242,7 @@ export function PedagogicalContent() {
                         <div className="flex items-center gap-1.5 mt-1">
                           <User className="w-3 h-3 text-gray-400" />
                           <p className="text-[10px] text-gray-400 font-bold uppercase">
-                            {content.teacherName && content.teacherName !== 'Professor' ? content.teacherName : 'Aguardando Atribuição'}
+                            {content.teacherName}
                           </p>
                         </div>
                       </div>

@@ -25,7 +25,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { getCollection, publishContent, createAssessment, auth, getTeacherSubjects } from '../lib/firebase';
+import { getCollection, publishContent, createAssessment, auth, getTeacherSubjects, updateDocument } from '../lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { where } from 'firebase/firestore';
 import { cn } from '../lib/utils';
@@ -38,6 +38,7 @@ export function TeacherClassroom() {
   const [courses, setCourses] = useState<any[]>([]);
   const [contents, setContents] = useState<any[]>([]);
   const [assessments, setAssessments] = useState<any[]>([]);
+  const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
 
@@ -98,6 +99,9 @@ export function TeacherClassroom() {
       const subjectIds = subs.map(s => s.id);
       const courseIds = [...new Set(subs.map(s => s.courseId))];
       
+      const allUsers = await getCollection('users') as any[];
+      setUsers(allUsers);
+      
       if (subjectIds.length > 0) {
         // Fetch contents, assessments and courses
         const allConts = await getCollection('contents') as any[];
@@ -146,6 +150,9 @@ export function TeacherClassroom() {
       
       const subjectIds = subs.map(s => s.id);
       const courseIds = [...new Set(subs.map(s => (s as any).courseId))];
+      
+      const allUsers = await getCollection('users') as any[];
+      setUsers(allUsers);
       
       if (subjectIds.length > 0) {
         const allConts = await getCollection('contents') as any[];
@@ -952,7 +959,7 @@ export function TeacherClassroom() {
                   {submittingReply ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (
-                    <CheckCircle className="w-4 h-4" />
+                    <CheckCircle2 className="w-4 h-4" />
                   )}
                   Enviar Resposta
                 </button>
