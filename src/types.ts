@@ -46,3 +46,48 @@ export interface Request {
   status: 'Aberto' | 'Em Análise' | 'Concluído';
   date: string;
 }
+
+export interface Content {
+  id: string;
+  subjectId: string;
+  subjectName?: string;
+  teacherId: string;
+  teacherName: string;
+  title: string;
+  type: 'video' | 'pdf' | 'audio' | 'link' | 'other';
+  url: string;
+  status: 'Pendente' | 'Aprovado' | 'Ajuste Necessário';
+  feedback?: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface Assessment {
+  id: string;
+  subjectId: string;
+  title: string;
+  description: string;
+  dueDate: string;
+  totalPoints: number;
+  status: 'Ativo' | 'Inativo';
+}
+
+export interface Submission {
+  id: string;
+  assessmentId: string;
+  studentId: string;
+  fileUrl: string;
+  grade?: number;
+  feedback?: string;
+  status: 'Pendente' | 'Corrigido';
+  submittedAt: string;
+}
+
+export interface Grade {
+  id: string;
+  studentId: string;
+  subjectId: string;
+  value: string;
+  assessmentType: string;
+  date: string;
+}

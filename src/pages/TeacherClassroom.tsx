@@ -20,13 +20,15 @@ import {
   Loader2,
   AlertTriangle,
   Download,
-  Eye
+  Eye,
+  Link2
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { getCollection, publishContent, createAssessment, auth, getTeacherSubjects } from '../lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { where } from 'firebase/firestore';
+import { cn } from '../lib/utils';
 
 export function TeacherClassroom() {
   const navigate = useNavigate();
@@ -176,7 +178,16 @@ export function TeacherClassroom() {
       alert("Selecione uma disciplina primeiro.");
       return;
     }
-    await publishContent(finalSubjectId, newContent.title, newContent.type, newContent.url);
+    const subject = subjects.find(s => s.id === finalSubjectId);
+    await publishContent(
+      finalSubjectId, 
+      subject?.name || 'N/A',
+      newContent.title, 
+      newContent.type, 
+      newContent.url,
+      user.uid || user.email,
+      user.displayName || user.email
+    );
     setShowContentModal(false);
     setNewContent({ subjectId: '', title: '', type: 'pdf', url: '' });
     if (auth.currentUser && !auth.currentUser.isAnonymous) {
@@ -514,21 +525,49 @@ export function TeacherClassroom() {
                             {file.type === 'video' && <Video className="w-6 h-6" />}
                             {file.type === 'pdf' && <FileText className="w-6 h-6" />}
                             {file.type === 'audio' && <Music className="w-6 h-6" />}
+                            {file.type === 'link' && <Link2 className="w-6 h-6" />}
                           </div>
-                          <div>
-                            <h4 className="text-sm font-bold text-gray-800">{file.title}</h4>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <h4 className="text-sm font-bold text-gray-800">{file.title}</h4>
+                              <span className={cn(
+                                "text-[9px] font-black uppercase px-2 py-0.5 rounded-sm",
+                                file.status === 'Aprovado' ? "bg-green-100 text-green-700" :
+                                file.status === 'Ajuste Necessário' ? "bg-orange-100 text-orange-700 animate-pulse" :
+                                "bg-blue-100 text-blue-700"
+                              )}>
+                                {file.status}
+                              </span>
+                            </div>
                             <div className="flex items-center gap-3 mt-1">
                               <span className="text-[10px] font-bold text-gray-400 uppercase">
                                 {new Date(file.createdAt).toLocaleDateString('pt-BR')}
                               </span>
-                              <span className="text-[10px] font-bold text-gray-300">•</span>
-                              <span className="text-[10px] font-bold text-gray-400 uppercase">{file.type}</span>
                             </div>
+                            {file.feedback && (
+                              <div className="mt-2 bg-red-50 p-3 rounded-sm border-l-2 border-[#E31E24] space-y-1">
+                                <p className="text-[9px] font-black text-[#E31E24] uppercase tracking-widest flex items-center gap-1">
+                                  <MessageSquare className="w-3 h-3" />
+                                  Feedback da Coordenação
+                                </p>
+                                <p className="text-xs text-red-700 italic leading-relaxed">{file.feedback}</p>
+                              </div>
+                            )}
                           </div>
                         </div>
-                        <button className="p-2 hover:bg-gray-50 rounded-full">
-                          <MoreVertical className="w-5 h-5 text-gray-400" />
-                        </button>
+                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <a 
+                            href={file.url} 
+                            target="_blank" 
+                            rel="noreferrer"
+                            className="p-2 text-gray-400 hover:text-[#E31E24] hover:bg-white rounded-sm"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </a>
+                          <button className="p-2 text-gray-400 hover:text-red-500 hover:bg-white rounded-sm">
+                            <MoreVertical className="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
                     ))
                   )}
@@ -730,6 +769,7 @@ export function TeacherClassroom() {
                     <option value="pdf">PDF / Documento</option>
                     <option value="video">Vídeo Aula</option>
                     <option value="audio">Podcast / Áudio</option>
+                    <option value="link">Link Externo</option>
                   </select>
                 </div>
                 <div className="space-y-1">

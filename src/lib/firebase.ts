@@ -214,8 +214,18 @@ export async function createSubject(name: string, courseId: string, tutorName: s
   });
 }
 
-export async function publishContent(subjectId: string, title: string, type: 'video' | 'pdf' | 'audio', url: string) {
-  return addDocument('contents', { subjectId, title, type, url });
+export async function publishContent(subjectId: string, subjectName: string, title: string, type: 'video' | 'pdf' | 'audio' | 'link' | 'other', url: string, teacherId: string, teacherName: string) {
+  return addDocument('contents', { 
+    subjectId, 
+    subjectName,
+    title, 
+    type, 
+    url, 
+    teacherId,
+    teacherName,
+    status: 'Pendente',
+    createdAt: Timestamp.now().toDate().toISOString()
+  });
 }
 
 export async function createAssessment(subjectId: string, title: string, dueDate: string) {

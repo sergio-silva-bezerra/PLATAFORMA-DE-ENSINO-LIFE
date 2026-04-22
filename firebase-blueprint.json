@@ -101,12 +101,18 @@
       "type": "object",
       "properties": {
         "subjectId": { "type": "string" },
+        "subjectName": { "type": "string" },
+        "teacherId": { "type": "string" },
+        "teacherName": { "type": "string" },
         "title": { "type": "string" },
-        "type": { "type": "string", "enum": ["video", "pdf", "audio", "other"] },
+        "type": { "type": "string", "enum": ["video", "pdf", "audio", "link", "other"] },
         "url": { "type": "string" },
-        "createdAt": { "type": "string", "format": "date-time" }
+        "status": { "type": "string", "enum": ["Pendente", "Aprovado", "Ajuste Necessário"] },
+        "feedback": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
       },
-      "required": ["subjectId", "title", "type", "url"]
+      "required": ["subjectId", "teacherId", "title", "type", "url", "status"]
     },
     "Assessment": {
       "title": "Assessment",
