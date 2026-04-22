@@ -29,6 +29,7 @@ import { where } from 'firebase/firestore';
 export function TeacherClassroom() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'inicio' | 'conteudo' | 'avaliacoes' | 'alunos' | 'forum'>('inicio');
+  const [selectedSubject, setSelectedSubject] = useState<any>(null);
   const [subjects, setSubjects] = useState<any[]>([]);
   const [contents, setContents] = useState<any[]>([]);
   const [assessments, setAssessments] = useState<any[]>([]);
@@ -155,10 +156,15 @@ export function TeacherClassroom() {
   const handlePublishContent = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
-    await publishContent(newContent.subjectId, newContent.title, newContent.type, newContent.url);
+    const finalSubjectId = newContent.subjectId || selectedSubject?.id;
+    if (!finalSubjectId) {
+      alert("Selecione uma disciplina primeiro.");
+      return;
+    }
+    await publishContent(finalSubjectId, newContent.title, newContent.type, newContent.url);
     setShowContentModal(false);
     setNewContent({ subjectId: '', title: '', type: 'pdf', url: '' });
-    if (auth.currentUser) {
+    if (auth.currentUser && !auth.currentUser.isAnonymous) {
       fetchTeacherData(user.uid);
     } else {
       fetchTeacherDataByEmail(user.email);
@@ -168,10 +174,15 @@ export function TeacherClassroom() {
   const handleCreateAssessment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
-    await createAssessment(newAssessment.subjectId, newAssessment.title, newAssessment.dueDate);
+    const finalSubjectId = newAssessment.subjectId || selectedSubject?.id;
+    if (!finalSubjectId) {
+      alert("Selecione uma disciplina primeiro.");
+      return;
+    }
+    await createAssessment(finalSubjectId, newAssessment.title, newAssessment.dueDate);
     setShowAssessmentModal(false);
     setNewAssessment({ subjectId: '', title: '', dueDate: '' });
-    if (auth.currentUser) {
+    if (auth.currentUser && !auth.currentUser.isAnonymous) {
       fetchTeacherData(user.uid);
     } else {
       fetchTeacherDataByEmail(user.email);
@@ -225,7 +236,10 @@ export function TeacherClassroom() {
           <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
           
           <button 
-            onClick={() => setActiveTab('inicio')}
+            onClick={() => {
+              setActiveTab('inicio');
+              setSelectedSubject(null);
+            }}
             className={`flex flex-col items-center group relative z-10 transition-all ${activeTab === 'inicio' ? 'scale-110' : 'opacity-60 hover:opacity-100'}`}
           >
             <Home className={`w-5 h-5 ${activeTab === 'inicio' ? 'text-white' : 'text-white/70'}`} />
@@ -233,41 +247,45 @@ export function TeacherClassroom() {
             {activeTab === 'inicio' && <motion.div layoutId="activeTabT" className="absolute -bottom-4 w-12 h-1 bg-[#E31E24]" />}
           </button>
 
-          <button 
-            onClick={() => setActiveTab('conteudo')}
-            className={`flex flex-col items-center group relative z-10 transition-all ${activeTab === 'conteudo' ? 'scale-110' : 'opacity-60 hover:opacity-100'}`}
-          >
-            <Upload className={`w-5 h-5 ${activeTab === 'conteudo' ? 'text-white' : 'text-white/70'}`} />
-            <span className="text-[9px] font-bold text-white uppercase mt-1">Conteúdo</span>
-            {activeTab === 'conteudo' && <motion.div layoutId="activeTabT" className="absolute -bottom-4 w-12 h-1 bg-[#E31E24]" />}
-          </button>
+          {selectedSubject && (
+            <>
+              <button 
+                onClick={() => setActiveTab('conteudo')}
+                className={`flex flex-col items-center group relative z-10 transition-all ${activeTab === 'conteudo' ? 'scale-110' : 'opacity-60 hover:opacity-100'}`}
+              >
+                <Upload className={`w-5 h-5 ${activeTab === 'conteudo' ? 'text-white' : 'text-white/70'}`} />
+                <span className="text-[9px] font-bold text-white uppercase mt-1">Conteúdo</span>
+                {activeTab === 'conteudo' && <motion.div layoutId="activeTabT" className="absolute -bottom-4 w-12 h-1 bg-[#E31E24]" />}
+              </button>
 
-          <button 
-            onClick={() => setActiveTab('avaliacoes')}
-            className={`flex flex-col items-center group relative z-10 transition-all ${activeTab === 'avaliacoes' ? 'scale-110' : 'opacity-60 hover:opacity-100'}`}
-          >
-            <FilePlus className={`w-5 h-5 ${activeTab === 'avaliacoes' ? 'text-white' : 'text-white/70'}`} />
-            <span className="text-[9px] font-bold text-white uppercase mt-1">Avaliações</span>
-            {activeTab === 'avaliacoes' && <motion.div layoutId="activeTabT" className="absolute -bottom-4 w-12 h-1 bg-[#E31E24]" />}
-          </button>
+              <button 
+                onClick={() => setActiveTab('avaliacoes')}
+                className={`flex flex-col items-center group relative z-10 transition-all ${activeTab === 'avaliacoes' ? 'scale-110' : 'opacity-60 hover:opacity-100'}`}
+              >
+                <FilePlus className={`w-5 h-5 ${activeTab === 'avaliacoes' ? 'text-white' : 'text-white/70'}`} />
+                <span className="text-[9px] font-bold text-white uppercase mt-1">Avaliações</span>
+                {activeTab === 'avaliacoes' && <motion.div layoutId="activeTabT" className="absolute -bottom-4 w-12 h-1 bg-[#E31E24]" />}
+              </button>
 
-          <button 
-            onClick={() => setActiveTab('alunos')}
-            className={`flex flex-col items-center group relative z-10 transition-all ${activeTab === 'alunos' ? 'scale-110' : 'opacity-60 hover:opacity-100'}`}
-          >
-            <Users className={`w-5 h-5 ${activeTab === 'alunos' ? 'text-white' : 'text-white/70'}`} />
-            <span className="text-[9px] font-bold text-white uppercase mt-1">Alunos</span>
-            {activeTab === 'alunos' && <motion.div layoutId="activeTabT" className="absolute -bottom-4 w-12 h-1 bg-[#E31E24]" />}
-          </button>
+              <button 
+                onClick={() => setActiveTab('alunos')}
+                className={`flex flex-col items-center group relative z-10 transition-all ${activeTab === 'alunos' ? 'scale-110' : 'opacity-60 hover:opacity-100'}`}
+              >
+                <Users className={`w-5 h-5 ${activeTab === 'alunos' ? 'text-white' : 'text-white/70'}`} />
+                <span className="text-[9px] font-bold text-white uppercase mt-1">Alunos</span>
+                {activeTab === 'alunos' && <motion.div layoutId="activeTabT" className="absolute -bottom-4 w-12 h-1 bg-[#E31E24]" />}
+              </button>
 
-          <button 
-            onClick={() => setActiveTab('forum')}
-            className={`flex flex-col items-center group relative z-10 transition-all ${activeTab === 'forum' ? 'scale-110' : 'opacity-60 hover:opacity-100'}`}
-          >
-            <MessageSquare className={`w-5 h-5 ${activeTab === 'forum' ? 'text-white' : 'text-white/70'}`} />
-            <span className="text-[9px] font-bold text-white uppercase mt-1">Fórum</span>
-            {activeTab === 'forum' && <motion.div layoutId="activeTabT" className="absolute -bottom-4 w-12 h-1 bg-[#E31E24]" />}
-          </button>
+              <button 
+                onClick={() => setActiveTab('forum')}
+                className={`flex flex-col items-center group relative z-10 transition-all ${activeTab === 'forum' ? 'scale-110' : 'opacity-60 hover:opacity-100'}`}
+              >
+                <MessageSquare className={`w-5 h-5 ${activeTab === 'forum' ? 'text-white' : 'text-white/70'}`} />
+                <span className="text-[9px] font-bold text-white uppercase mt-1">Fórum</span>
+                {activeTab === 'forum' && <motion.div layoutId="activeTabT" className="absolute -bottom-4 w-12 h-1 bg-[#E31E24]" />}
+              </button>
+            </>
+          )}
         </nav>
       </div>
 
@@ -367,10 +385,13 @@ export function TeacherClassroom() {
                             <span className="font-black text-[#E31E24] uppercase">Tutor: {item.tutorName}</span>
                           </div>
                           <button 
-                            onClick={() => setActiveTab('conteudo')}
-                            className="w-full py-3 bg-gray-50 rounded-sm text-[10px] font-black uppercase tracking-widest text-gray-600 hover:bg-[#E31E24] hover:text-white transition-all"
+                            onClick={() => {
+                              setSelectedSubject(item);
+                              setActiveTab('conteudo');
+                            }}
+                            className="w-full py-3 bg-gray-50 rounded-sm text-[10px] font-black uppercase tracking-widest text-gray-600 hover:bg-[#E31E24] hover:text-white transition-all shadow-sm"
                           >
-                            Gerenciar Materiais
+                            Gerenciar Disciplina
                           </button>
                         </div>
                       </div>
@@ -381,7 +402,7 @@ export function TeacherClassroom() {
             </motion.div>
           )}
 
-          {activeTab === 'conteudo' && (
+          {activeTab === 'conteudo' && selectedSubject && (
             <motion.div 
               key="conteudo"
               initial={{ opacity: 0, x: 20 }}
@@ -389,8 +410,16 @@ export function TeacherClassroom() {
               exit={{ opacity: 0, x: -20 }}
               className="space-y-6"
             >
+              <div className="flex flex-col gap-1 border-b border-gray-100 pb-4">
+                <div className="flex items-center gap-2 text-[10px] font-black text-[#E31E24] uppercase tracking-widest">
+                  <BookOpen className="w-3 h-3" />
+                  Sala de Aula Virtual
+                </div>
+                <h2 className="text-3xl font-black text-gray-900 uppercase tracking-tight">{selectedSubject.name}</h2>
+              </div>
+
               <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-black text-gray-900 uppercase tracking-tight">Gerenciador de Materiais</h2>
+                <h2 className="text-xl font-black text-gray-900 uppercase tracking-tight">Conteúdos Publicados</h2>
                 <button 
                   onClick={() => setShowContentModal(true)}
                   className="bg-[#E31E24] text-white p-2 rounded-sm shadow-lg hover:bg-red-700"
@@ -399,31 +428,30 @@ export function TeacherClassroom() {
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 <aside className="space-y-4">
-                  <div className="bg-gray-50 p-4 rounded-sm">
-                    <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">Filtrar por Disciplina</h3>
-                    <div className="space-y-2">
-                      <button className="w-full text-left p-3 bg-white border border-[#E31E24] rounded-sm text-xs font-bold text-[#E31E24]">
-                        Todos os Materiais
-                      </button>
-                      {subjects.map((sub) => (
-                        <button key={sub.id} className="w-full flex items-center justify-between p-3 bg-white border border-gray-100 rounded-sm hover:border-[#E31E24] group transition-all text-left">
-                          <span className="text-xs font-bold text-gray-600 group-hover:text-[#E31E24]">{sub.name}</span>
-                          <ChevronRight className="w-4 h-4 text-gray-300" />
-                        </button>
-                      ))}
-                    </div>
+                  <div className="bg-gray-50 p-4 rounded-sm border border-gray-100">
+                    <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">Ação Rápida</h3>
+                    <button 
+                      onClick={() => {
+                        setSelectedSubject(null);
+                        setActiveTab('inicio');
+                      }}
+                      className="w-full flex items-center gap-2 p-3 bg-white border border-gray-200 rounded-sm hover:border-[#E31E24] group transition-all text-left text-xs font-bold text-gray-600 hover:text-[#E31E24]"
+                    >
+                      <ChevronRight className="w-4 h-4 rotate-180" />
+                      Trocar Disciplina
+                    </button>
                   </div>
                 </aside>
 
-                <div className="md:col-span-2 space-y-4">
-                  {contents.length === 0 ? (
+                <div className="md:col-span-3 space-y-4">
+                  {contents.filter(c => c.subjectId === selectedSubject.id).length === 0 ? (
                     <div className="border-2 border-dashed border-gray-100 rounded-sm p-20 text-center">
-                      <p className="text-gray-400 font-bold uppercase text-xs">Nenhum material publicado ainda.</p>
+                      <p className="text-gray-400 font-bold uppercase text-xs">Nenhum material publicado para esta disciplina.</p>
                     </div>
                   ) : (
-                    contents.map((file, idx) => (
+                    contents.filter(c => c.subjectId === selectedSubject.id).map((file, idx) => (
                       <div key={idx} className="bg-white p-4 rounded-sm border border-gray-100 flex items-center justify-between hover:shadow-md transition-all group">
                         <div className="flex items-center gap-4">
                           <div className="p-3 bg-gray-50 rounded-sm text-gray-400 group-hover:text-[#E31E24] transition-colors">
@@ -465,7 +493,7 @@ export function TeacherClassroom() {
             </motion.div>
           )}
 
-          {activeTab === 'avaliacoes' && (
+          {activeTab === 'avaliacoes' && selectedSubject && (
             <motion.div 
               key="avaliacoes"
               initial={{ opacity: 0, y: 20 }}
@@ -473,8 +501,25 @@ export function TeacherClassroom() {
               exit={{ opacity: 0, y: -20 }}
               className="space-y-6"
             >
+              <div className="flex flex-col gap-1 border-b border-gray-100 pb-4">
+                <div className="flex items-center gap-2 text-[10px] font-black text-gray-900 uppercase tracking-widest">
+                  <FilePlus className="w-3 h-3" />
+                  Avaliações e Atividades
+                </div>
+                <h2 className="text-3xl font-black text-gray-900 uppercase tracking-tight">{selectedSubject.name}</h2>
+              </div>
+
               <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-black text-gray-900 uppercase tracking-tight">Avaliações e Testes</h2>
+                <button 
+                  onClick={() => {
+                    setSelectedSubject(null);
+                    setActiveTab('inicio');
+                  }}
+                  className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest hover:text-[#E31E24] transition-colors"
+                >
+                  <ChevronRight className="w-3 h-3 rotate-180" />
+                  Voltar às Disciplinas
+                </button>
                 <button 
                   onClick={() => setShowAssessmentModal(true)}
                   className="bg-gray-900 text-white px-6 py-2.5 rounded-sm text-[10px] font-black uppercase tracking-widest shadow-xl shadow-black/10"
@@ -484,12 +529,12 @@ export function TeacherClassroom() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {assessments.length === 0 ? (
+                {assessments.filter(a => a.subjectId === selectedSubject.id).length === 0 ? (
                   <div className="col-span-full border-2 border-dashed border-gray-100 rounded-sm p-20 text-center">
-                    <p className="text-gray-400 font-bold uppercase text-xs">Nenhuma avaliação criada.</p>
+                    <p className="text-gray-400 font-bold uppercase text-xs">Nenhuma avaliação criada para esta disciplina.</p>
                   </div>
                 ) : (
-                  assessments.map((item, idx) => (
+                  assessments.filter(a => a.subjectId === selectedSubject.id).map((item, idx) => (
                     <div key={idx} className="bg-white p-6 rounded-sm border border-gray-100 shadow-sm space-y-4 hover:border-[#E31E24] transition-all">
                       <div className="flex justify-between items-start">
                         <div className="bg-gray-100 p-2 text-gray-500 rounded-sm"><FilePlus className="w-5 h-5" /></div>
@@ -513,7 +558,7 @@ export function TeacherClassroom() {
             </motion.div>
           )}
 
-          {activeTab === 'alunos' && (
+          {activeTab === 'alunos' && selectedSubject && (
             <motion.div 
               key="alunos"
               initial={{ opacity: 0 }}
@@ -521,10 +566,65 @@ export function TeacherClassroom() {
               exit={{ opacity: 0 }}
               className="space-y-6"
             >
-              <h2 className="text-2xl font-black text-gray-900 uppercase tracking-tight">Alunos e Desempenho</h2>
+              <div className="flex flex-col gap-1 border-b border-gray-100 pb-4">
+                <div className="flex items-center gap-2 text-[10px] font-black text-gray-900 uppercase tracking-widest">
+                  <Users className="w-3 h-3" />
+                  Alunos e Desempenho
+                </div>
+                <h2 className="text-3xl font-black text-gray-900 uppercase tracking-tight">{selectedSubject.name}</h2>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <button 
+                  onClick={() => {
+                    setSelectedSubject(null);
+                    setActiveTab('inicio');
+                  }}
+                  className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest hover:text-[#E31E24] transition-colors"
+                >
+                  <ChevronRight className="w-3 h-3 rotate-180" />
+                  Voltar às Disciplinas
+                </button>
+              </div>
+
               <div className="bg-white border border-gray-100 rounded-sm shadow-sm p-12 text-center">
                 <Users className="w-12 h-12 text-gray-200 mx-auto mb-4" />
-                <p className="text-gray-400 font-bold uppercase text-xs">Os dados dos alunos aparecerão conforme as matrículas reais forem feitas.</p>
+                <p className="text-gray-400 font-bold uppercase text-xs">Os dados dos alunos desta disciplina aparecerão conforme as matrículas reais forem feitas.</p>
+              </div>
+            </motion.div>
+          )}
+          {activeTab === 'forum' && selectedSubject && (
+            <motion.div 
+              key="forum"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="space-y-6"
+            >
+              <div className="flex flex-col gap-1 border-b border-gray-100 pb-4">
+                <div className="flex items-center gap-2 text-[10px] font-black text-gray-900 uppercase tracking-widest">
+                  <MessageSquare className="w-3 h-3" />
+                  Fórum de Discussão
+                </div>
+                <h2 className="text-3xl font-black text-gray-900 uppercase tracking-tight">{selectedSubject.name}</h2>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <button 
+                  onClick={() => {
+                    setSelectedSubject(null);
+                    setActiveTab('inicio');
+                  }}
+                  className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest hover:text-[#E31E24] transition-colors"
+                >
+                  <ChevronRight className="w-3 h-3 rotate-180" />
+                  Voltar às Disciplinas
+                </button>
+              </div>
+
+              <div className="bg-white border border-gray-100 rounded-sm shadow-sm p-12 text-center">
+                <MessageSquare className="w-12 h-12 text-gray-200 mx-auto mb-4" />
+                <p className="text-gray-400 font-bold uppercase text-xs">O fórum desta disciplina será habilitado em breve para interação com os alunos.</p>
               </div>
             </motion.div>
           )}
@@ -544,7 +644,7 @@ export function TeacherClassroom() {
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Disciplina</label>
                 <select 
                   className="w-full bg-gray-50 border border-gray-100 rounded-sm p-3 text-sm"
-                  value={newContent.subjectId}
+                  value={newContent.subjectId || selectedSubject?.id || ''}
                   onChange={e => setNewContent({...newContent, subjectId: e.target.value})}
                   required
                 >
@@ -607,7 +707,7 @@ export function TeacherClassroom() {
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Disciplina</label>
                 <select 
                   className="w-full bg-gray-50 border border-gray-100 rounded-sm p-3 text-sm"
-                  value={newAssessment.subjectId}
+                  value={newAssessment.subjectId || selectedSubject?.id || ''}
                   onChange={e => setNewAssessment({...newAssessment, subjectId: e.target.value})}
                   required
                 >
