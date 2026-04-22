@@ -9,6 +9,7 @@ export function Courses() {
   const [loading, setLoading] = useState(true);
   const [showCourseModal, setShowCourseModal] = useState(false);
   const [showSubjectModal, setShowSubjectModal] = useState(false);
+  const [expandedCourse, setExpandedCourse] = useState<string | null>(null);
 
   // Form states
   const [newCourse, setNewCourse] = useState({ name: '', modality: 'Presencial' as any, duration: '' });
@@ -106,61 +107,116 @@ export function Courses() {
               <p className="text-gray-500 font-medium">Nenhum curso cadastrado ainda.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {courses.map((course) => (
-                <div key={course.id} className="bg-white p-6 rounded-sm border border-gray-100 shadow-sm hover:shadow-md transition-all group cursor-pointer">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="bg-[#E31E24]/10 p-3 rounded-sm text-[#E31E24]">
-                      <BookOpen className="w-6 h-6" />
-                    </div>
-                    <span className="px-2 py-1 bg-red-50 text-red-600 text-[10px] font-bold uppercase rounded-md">
-                      {course.modality}
-                    </span>
-                  </div>
-                  <h4 className="text-lg font-bold text-gray-900 group-hover:text-[#E31E24] transition-colors">{course.name}</h4>
-                  <p className="text-sm text-gray-500 mt-1">Duração: {course.duration}</p>
-                  
-                  <div className="mt-6 flex items-center justify-between pt-6 border-t border-gray-50">
-                    <div className="flex -space-x-2">
-                      <div className="w-8 h-8 rounded-full border-2 border-white bg-gray-100 flex items-center justify-center text-[10px] font-bold text-gray-400">
-                        +
+            <div className="grid grid-cols-1 gap-6">
+              {courses.map((course) => {
+                const courseSubjects = subjects.filter(s => s.courseId === course.id);
+                const isExpanded = expandedCourse === course.id;
+
+                return (
+                  <div key={course.id} className="bg-white rounded-sm border border-gray-100 shadow-sm overflow-hidden transition-all">
+                    <div 
+                      className="p-6 cursor-pointer hover:bg-gray-50/50 flex flex-col md:flex-row md:items-center justify-between gap-4"
+                      onClick={() => setExpandedCourse(isExpanded ? null : course.id)}
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="bg-[#E31E24]/10 p-3 rounded-sm text-[#E31E24]">
+                          <BookOpen className="w-6 h-6" />
+                        </div>
+                        <div>
+                          <h4 className="text-lg font-bold text-gray-900">{course.name}</h4>
+                          <div className="flex items-center gap-3 mt-1">
+                            <span className="px-2 py-0.5 bg-red-50 text-red-600 text-[10px] font-bold uppercase rounded">
+                              {course.modality}
+                            </span>
+                            <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">Duração: {course.duration}</p>
+                            <p className="text-xs text-[#E31E24] font-bold uppercase tracking-wider">{courseSubjects.length} Disciplinas</p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-2 text-sm font-semibold text-[#E31E24]">
+                        {isExpanded ? 'Ocultar Disciplinas' : 'Ver Disciplinas'}
+                        <ArrowRight className={`w-4 h-4 transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 text-sm font-semibold text-[#E31E24]">
-                      Detalhes
-                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                    </div>
+
+                    {isExpanded && (
+                      <div className="border-t border-gray-50 bg-gray-50/30 p-6 space-y-4">
+                        <div className="flex items-center justify-between">
+                          <h5 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Matriz Curricular</h5>
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setNewSubject({...newSubject, courseId: course.id});
+                              setShowSubjectModal(true);
+                            }}
+                            className="text-[10px] font-black text-[#E31E24] hover:underline uppercase tracking-widest"
+                          >
+                            + Adicionar Disciplina
+                          </button>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 gap-3">
+                          {courseSubjects.length === 0 ? (
+                            <p className="text-sm text-gray-400 text-center py-4 italic">Nenhuma disciplina vinculada a este curso.</p>
+                          ) : (
+                            courseSubjects.map((subject: any) => (
+                              <div key={subject.id} className="bg-white flex items-center justify-between p-4 rounded-sm border border-gray-100 shadow-sm">
+                                <div className="flex items-center gap-4">
+                                  <div className="w-10 h-10 bg-gray-50 rounded-sm flex items-center justify-center text-gray-300">
+                                    <Calendar className="w-5 h-5" />
+                                  </div>
+                                  <div>
+                                    <p className="font-bold text-gray-900 text-sm">{subject.name}</p>
+                                    <p className="text-[10px] uppercase font-bold text-gray-400">
+                                      Tutor: {subject.tutorName}
+                                    </p>
+                                  </div>
+                                </div>
+                                <div className="text-right">
+                                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Iniciado em</p>
+                                  <p className="text-xs font-semibold text-gray-700">{new Date(subject.createdAt || Date.now()).toLocaleDateString('pt-BR')}</p>
+                                </div>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
 
-          <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-            <h3 className="text-lg font-bold text-gray-900 mb-6">Disciplinas Cadastradas</h3>
+          <div className="bg-white p-6 rounded-sm border border-gray-100 shadow-sm">
+            <h3 className="text-lg font-bold text-gray-900 mb-6 uppercase tracking-tight">Todas as Disciplinas</h3>
             <div className="space-y-4">
               {subjects.length === 0 ? (
-                <p className="text-sm text-gray-400 text-center py-8">Nenhuma disciplina cadastrada.</p>
+                <p className="text-sm text-gray-400 text-center py-8">Nenhuma disciplina cadastrada no sistema.</p>
               ) : (
-                subjects.map((subject: any) => (
-                  <div key={subject.id} className="flex items-center justify-between p-4 rounded-sm border border-gray-50 hover:border-[#E31E24]/20 hover:bg-gray-50/50 transition-all">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-gray-100 rounded-sm flex items-center justify-center text-gray-400">
-                        <Calendar className="w-6 h-6" />
+                subjects.map((subject: any) => {
+                  const courseName = courses.find(c => c.id === subject.courseId)?.name || 'Curso não encontrado';
+                  return (
+                    <div key={subject.id} className="flex items-center justify-between p-4 rounded-sm border border-gray-50 hover:bg-gray-50/50 transition-all">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-gray-100 rounded-sm flex items-center justify-center text-gray-400">
+                          <Calendar className="w-6 h-6" />
+                        </div>
+                        <div>
+                          <p className="font-bold text-gray-900 text-sm">{subject.name}</p>
+                          <p className="text-[11px] uppercase font-bold text-[#E31E24]">
+                            {courseName}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-bold text-gray-900 text-sm">{subject.name}</p>
-                        <p className="text-[10px] uppercase font-bold text-gray-400">
-                          Curse ID: {subject.courseId} | Tutor: {subject.tutorName}
-                        </p>
+                      <div className="text-right">
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Tutor</p>
+                        <p className="text-xs font-semibold text-gray-700">{subject.tutorName}</p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Criado em</p>
-                      <p className="text-xs font-semibold text-gray-700">{new Date(subject.createdAt || Date.now()).toLocaleDateString('pt-BR')}</p>
-                    </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
           </div>
