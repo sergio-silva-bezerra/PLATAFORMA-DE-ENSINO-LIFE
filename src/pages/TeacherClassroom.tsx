@@ -207,15 +207,18 @@ export function TeacherClassroom() {
       alert("Selecione uma disciplina primeiro.");
       return;
     }
-    const subject = subjects.find(s => s.id === finalSubjectId);
+    const targetSubject = subjects.find(s => s.id === finalSubjectId);
+    const teacher = users.find(u => u.uid === user.uid);
+    const teacherName = teacher?.name || user.displayName || user.email;
+
     await publishContent(
       finalSubjectId, 
-      subject?.name || 'N/A',
+      targetSubject?.name || 'N/A',
       newContent.title, 
       newContent.type, 
       newContent.url,
-      user.uid || user.email,
-      user.displayName || user.email
+      user.uid,
+      teacherName
     );
     setShowContentModal(false);
     setNewContent({ subjectId: '', title: '', type: 'pdf', url: '' });

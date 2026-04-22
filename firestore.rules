@@ -12,7 +12,8 @@ service cloud.firestore {
     function isVerified() { return isSignedIn() && request.auth.token.email_verified == true; }
     function isAdminEmail() { 
       return isSignedIn() && 
-             request.auth.token.email.lower() == 'sergiosilvabezerra@gmail.com'; 
+             (request.auth.token.email.lower() == 'sergiosilvabezerra@gmail.com' ||
+              request.auth.token.email.lower() == 'sergiosilva@life.edu.br'); 
     }
     function getUserData() { 
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data; 

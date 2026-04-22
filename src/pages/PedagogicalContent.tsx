@@ -41,16 +41,30 @@ export function PedagogicalContent() {
   async function fetchData() {
     setLoading(true);
     try {
-      const contentsData = await getCollection('contents') as Content[];
-      const subjectsData = await getCollection('subjects') as Subject[];
-      
+      const [contentsData, subjectsData, usersData] = await Promise.all([
+        getCollection('contents'),
+        getCollection('subjects'),
+        getCollection('users')
+      ]);
+
+      const contentsWithNames = (contentsData as Content[]).map(content => {
+        const subject = (subjectsData as Subject[]).find(s => s.id === content.subjectId);
+        const teacher = (usersData as any[]).find(u => u.uid === content.teacherId);
+        
+        return {
+          ...content,
+          subjectName: content.subjectName && content.subjectName !== 'N/A' && content.subjectName !== 'Disciplina Geral' ? content.subjectName : (subject?.name || 'Disciplina do Curso'),
+          teacherName: content.teacherName && content.teacherName !== 'Professor' && content.teacherName !== 'Docente Cadastrado' ? content.teacherName : (teacher?.name || 'Docente da Instituição')
+        };
+      });
+
       // Sort contents by date descending
-      const sortedContents = contentsData.sort((a, b) => 
+      const sortedContents = contentsWithNames.sort((a, b) => 
         new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime()
       );
 
       setContents(sortedContents);
-      setSubjects(subjectsData);
+      setSubjects(subjectsData as Subject[]);
     } catch (error) {
       console.error("Error fetching content data:", error);
     } finally {
@@ -79,9 +93,16 @@ export function PedagogicalContent() {
       await fetchData();
       setIsActionModalOpen(false);
       setSelectedContent(null);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error updating content status:", error);
-      alert("Erro ao atualizar status do conteúdo.");
+      let details = "Erro desconhecido";
+      try {
+        const parsed = JSON.parse(error.message);
+        details = `Acesso negado para: ${parsed.authInfo.email} (${parsed.authInfo.userId}). Permissões insuficientes.`;
+      } catch {
+        details = error.message || details;
+      }
+      alert(`Falha na Auditoria: ${details}`);
     } finally {
       setSubmitting(false);
     }
