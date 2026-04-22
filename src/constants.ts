@@ -12,9 +12,9 @@ export const MOCK_COURSES: Course[] = [
 ];
 
 export const MOCK_SUBJECTS: Subject[] = [
-  { id: '1', name: 'Anatomia e Fisiologia Humana', courseId: '1', tutor: 'Dr. Ricardo Santos', startDate: '2026-03-30' },
-  { id: '2', name: 'Fundamentos de Enfermagem', courseId: '1', tutor: 'Dra. Maria Oliveira', startDate: '2026-01-20' },
-  { id: '3', name: 'Ética e Bioética Profissional', courseId: '1', tutor: 'Carlos Mendes', startDate: '2026-01-20' },
+  { id: '1', name: 'Anatomia e Fisiologia Humana', courseId: '1', tutorId: 't1', tutorName: 'Dr. Ricardo Santos', tutorEmail: 'ricardo@example.com', hours: 80, startDate: '2026-03-30' },
+  { id: '2', name: 'Fundamentos de Enfermagem', courseId: '1', tutorId: 't2', tutorName: 'Dra. Maria Oliveira', tutorEmail: 'maria@example.com', hours: 60, startDate: '2026-01-20' },
+  { id: '3', name: 'Ética e Bioética Profissional', courseId: '1', tutorId: 't3', tutorName: 'Carlos Mendes', tutorEmail: 'carlos@example.com', hours: 40, startDate: '2026-01-20' },
 ];
 
 export const MOCK_PAYMENTS: Payment[] = [

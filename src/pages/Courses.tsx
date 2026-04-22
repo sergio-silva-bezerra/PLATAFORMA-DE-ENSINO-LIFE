@@ -28,11 +28,48 @@ export function Courses() {
     try {
       const coursesData = await getCollection('courses') as any;
       const subjectsData = await getCollection('subjects') as any;
-      const teachersData = await getCollection('users', [where('role', '==', 'teacher')]) as any;
+      const teachersFromUsers = await getCollection('users', [where('role', '==', 'teacher')]) as any;
       
+      // Map of unique teachers
+      const teacherMap = new Map();
+      
+      // 1. Prioritize registered teachers from USERS collection
+      teachersFromUsers.forEach((t: any) => {
+        teacherMap.set(t.uid, {
+          uid: t.uid,
+          name: t.name,
+          email: t.email,
+          isRegistered: true
+        });
+      });
+      
+      // 2. Add teachers extracted from SUBJECTS (for those added manually in previous subjects)
+      subjectsData.forEach((s: any) => {
+        if (s.tutorName && s.tutorEmail) {
+          // Check if this teacher is already in the map (registered)
+          const isRegistered = !!s.tutorId && s.tutorId !== 'manual' && teacherMap.has(s.tutorId);
+          
+          if (!isRegistered) {
+            // Check by email to avoid duplicates of manual entries
+            const existingManual = Array.from(teacherMap.values()).find(t => t.email === s.tutorEmail);
+            if (!existingManual) {
+              const id = s.tutorId && s.tutorId !== 'manual' ? s.tutorId : `prev-${s.tutorEmail}`;
+              teacherMap.set(id, {
+                uid: id,
+                name: s.tutorName,
+                email: s.tutorEmail,
+                isRegistered: false
+              });
+            }
+          }
+        }
+      });
+      
+      const finalTeachers = Array.from(teacherMap.values()).sort((a, b) => a.name.localeCompare(b.name));
+
       setCourses(coursesData);
       setSubjects(subjectsData);
-      setTeachers(teachersData);
+      setTeachers(finalTeachers);
     } catch (error) {
       console.error("Error fetching pedagogical data:", error);
     } finally {
@@ -532,12 +569,14 @@ export function Courses() {
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Professor / Tutor</label>
                 <select 
                   className="w-full bg-gray-50 border border-gray-100 rounded-sm p-3 text-sm"
-                  value={newSubject.tutorId}
+                  value={newSubject.tutorId === 'manual' ? (teachers.find(t => t.email === newSubject.tutorEmail)?.uid || 'manual') : newSubject.tutorId}
                   onChange={e => {
                     const selected = teachers.find(t => t.uid === e.target.value);
+                    const isPreviousManual = e.target.value.startsWith('prev-');
+                    
                     setNewSubject({
                       ...newSubject, 
-                      tutorId: e.target.value,
+                      tutorId: (isPreviousManual || e.target.value === 'manual') ? 'manual' : (selected?.uid || e.target.value),
                       tutorName: selected ? selected.name : '',
                       tutorEmail: selected ? (selected.email || '') : ''
                     });
@@ -545,7 +584,11 @@ export function Courses() {
                   required
                 >
                   <option value="">Selecione um professor</option>
-                  {teachers.map(t => <option key={t.uid} value={t.uid}>{t.name}</option>)}
+                  {teachers.map(t => (
+                    <option key={t.uid} value={t.uid}>
+                      {t.name} {t.isRegistered ? '(CONTA ATIVA)' : '(EXTERNO)'}
+                    </option>
+                  ))}
                   <option value="manual">-- Informar Manualmente (Sem Acesso) --</option>
                 </select>
                 
