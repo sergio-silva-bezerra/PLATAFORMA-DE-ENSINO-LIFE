@@ -51,6 +51,12 @@ service cloud.firestore {
         && data.status in ['Aberto', 'Em Análise', 'Concluído'];
     }
 
+    function isValidSubject(data) {
+      return data.name is string && data.name.size() <= 150
+        && data.courseId is string && data.courseId.size() <= 128
+        && data.tutorName is string && data.tutorName.size() <= 150;
+    }
+
     // --- Collections ---
 
     match /users/{userId} {
@@ -68,8 +74,8 @@ service cloud.firestore {
     }
 
     match /subjects/{subjectId} {
-      allow read: if true;
-      allow write: if isSignedIn();
+      allow read: if hasRole('admin') || hasRole('pedagogical') || (hasRole('teacher') && existing().tutorId == request.auth.uid) || hasRole('student');
+      allow write: if (hasRole('admin') || hasRole('pedagogical')) && isValidSubject(incoming());
     }
 
     match /enrollments/{enrollmentId} {

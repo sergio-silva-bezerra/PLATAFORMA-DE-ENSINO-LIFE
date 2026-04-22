@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { BookOpen, Users, Calendar, ArrowRight, Plus, X, Loader2 } from 'lucide-react';
-import { getCollection, createCourse, createSubject } from '../lib/firebase';
+import { getCollection, createCourse, createSubject, db } from '../lib/firebase';
+import { where } from 'firebase/firestore';
 import { Course, Subject } from '../types';
 
 export function Courses() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [teachers, setTeachers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCourseModal, setShowCourseModal] = useState(false);
   const [showSubjectModal, setShowSubjectModal] = useState(false);
@@ -13,7 +15,7 @@ export function Courses() {
 
   // Form states
   const [newCourse, setNewCourse] = useState({ name: '', modality: 'Presencial' as any, duration: '' });
-  const [newSubject, setNewSubject] = useState({ name: '', courseId: '', tutor: '' });
+  const [newSubject, setNewSubject] = useState({ name: '', courseId: '', tutorId: '', tutorName: '' });
 
   useEffect(() => {
     fetchData();
@@ -24,8 +26,11 @@ export function Courses() {
     try {
       const coursesData = await getCollection('courses') as any;
       const subjectsData = await getCollection('subjects') as any;
+      const teachersData = await getCollection('users', [where('role', '==', 'teacher')]) as any;
+      
       setCourses(coursesData);
       setSubjects(subjectsData);
+      setTeachers(teachersData);
     } catch (error) {
       console.error("Error fetching pedagogical data:", error);
     } finally {
@@ -53,9 +58,17 @@ export function Courses() {
     e.preventDefault();
     setLoading(true);
     try {
-      await createSubject(newSubject.name, newSubject.courseId, newSubject.tutor);
+      // If no teacher is selected from the list, we can still use the manual input if we had one
+      // But let's force selection for better logic
+      if (!newSubject.tutorId && !newSubject.tutorName) {
+        alert("Por favor, selecione ou informe um professor.");
+        setLoading(false);
+        return;
+      }
+
+      await createSubject(newSubject.name, newSubject.courseId, newSubject.tutorName, newSubject.tutorId);
       setShowSubjectModal(false);
-      setNewSubject({ name: '', courseId: '', tutor: '' });
+      setNewSubject({ name: '', courseId: '', tutorId: '', tutorName: '' });
       await fetchData();
     } catch (error: any) {
       console.error("Failed to create subject:", error);
@@ -329,15 +342,35 @@ export function Courses() {
                 />
               </div>
               <div className="space-y-1">
-                <label className="text-[10px] font-bold text-gray-400 uppercase">Nome do Professor/Tutor</label>
-                <input 
-                  type="text" 
-                  value={newSubject.tutor}
-                  onChange={e => setNewSubject({...newSubject, tutor: e.target.value})}
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Professor / Tutor</label>
+                <select 
                   className="w-full bg-gray-50 border border-gray-100 rounded-sm p-3 text-sm"
-                  placeholder="Ex: Dr. Ricardo Santos"
+                  value={newSubject.tutorId}
+                  onChange={e => {
+                    const selected = teachers.find(t => t.uid === e.target.value);
+                    setNewSubject({
+                      ...newSubject, 
+                      tutorId: e.target.value,
+                      tutorName: selected ? selected.name : ''
+                    });
+                  }}
                   required
-                />
+                >
+                  <option value="">Selecione um professor</option>
+                  {teachers.map(t => <option key={t.uid} value={t.uid}>{t.name}</option>)}
+                  <option value="manual">-- Informar Manualmente (Sem Acesso) --</option>
+                </select>
+                
+                {newSubject.tutorId === 'manual' && (
+                  <input 
+                    type="text" 
+                    className="w-full bg-gray-50 border border-gray-100 rounded-sm p-3 text-sm mt-2"
+                    placeholder="Nome do Professor Externo"
+                    value={newSubject.tutorName}
+                    onChange={e => setNewSubject({...newSubject, tutorName: e.target.value})}
+                    required
+                  />
+                )}
               </div>
               <button type="submit" className="w-full bg-[#E31E24] text-white py-4 rounded-sm font-black text-xs uppercase tracking-widest mt-4">Criar Disciplina</button>
             </form>

@@ -22,7 +22,8 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { getCollection, publishContent, createAssessment } from '../lib/firebase';
+import { getCollection, publishContent, createAssessment, auth, getTeacherSubjects } from '../lib/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
 
 export function TeacherClassroom() {
   const navigate = useNavigate();
@@ -31,6 +32,7 @@ export function TeacherClassroom() {
   const [contents, setContents] = useState<any[]>([]);
   const [assessments, setAssessments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<any>(null);
 
   // Modals
   const [showContentModal, setShowContentModal] = useState(false);
@@ -41,19 +43,37 @@ export function TeacherClassroom() {
   const [newAssessment, setNewAssessment] = useState({ subjectId: '', title: '', dueDate: '' });
 
   useEffect(() => {
-    fetchTeacherData();
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      if (currentUser) {
+        setUser(currentUser);
+        fetchTeacherData(currentUser.uid);
+      } else {
+        setLoading(false);
+        // Maybe redirect to login?
+      }
+    });
+    return () => unsubscribe();
   }, []);
 
-  async function fetchTeacherData() {
+  async function fetchTeacherData(uid: string) {
     setLoading(true);
     try {
-      const subs = await getCollection('subjects');
-      const conts = await getCollection('contents');
-      const assess = await getCollection('assessments');
+      // Filter subjects by the current teacher's UID
+      const subs = await getTeacherSubjects(uid);
+      
+      // For contents and assessments, we should ideally filter by the subjects the teacher owns
+      const subjectIds = subs.map(s => s.id);
+      
+      const allConts = await getCollection('contents') as any[];
+      const allAssess = await getCollection('assessments') as any[];
+      
+      // Filter materials and tasks to only show those belonging to the teacher's subjects
+      const filteredConts = allConts.filter(c => subjectIds.includes(c.subjectId));
+      const filteredAssess = allAssess.filter(a => subjectIds.includes(a.subjectId));
       
       setSubjects(subs);
-      setContents(conts);
-      setAssessments(assess);
+      setContents(filteredConts);
+      setAssessments(filteredAssess);
     } catch (err) {
       console.error("Error fetching teacher data:", err);
     } finally {
@@ -63,18 +83,20 @@ export function TeacherClassroom() {
 
   const handlePublishContent = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user) return;
     await publishContent(newContent.subjectId, newContent.title, newContent.type, newContent.url);
     setShowContentModal(false);
     setNewContent({ subjectId: '', title: '', type: 'pdf', url: '' });
-    fetchTeacherData();
+    fetchTeacherData(user.uid);
   };
 
   const handleCreateAssessment = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user) return;
     await createAssessment(newAssessment.subjectId, newAssessment.title, newAssessment.dueDate);
     setShowAssessmentModal(false);
     setNewAssessment({ subjectId: '', title: '', dueDate: '' });
-    fetchTeacherData();
+    fetchTeacherData(user.uid);
   };
 
   if (loading) {
@@ -109,7 +131,7 @@ export function TeacherClassroom() {
         </div>
         <div className="flex items-center gap-3">
           <div className="hidden md:flex flex-col items-end mr-2">
-            <span className="text-xs font-black text-gray-900">Dr. Ricardo Santos</span>
+            <span className="text-xs font-black text-gray-900">{user?.displayName || user?.email || 'Professor'}</span>
             <span className="text-[10px] font-bold text-gray-400 uppercase">Professor Titular</span>
           </div>
           <button className="bg-[#E31E24] p-2 rounded-sm text-white hover:bg-[#C1191F] transition-colors shadow-lg shadow-[#E31E24]/20">
@@ -183,7 +205,7 @@ export function TeacherClassroom() {
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
                   <h1 className="text-3xl font-black text-gray-900 tracking-tight">
-                    Olá, Prof. Ricardo Santos
+                    Olá, {user?.displayName?.split(' ')[0] || 'Professor'}
                   </h1>
                   <p className="text-gray-500 font-medium">Gestão das disciplinas e interações acadêmicas.</p>
                 </div>

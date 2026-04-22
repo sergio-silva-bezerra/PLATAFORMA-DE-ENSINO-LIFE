@@ -192,8 +192,14 @@ export async function createCourse(name: string, modality: string, duration: str
   return addDocument('courses', { name, modality, duration, coordinators: [] });
 }
 
-export async function createSubject(name: string, courseId: string, tutorName: string) {
-  return addDocument('subjects', { name, courseId, tutorName, startDate: Timestamp.now().toDate().toISOString() });
+export async function createSubject(name: string, courseId: string, tutorName: string, tutorId: string = '') {
+  return addDocument('subjects', { 
+    name, 
+    courseId, 
+    tutorName, 
+    tutorId,
+    startDate: Timestamp.now().toDate().toISOString() 
+  });
 }
 
 export async function publishContent(subjectId: string, title: string, type: 'video' | 'pdf' | 'audio', url: string) {
@@ -202,4 +208,12 @@ export async function publishContent(subjectId: string, title: string, type: 'vi
 
 export async function createAssessment(subjectId: string, title: string, dueDate: string) {
   return addDocument('assessments', { subjectId, title, dueDate, status: 'Ativo' });
+}
+
+export async function getTeachers() {
+  return getCollection('users', [where('role', '==', 'teacher')]);
+}
+
+export async function getTeacherSubjects(tutorId: string) {
+  return getCollection('subjects', [where('tutorId', '==', tutorId)]);
 }
