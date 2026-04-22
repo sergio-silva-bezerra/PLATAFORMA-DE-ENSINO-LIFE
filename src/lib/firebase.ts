@@ -13,6 +13,7 @@ import {
   getDocs, 
   setDoc, 
   updateDoc, 
+  deleteDoc,
   collection, 
   query, 
   where,
@@ -187,6 +188,15 @@ export async function updateDocument(collectionName: string, id: string, data: a
   }
 }
 
+export async function deleteDocument(collectionName: string, id: string) {
+  try {
+    const docRef = doc(db, collectionName, id);
+    await deleteDoc(docRef);
+  } catch (err) {
+    return handleFirestoreError(err, 'delete', `${collectionName}/${id}`);
+  }
+}
+
 // Specialized Actions
 export async function createCourse(name: string, modality: string, duration: string) {
   return addDocument('courses', { name, modality, duration, coordinators: [] });
@@ -221,4 +231,8 @@ export async function getTeacherSubjects(tutorId: string) {
 
 export async function updateCourseCurriculum(courseId: string, url: string, text: string) {
   return updateDocument('courses', courseId, { curriculumUrl: url, curriculumText: text });
+}
+
+export async function deleteCourse(courseId: string) {
+  return deleteDocument('courses', courseId);
 }

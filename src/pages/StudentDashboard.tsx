@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Play, FileText, Calendar, GraduationCap, HelpCircle, ChevronLeft, ChevronRight, ExternalLink, Loader2, Download, Eye, X } from 'lucide-react';
+import { Play, FileText, Calendar, GraduationCap, HelpCircle, ChevronLeft, ChevronRight, ExternalLink, Loader2, Download, Eye, X, BookOpen } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { cn } from '../lib/utils';
 import { GamificationBadges } from '../components/GamificationBadges';
@@ -25,7 +25,7 @@ export function StudentDashboard() {
         // Fetch student's course (Curriculum)
         // For now, if there's at least one subject, we grab its courseId as a proxy for the student's current course
         if (subjectsData.length > 0) {
-          const courseId = subjectsData[0].courseId;
+          const courseId = (subjectsData[0] as any).courseId;
           const coursesData = await getCollection('courses');
           const studentCourse = coursesData.find((c: any) => c.id === courseId);
           setCourse(studentCourse);

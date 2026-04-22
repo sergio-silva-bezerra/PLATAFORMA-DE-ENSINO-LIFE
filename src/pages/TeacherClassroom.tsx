@@ -140,7 +140,7 @@ export function TeacherClassroom() {
       }
       
       const subjectIds = subs.map(s => s.id);
-      const courseIds = [...new Set(subs.map(s => s.courseId))];
+      const courseIds = [...new Set(subs.map(s => (s as any).courseId))];
       
       if (subjectIds.length > 0) {
         const allConts = await getCollection('contents') as any[];

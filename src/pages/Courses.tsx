@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { BookOpen, Users, Calendar, ArrowRight, Plus, X, Loader2, Link as LinkIcon, FileText, Upload, Download, Eye } from 'lucide-react';
-import { getCollection, createCourse, createSubject, db, updateCourseCurriculum } from '../lib/firebase';
+import { BookOpen, Users, Calendar, ArrowRight, Plus, X, Loader2, Link as LinkIcon, FileText, Upload, Download, Eye, Trash2 } from 'lucide-react';
+import { getCollection, createCourse, createSubject, db, updateCourseCurriculum, deleteCourse } from '../lib/firebase';
 import { where } from 'firebase/firestore';
 import { Course, Subject } from '../types';
 
@@ -95,6 +95,23 @@ export function Courses() {
     }
   };
 
+  const handleDeleteCourse = async (courseId: string, courseName: string) => {
+    if (!window.confirm(`Tem certeza que deseja excluir o curso "${courseName}"? Esta ação não pode ser desfeita.`)) {
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await deleteCourse(courseId);
+      await fetchData();
+    } catch (error) {
+      console.error("Failed to delete course:", error);
+      alert("Erro ao excluir curso. Verifique se existem disciplinas vinculadas.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleOpenCurriculum = (course: Course) => {
     setCurriculumForm({
       courseId: course.id,
@@ -173,9 +190,30 @@ export function Courses() {
                         </div>
                       </div>
                       
-                      <div className="flex items-center gap-2 text-sm font-semibold text-[#E31E24]">
-                        {isExpanded ? 'Ocultar Disciplinas' : 'Ver Disciplinas'}
-                        <ArrowRight className={`w-4 h-4 transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
+                      <div className="flex items-center gap-4">
+                        {isExpanded ? (
+                          <div className="flex items-center gap-2">
+                             <button 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteCourse(course.id, course.name);
+                              }}
+                              className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-all"
+                              title="Excluir Curso"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                            <div className="flex items-center gap-2 text-sm font-semibold text-[#E31E24]">
+                              Ocultar Disciplinas
+                              <ArrowRight className="w-4 h-4 rotate-90 transition-transform" />
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2 text-sm font-semibold text-[#E31E24]">
+                            Ver Disciplinas
+                            <ArrowRight className="w-4 h-4 transition-transform" />
+                          </div>
+                        )}
                       </div>
                     </div>
 
