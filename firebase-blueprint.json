@@ -109,6 +109,8 @@
         "url": { "type": "string" },
         "status": { "type": "string", "enum": ["Pendente", "Aprovado", "Ajuste Necessário"] },
         "feedback": { "type": "string" },
+        "teacherReply": { "type": "string" },
+        "teacherReplyAt": { "type": "string" },
         "createdAt": { "type": "string", "format": "date-time" },
         "updatedAt": { "type": "string", "format": "date-time" }
       },

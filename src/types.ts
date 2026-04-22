@@ -51,6 +51,8 @@ export interface Content {
   id: string;
   subjectId: string;
   subjectName?: string;
+  courseId?: string;
+  courseName?: string;
   teacherId: string;
   teacherName: string;
   title: string;
@@ -58,6 +60,8 @@ export interface Content {
   url: string;
   status: 'Pendente' | 'Aprovado' | 'Ajuste Necessário';
   feedback?: string;
+  teacherReply?: string;
+  teacherReplyAt?: string;
   createdAt: string;
   updatedAt?: string;
 }

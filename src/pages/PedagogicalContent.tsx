@@ -215,7 +215,9 @@ export function PedagogicalContent() {
                         <p className="text-sm font-black text-gray-900 group-hover:text-[#E31E24] transition-colors">{content.title}</p>
                         <div className="flex items-center gap-1.5 mt-1">
                           <User className="w-3 h-3 text-gray-400" />
-                          <p className="text-[10px] text-gray-400 font-bold uppercase">{content.teacherName || 'Professor'}</p>
+                          <p className="text-[10px] text-gray-400 font-bold uppercase">
+                            {content.teacherName && content.teacherName !== 'Professor' ? content.teacherName : 'Aguardando Atribuição'}
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -225,7 +227,7 @@ export function PedagogicalContent() {
                   </td>
                   <td className="px-6 py-5">
                     <span className="text-[10px] font-black text-[#E31E24] border border-[#E31E24]/20 px-2 py-0.5 rounded-sm uppercase">
-                      {content.subjectName || 'N/A'}
+                      {content.subjectName && content.subjectName !== 'N/A' ? content.subjectName : 'Disciplina Geral'}
                     </span>
                   </td>
                   <td className="px-6 py-5">
@@ -338,7 +340,18 @@ export function PedagogicalContent() {
                   placeholder="Descreva as orientações pedagógicas para este material..."
                   className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-sm text-sm focus:outline-none focus:ring-2 focus:ring-[#E31E24]/20 italic"
                 />
-                <p className="text-[10px] text-gray-400 italic">O professor verá este comentário no seu portal e poderá realizar as correções necessárias.</p>
+                {selectedContent.teacherReply && (
+                  <div className="mt-4 bg-blue-50 p-4 rounded-sm border-l-4 border-blue-600">
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-[10px] font-bold text-blue-600 uppercase tracking-widest">Resposta do Professor</span>
+                      <span className="text-[9px] text-blue-400 font-medium">
+                        {selectedContent.teacherReplyAt ? new Date(selectedContent.teacherReplyAt).toLocaleString('pt-BR') : ''}
+                      </span>
+                    </div>
+                    <p className="text-sm text-blue-900">{selectedContent.teacherReply}</p>
+                  </div>
+                )}
+                <p className="text-[10px] text-gray-400 italic mt-2">O professor verá este comentário no seu portal e poderá responder ou realizar correções.</p>
               </div>
 
               <div className="flex gap-3 pt-4 border-t border-gray-50">
