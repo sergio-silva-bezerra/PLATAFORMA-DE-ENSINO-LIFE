@@ -22,8 +22,12 @@ export interface Subject {
   id: string;
   name: string;
   courseId: string;
-  tutor: string;
+  tutorId: string;
+  tutorName: string;
+  tutorEmail: string;
+  hours: number;
   startDate: string;
+  createdAt?: string;
 }
 
 export interface Payment {

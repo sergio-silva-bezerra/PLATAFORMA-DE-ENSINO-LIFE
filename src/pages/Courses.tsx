@@ -16,7 +16,7 @@ export function Courses() {
 
   // Form states
   const [newCourse, setNewCourse] = useState({ name: '', modality: 'Presencial' as any, duration: '' });
-  const [newSubject, setNewSubject] = useState({ name: '', courseId: '', tutorId: '', tutorName: '', tutorEmail: '' });
+  const [newSubject, setNewSubject] = useState({ name: '', courseId: '', tutorId: '', tutorName: '', tutorEmail: '', hours: 0 });
   const [curriculumForm, setCurriculumForm] = useState({ courseId: '', url: '', text: '' });
 
   useEffect(() => {
@@ -68,9 +68,9 @@ export function Courses() {
         return;
       }
 
-      await createSubject(newSubject.name, newSubject.courseId, newSubject.tutorName, newSubject.tutorId, newSubject.tutorEmail);
+      await createSubject(newSubject.name, newSubject.courseId, newSubject.tutorName, newSubject.tutorId, newSubject.tutorEmail, newSubject.hours);
       setShowSubjectModal(false);
-      setNewSubject({ name: '', courseId: '', tutorId: '', tutorName: '', tutorEmail: '' });
+      setNewSubject({ name: '', courseId: '', tutorId: '', tutorName: '', tutorEmail: '', hours: 0 });
       await fetchData();
     } catch (error: any) {
       console.error("Failed to create subject:", error);
@@ -313,6 +313,10 @@ export function Courses() {
                                       <p className="text-[10px] uppercase font-bold text-gray-400">
                                         Tutor: {subject.tutorName}
                                       </p>
+                                      <div className="w-1 h-1 bg-gray-300 rounded-full" />
+                                      <p className="text-[10px] uppercase font-bold text-[#E31E24]">
+                                        {subject.hours || 0}h
+                                      </p>
                                       <button 
                                         onClick={(e) => {
                                           e.stopPropagation();
@@ -370,9 +374,15 @@ export function Courses() {
                         </div>
                         <div>
                           <p className="font-bold text-gray-900 text-sm">{subject.name}</p>
-                          <p className="text-[11px] uppercase font-bold text-[#E31E24]">
-                            {courseName}
-                          </p>
+                          <div className="flex items-center gap-2">
+                            <p className="text-[11px] uppercase font-bold text-[#E31E24]">
+                              {courseName}
+                            </p>
+                            <div className="w-1 h-1 bg-gray-300 rounded-full" />
+                            <p className="text-[11px] uppercase font-bold text-gray-400">
+                              {subject.hours || 0}h
+                            </p>
+                          </div>
                         </div>
                       </div>
                       <div className="text-right">
@@ -562,6 +572,17 @@ export function Courses() {
                   required
                 />
                 <p className="text-[9px] text-gray-400 italic">Este e-mail será usado para o login provisório do docente.</p>
+              </div>
+              <div className="space-y-1">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Carga Horária (Horas)</label>
+                <input 
+                  type="number" 
+                  className="w-full bg-gray-50 border border-gray-100 rounded-sm p-3 text-sm"
+                  placeholder="Ex: 80"
+                  value={newSubject.hours || ''}
+                  onChange={e => setNewSubject({...newSubject, hours: parseInt(e.target.value) || 0})}
+                  required
+                />
               </div>
               <button type="submit" className="w-full bg-[#E31E24] text-white py-4 rounded-sm font-black text-xs uppercase tracking-widest mt-4">Criar Disciplina</button>
             </form>

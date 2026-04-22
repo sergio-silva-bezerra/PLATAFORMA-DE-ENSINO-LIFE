@@ -202,13 +202,14 @@ export async function createCourse(name: string, modality: string, duration: str
   return addDocument('courses', { name, modality, duration, coordinators: [] });
 }
 
-export async function createSubject(name: string, courseId: string, tutorName: string, tutorId: string = '', tutorEmail: string = '') {
+export async function createSubject(name: string, courseId: string, tutorName: string, tutorId: string = '', tutorEmail: string = '', hours: number = 0) {
   return addDocument('subjects', { 
     name, 
     courseId, 
     tutorName, 
     tutorId,
     tutorEmail,
+    hours,
     startDate: Timestamp.now().toDate().toISOString() 
   });
 }

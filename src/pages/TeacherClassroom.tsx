@@ -396,7 +396,11 @@ export function TeacherClassroom() {
                         
                         <div className="p-6 space-y-4">
                           <div className="flex justify-between items-center text-xs">
-                            <span className="font-bold text-gray-500 uppercase tracking-widest">ID: {item.id}</span>
+                            <span className="font-bold text-gray-500 uppercase tracking-widest flex items-center gap-1.5">
+                              ID: {item.id} 
+                              <span className="w-1 h-1 bg-gray-300 rounded-full" />
+                              <Clock className="w-3 h-3" /> {(item as any).hours || 0}h
+                            </span>
                             <span className="font-black text-[#E31E24] uppercase">Tutor: {item.tutorName}</span>
                           </div>
 

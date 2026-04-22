@@ -55,6 +55,7 @@ service cloud.firestore {
       return data.name is string && data.name.size() <= 150
         && data.courseId is string && data.courseId.size() <= 128
         && data.tutorName is string && data.tutorName.size() <= 150
+        && (data.hours == null || data.hours is number)
         && (data.tutorEmail == null || (data.tutorEmail is string && data.tutorEmail.size() <= 150));
     }
 
