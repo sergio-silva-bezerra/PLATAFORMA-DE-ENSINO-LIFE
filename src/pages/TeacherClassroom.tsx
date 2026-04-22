@@ -24,6 +24,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { getCollection, publishContent, createAssessment, auth, getTeacherSubjects } from '../lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
+import { where } from 'firebase/firestore';
 
 export function TeacherClassroom() {
   const navigate = useNavigate();
@@ -45,15 +46,26 @@ export function TeacherClassroom() {
   useEffect(() => {
     // 1. Check for firebase auth first
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      // Check if we have a provisional session in localStorage
+      const altEmail = localStorage.getItem('p_teacher_email');
+      const altName = localStorage.getItem('p_teacher_name');
+
       if (currentUser) {
-        setUser(currentUser);
-        fetchTeacherData(currentUser.uid);
+        // If it's an anonymous/provisional session or we have an altEmail saved
+        if (currentUser.isAnonymous && altEmail) {
+          const altUser = { email: altEmail, displayName: altName, uid: currentUser.uid };
+          setUser(altUser);
+          fetchTeacherDataByEmail(altEmail);
+        } else {
+          // Standard Google Login
+          setUser(currentUser);
+          fetchTeacherData(currentUser.uid);
+        }
       } else {
-        // 2. Fallback to localStorage alternative login
-        const altEmail = localStorage.getItem('p_teacher_email');
-        const altName = localStorage.getItem('p_teacher_name');
-        
+        // 2. Fallback if not even guest
         if (altEmail) {
+          // This case shouldn't strictly happen if ProfessorLogin signs them in, 
+          // but for robustness we trigger the fetch if we have the data
           const altUser = { email: altEmail, displayName: altName, uid: altEmail };
           setUser(altUser);
           fetchTeacherDataByEmail(altEmail);
@@ -69,21 +81,27 @@ export function TeacherClassroom() {
   async function fetchTeacherDataByEmail(email: string) {
     setLoading(true);
     try {
-      // Find subjects by email
-      const allSubs = await getCollection('subjects') as any[];
-      const subs = allSubs.filter(s => s.tutorEmail?.toLowerCase() === email.toLowerCase());
+      // Find subjects by email using server-side query
+      const subs = await getCollection('subjects', [where('tutorEmail', '==', email.toLowerCase())]) as any[];
       
       const subjectIds = subs.map(s => s.id);
       
-      const allConts = await getCollection('contents') as any[];
-      const allAssess = await getCollection('assessments') as any[];
-      
-      const filteredConts = allConts.filter(c => subjectIds.includes(c.subjectId));
-      const filteredAssess = allAssess.filter(a => subjectIds.includes(a.subjectId));
-      
-      setSubjects(subs);
-      setContents(filteredConts);
-      setAssessments(filteredAssess);
+      if (subjectIds.length > 0) {
+        // Fetch contents and assessments only for these subjects
+        const allConts = await getCollection('contents') as any[];
+        const allAssess = await getCollection('assessments') as any[];
+        
+        const filteredConts = allConts.filter(c => subjectIds.includes(c.subjectId));
+        const filteredAssess = allAssess.filter(a => subjectIds.includes(a.subjectId));
+        
+        setSubjects(subs);
+        setContents(filteredConts);
+        setAssessments(filteredAssess);
+      } else {
+        setSubjects([]);
+        setContents([]);
+        setAssessments([]);
+      }
     } catch (err) {
       console.error("Error fetching teacher data by email:", err);
     } finally {
@@ -94,22 +112,39 @@ export function TeacherClassroom() {
   async function fetchTeacherData(uid: string) {
     setLoading(true);
     try {
-      // Filter subjects by the current teacher's UID
-      const subs = await getTeacherSubjects(uid);
+      // 1. Fetch subjects by UID
+      let subs = await getTeacherSubjects(uid);
       
-      // For contents and assessments, we should ideally filter by the subjects the teacher owns
+      // 2. Also search by Email (in case pedagogical assigned by email only)
+      if (auth.currentUser?.email) {
+        const emailSubs = await getCollection('subjects', [where('tutorEmail', '==', auth.currentUser.email.toLowerCase())]) as any[];
+        
+        // Merge results avoiding duplicates
+        const existingIds = new Set(subs.map(s => s.id));
+        emailSubs.forEach(s => {
+          if (!existingIds.has(s.id)) {
+            subs.push(s);
+          }
+        });
+      }
+      
       const subjectIds = subs.map(s => s.id);
       
-      const allConts = await getCollection('contents') as any[];
-      const allAssess = await getCollection('assessments') as any[];
-      
-      // Filter materials and tasks to only show those belonging to the teacher's subjects
-      const filteredConts = allConts.filter(c => subjectIds.includes(c.subjectId));
-      const filteredAssess = allAssess.filter(a => subjectIds.includes(a.subjectId));
-      
-      setSubjects(subs);
-      setContents(filteredConts);
-      setAssessments(filteredAssess);
+      if (subjectIds.length > 0) {
+        const allConts = await getCollection('contents') as any[];
+        const allAssess = await getCollection('assessments') as any[];
+        
+        const filteredConts = allConts.filter(c => subjectIds.includes(c.subjectId));
+        const filteredAssess = allAssess.filter(a => subjectIds.includes(a.subjectId));
+        
+        setSubjects(subs);
+        setContents(filteredConts);
+        setAssessments(filteredAssess);
+      } else {
+        setSubjects([]);
+        setContents([]);
+        setAssessments([]);
+      }
     } catch (err) {
       console.error("Error fetching teacher data:", err);
     } finally {

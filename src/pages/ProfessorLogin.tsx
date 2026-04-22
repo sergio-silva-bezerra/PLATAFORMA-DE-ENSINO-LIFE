@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { HeartPulse, LogIn, ArrowRight, Loader2, User, Lock } from 'lucide-react';
-import { signIn, getCollection, db } from '../lib/firebase';
+import { signIn, getCollection, db, signInAsGuest } from '../lib/firebase';
 import { where } from 'firebase/firestore';
 
 export function ProfessorLogin() {
@@ -33,34 +33,43 @@ export function ProfessorLogin() {
     setError('');
 
     try {
-      // Temporary logic: Check if any subject has this tutorEmail and password is '123'
-      // or check in users collection
+      // 1. First validate if the teacher exists in subjects
       const subjects = await getCollection('subjects', [where('tutorEmail', '==', email.toLowerCase())]) as any[];
       
-      if (subjects.length > 0 && password === '123') {
-        // Successful mock login
-        // We store the email in localStorage to identify the teacher in the next screen
-        localStorage.setItem('p_teacher_email', email.toLowerCase());
-        localStorage.setItem('p_teacher_name', subjects[0].tutorName);
-        navigate('/professor/sala-virtual');
-      } else {
-        // Also check in users collection if they are already registered as teachers
+      const teacherExistsInSubjects = subjects.length > 0;
+      let teacherName = teacherExistsInSubjects ? subjects[0].tutorName : '';
+
+      // 2. Also check users collection
+      if (!teacherExistsInSubjects) {
         const users = await getCollection('users', [
           where('email', '==', email.toLowerCase()),
           where('role', '==', 'teacher')
         ]) as any[];
-
-        if (users.length > 0 && password === '123') {
-          localStorage.setItem('p_teacher_email', email.toLowerCase());
-          localStorage.setItem('p_teacher_name', users[0].name);
-          navigate('/professor/sala-virtual');
+        
+        if (users.length > 0) {
+          teacherName = users[0].name;
         } else {
-          setError("Credenciais inválidas. Verifique o e-mail cadastrado ou use a conta Google.");
+          setError("Este e-mail não está cadastrado como professor no sistema.");
+          setIsLoading(false);
+          return;
         }
+      }
+
+      // 3. Validate password (temporary 123 logic requested by user)
+      if (password === '123') {
+        // AUTHENTICATE with Firebase to satisfy security rules
+        await signInAsGuest();
+        
+        // Store session info
+        localStorage.setItem('p_teacher_email', email.toLowerCase());
+        localStorage.setItem('p_teacher_name', teacherName);
+        navigate('/professor/sala-virtual');
+      } else {
+        setError("Senha incorreta. Verifique os dados com a coordenação.");
       }
     } catch (err) {
       console.error("Alternative login failed:", err);
-      setError("Erro ao processar login. Tente novamente mais tarde.");
+      setError("Erro ao processar login. Verifique sua conexão.");
     } finally {
       setIsLoading(false);
     }

@@ -75,7 +75,7 @@ service cloud.firestore {
     }
 
     match /subjects/{subjectId} {
-      allow read: if hasRole('admin') || hasRole('pedagogical') || (hasRole('teacher') && existing().tutorId == request.auth.uid) || hasRole('student');
+      allow read: if isSignedIn();
       allow write: if (hasRole('admin') || hasRole('pedagogical')) && isValidSubject(incoming());
     }
 
