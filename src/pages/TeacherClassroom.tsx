@@ -43,17 +43,53 @@ export function TeacherClassroom() {
   const [newAssessment, setNewAssessment] = useState({ subjectId: '', title: '', dueDate: '' });
 
   useEffect(() => {
+    // 1. Check for firebase auth first
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       if (currentUser) {
         setUser(currentUser);
         fetchTeacherData(currentUser.uid);
       } else {
-        setLoading(false);
-        // Maybe redirect to login?
+        // 2. Fallback to localStorage alternative login
+        const altEmail = localStorage.getItem('p_teacher_email');
+        const altName = localStorage.getItem('p_teacher_name');
+        
+        if (altEmail) {
+          const altUser = { email: altEmail, displayName: altName, uid: altEmail };
+          setUser(altUser);
+          fetchTeacherDataByEmail(altEmail);
+        } else {
+          setLoading(false);
+          navigate('/acesso-professor');
+        }
       }
     });
     return () => unsubscribe();
   }, []);
+
+  async function fetchTeacherDataByEmail(email: string) {
+    setLoading(true);
+    try {
+      // Find subjects by email
+      const allSubs = await getCollection('subjects') as any[];
+      const subs = allSubs.filter(s => s.tutorEmail?.toLowerCase() === email.toLowerCase());
+      
+      const subjectIds = subs.map(s => s.id);
+      
+      const allConts = await getCollection('contents') as any[];
+      const allAssess = await getCollection('assessments') as any[];
+      
+      const filteredConts = allConts.filter(c => subjectIds.includes(c.subjectId));
+      const filteredAssess = allAssess.filter(a => subjectIds.includes(a.subjectId));
+      
+      setSubjects(subs);
+      setContents(filteredConts);
+      setAssessments(filteredAssess);
+    } catch (err) {
+      console.error("Error fetching teacher data by email:", err);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   async function fetchTeacherData(uid: string) {
     setLoading(true);
@@ -87,7 +123,11 @@ export function TeacherClassroom() {
     await publishContent(newContent.subjectId, newContent.title, newContent.type, newContent.url);
     setShowContentModal(false);
     setNewContent({ subjectId: '', title: '', type: 'pdf', url: '' });
-    fetchTeacherData(user.uid);
+    if (auth.currentUser) {
+      fetchTeacherData(user.uid);
+    } else {
+      fetchTeacherDataByEmail(user.email);
+    }
   };
 
   const handleCreateAssessment = async (e: React.FormEvent) => {
@@ -96,7 +136,11 @@ export function TeacherClassroom() {
     await createAssessment(newAssessment.subjectId, newAssessment.title, newAssessment.dueDate);
     setShowAssessmentModal(false);
     setNewAssessment({ subjectId: '', title: '', dueDate: '' });
-    fetchTeacherData(user.uid);
+    if (auth.currentUser) {
+      fetchTeacherData(user.uid);
+    } else {
+      fetchTeacherDataByEmail(user.email);
+    }
   };
 
   if (loading) {

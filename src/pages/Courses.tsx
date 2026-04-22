@@ -15,7 +15,7 @@ export function Courses() {
 
   // Form states
   const [newCourse, setNewCourse] = useState({ name: '', modality: 'Presencial' as any, duration: '' });
-  const [newSubject, setNewSubject] = useState({ name: '', courseId: '', tutorId: '', tutorName: '' });
+  const [newSubject, setNewSubject] = useState({ name: '', courseId: '', tutorId: '', tutorName: '', tutorEmail: '' });
 
   useEffect(() => {
     fetchData();
@@ -66,9 +66,9 @@ export function Courses() {
         return;
       }
 
-      await createSubject(newSubject.name, newSubject.courseId, newSubject.tutorName, newSubject.tutorId);
+      await createSubject(newSubject.name, newSubject.courseId, newSubject.tutorName, newSubject.tutorId, newSubject.tutorEmail);
       setShowSubjectModal(false);
-      setNewSubject({ name: '', courseId: '', tutorId: '', tutorName: '' });
+      setNewSubject({ name: '', courseId: '', tutorId: '', tutorName: '', tutorEmail: '' });
       await fetchData();
     } catch (error: any) {
       console.error("Failed to create subject:", error);
@@ -94,17 +94,6 @@ export function Courses() {
           <p className="text-gray-500">Gerencie a estrutura curricular e o corpo docente.</p>
         </div>
         <div className="flex flex-wrap gap-3">
-          <button 
-            onClick={() => {
-              const loginUrl = window.location.origin + '/acesso-professor';
-              navigator.clipboard.writeText(loginUrl);
-              alert('Link do Portal do Professor copiado!\n\nEnvie este link para os docentes:\n' + loginUrl);
-            }}
-            className="bg-[#151619] text-white px-6 py-2.5 rounded-sm font-bold text-xs uppercase tracking-widest flex items-center gap-2 hover:bg-black transition-colors shadow-lg"
-          >
-            <LinkIcon className="w-4 h-4 text-[#E31E24]" />
-            Copiar Link do Professor
-          </button>
           <button 
             onClick={() => setShowSubjectModal(true)}
             className="bg-white text-gray-700 border border-gray-200 px-6 py-3 rounded-sm font-semibold hover:bg-gray-50 transition-colors shadow-sm"
@@ -292,22 +281,8 @@ export function Courses() {
               </div>
             </div>
 
-            <div className="mt-8 pt-6 border-t border-white/10">
-              <p className="text-[10px] font-black text-[#E31E24] uppercase tracking-widest mb-4">Acesso Docente</p>
-              <button 
-                onClick={() => {
-                  const loginUrl = window.location.origin + '/acesso-professor';
-                  navigator.clipboard.writeText(loginUrl);
-                  alert('Link copiado com sucesso!');
-                }}
-                className="w-full bg-white/5 hover:bg-white/10 text-white text-[11px] font-bold py-3 rounded-sm border border-white/10 flex items-center justify-center gap-2 transition-all"
-              >
-                <LinkIcon className="w-3 h-3 text-[#E31E24]" />
-                Copiar Portal do Professor
-              </button>
-              <p className="text-[9px] text-gray-500 mt-3 leading-relaxed">
-                Envie este link para que o professor acesse exclusivamente suas disciplinas.
-              </p>
+            <div className="mt-8 pt-6 border-t border-white/10 italic text-gray-500 text-[10px]">
+              Links de acesso individuais disponíveis na listagem de disciplinas.
             </div>
           </div>
         </div>
@@ -406,7 +381,8 @@ export function Courses() {
                     setNewSubject({
                       ...newSubject, 
                       tutorId: e.target.value,
-                      tutorName: selected ? selected.name : ''
+                      tutorName: selected ? selected.name : '',
+                      tutorEmail: selected ? (selected.email || '') : ''
                     });
                   }}
                   required
@@ -426,6 +402,19 @@ export function Courses() {
                     required
                   />
                 )}
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">E-mail do Professor</label>
+                <input 
+                  type="email" 
+                  className="w-full bg-gray-50 border border-gray-100 rounded-sm p-3 text-sm"
+                  placeholder="email@professor.com"
+                  value={newSubject.tutorEmail}
+                  onChange={e => setNewSubject({...newSubject, tutorEmail: e.target.value})}
+                  required
+                />
+                <p className="text-[9px] text-gray-400 italic">Este e-mail será usado para o login provisório do docente.</p>
               </div>
               <button type="submit" className="w-full bg-[#E31E24] text-white py-4 rounded-sm font-black text-xs uppercase tracking-widest mt-4">Criar Disciplina</button>
             </form>

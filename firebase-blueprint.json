@@ -34,6 +34,7 @@
         "courseId": { "type": "string" },
         "tutorId": { "type": "string" },
         "tutorName": { "type": "string" },
+        "tutorEmail": { "type": "string" },
         "startDate": { "type": "string", "format": "date" }
       },
       "required": ["name", "courseId"]
