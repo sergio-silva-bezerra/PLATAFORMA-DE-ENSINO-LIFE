@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { BookOpen, Users, Calendar, ArrowRight, Plus, X, Loader2, Link as LinkIcon, FileText, Upload, Download, Eye, Trash2 } from 'lucide-react';
-import { getCollection, createCourse, createSubject, db, updateCourseCurriculum, deleteCourse } from '../lib/firebase';
+import { getCollection, createCourse, createSubject, db, updateCourseCurriculum, deleteCourse, deleteSubject } from '../lib/firebase';
 import { where } from 'firebase/firestore';
 import { Course, Subject } from '../types';
 
@@ -107,6 +107,23 @@ export function Courses() {
     } catch (error) {
       console.error("Failed to delete course:", error);
       alert("Erro ao excluir curso. Verifique se existem disciplinas vinculadas.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteSubject = async (subjectId: string, subjectName: string) => {
+    if (!window.confirm(`Tem certeza que deseja excluir a disciplina "${subjectName}"?`)) {
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await deleteSubject(subjectId);
+      await fetchData();
+    } catch (error) {
+      console.error("Failed to delete subject:", error);
+      alert("Erro ao excluir disciplina.");
     } finally {
       setLoading(false);
     }
@@ -299,6 +316,16 @@ export function Courses() {
                                       <button 
                                         onClick={(e) => {
                                           e.stopPropagation();
+                                          handleDeleteSubject(subject.id, subject.name);
+                                        }}
+                                        className="text-gray-300 hover:text-red-500 p-1"
+                                        title="Excluir Disciplina"
+                                      >
+                                        <Trash2 className="w-3.5 h-3.5" />
+                                      </button>
+                                      <button 
+                                        onClick={(e) => {
+                                          e.stopPropagation();
                                           const loginUrl = window.location.origin + '/acesso-professor';
                                           navigator.clipboard.writeText(loginUrl);
                                           alert('Link do Portal do Professor copiado!');
@@ -352,6 +379,15 @@ export function Courses() {
                         <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Tutor</p>
                         <div className="flex items-center justify-end gap-2">
                           <p className="text-xs font-semibold text-gray-700">{subject.tutorName}</p>
+                          <button 
+                            onClick={() => {
+                              handleDeleteSubject(subject.id, subject.name);
+                            }}
+                            className="text-gray-300 hover:text-red-500 p-1 transition-all"
+                            title="Excluir Disciplina"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
                           <button 
                             onClick={() => {
                               const loginUrl = window.location.origin + '/acesso-professor';

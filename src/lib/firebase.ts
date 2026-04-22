@@ -233,6 +233,39 @@ export async function updateCourseCurriculum(courseId: string, url: string, text
   return updateDocument('courses', courseId, { curriculumUrl: url, curriculumText: text });
 }
 
+export async function deleteSubject(subjectId: string) {
+  try {
+    // 1. Delete contents
+    const contentsRef = collection(db, 'contents');
+    const q1 = query(contentsRef, where('subjectId', '==', subjectId));
+    const snap1 = await getDocs(q1);
+    await Promise.all(snap1.docs.map(d => deleteDoc(d.ref)));
+
+    // 2. Delete assessments
+    const assessmentsRef = collection(db, 'assessments');
+    const q2 = query(assessmentsRef, where('subjectId', '==', subjectId));
+    const snap2 = await getDocs(q2);
+    await Promise.all(snap2.docs.map(d => deleteDoc(d.ref)));
+
+    // 3. Delete subject
+    await deleteDoc(doc(db, 'subjects', subjectId));
+  } catch (err) {
+    return handleFirestoreError(err, 'delete', `subjects/${subjectId}`);
+  }
+}
+
 export async function deleteCourse(courseId: string) {
-  return deleteDocument('courses', courseId);
+  try {
+    // 1. Get and delete all subjects associated with this course (calling deleteSubject for deep cleanup)
+    const subjectsRef = collection(db, 'subjects');
+    const q = query(subjectsRef, where('courseId', '==', courseId));
+    const querySnapshot = await getDocs(q);
+    
+    await Promise.all(querySnapshot.docs.map(d => deleteSubject(d.id)));
+    
+    // 2. Delete the course itself
+    return deleteDocument('courses', courseId);
+  } catch (err) {
+    return handleFirestoreError(err, 'delete', `courses/${courseId}`);
+  }
 }
