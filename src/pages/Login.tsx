@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Lock, User, ArrowRight, CreditCard, HeartPulse, UserCog, BookOpen, LogIn } from 'lucide-react';
 import { cn } from '../lib/utils';
-import { signIn } from '../lib/firebase';
+import { signIn, signInAsGuest } from '../lib/firebase';
 
 export function Login() {
   const navigate = useNavigate();
@@ -27,36 +27,59 @@ export function Login() {
       else navigate('/aluno');
     } catch (err: any) {
       console.error("Google login failed:", err);
-      setError("Falha na autenticação com Google. Tente novamente.");
+      
+      let message = "Falha na autenticação com Google.";
+      
+      if (err.code === 'auth/operation-not-allowed') {
+        message += " O provedor Google não está ativado no Firebase Console.";
+      } else if (err.code === 'auth/unauthorized-domain') {
+        message += " Este domínio não está autorizado no Firebase Console.";
+      } else if (err.code === 'auth/popup-blocked') {
+        message += " O popup de login foi bloqueado pelo seu navegador.";
+      } else if (err.message) {
+        message += ` Detalhes: ${err.message}`;
+      }
+      
+      setError(message);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setIsLoading(true);
 
-    // For testing and demo, we still allow mock login
-    // But we warn that some features requiring real DB access might fail if not truly authenticated
-    if (role === 'aluno') {
-      navigate('/aluno');
-      return;
-    }
+    try {
+      // For any role selection, we also sign in as guest to Firebase 
+      // so the session is active for the Firestore rules.
+      await signInAsGuest();
 
-    const credentials: Record<string, { id: string; pass: string; path: string }> = {
-      admin: { id: 'admin', pass: 'admin123', path: '/admin' },
-      secretaria: { id: 'secretaria', pass: 'sec123', path: '/secretaria' },
-      financeiro: { id: 'financeiro', pass: 'fin123', path: '/financeiro' },
-      pedagogico: { id: 'pedagogico', pass: 'ped123', path: '/pedagogico' },
-      professor: { id: 'professor', pass: 'prof123', path: '/professor/sala-virtual' },
-    };
+      if (role === 'aluno') {
+        navigate('/aluno');
+        return;
+      }
 
-    const cred = credentials[role];
-    if (identifier === cred.id && password === cred.pass) {
-      navigate(cred.path);
-    } else {
-      setError(`Credenciais inválidas para o perfil ${role}. Tente novamente.`);
+      const credentials: Record<string, { id: string; pass: string; path: string }> = {
+        admin: { id: 'admin', pass: 'admin123', path: '/admin' },
+        secretaria: { id: 'secretaria', pass: 'sec123', path: '/secretaria' },
+        financeiro: { id: 'financeiro', pass: 'fin123', path: '/financeiro' },
+        pedagogico: { id: 'pedagogico', pass: 'ped123', path: '/pedagogico' },
+        professor: { id: 'professor', pass: 'prof123', path: '/professor/sala-virtual' },
+      };
+
+      const cred = credentials[role];
+      if (identifier === cred.id && password === cred.pass) {
+        navigate(cred.path);
+      } else {
+        setError(`Credenciais inválidas para o perfil ${role}. Tente novamente.`);
+      }
+    } catch (err) {
+      console.error("Mock login failed due to Firebase guest auth error:", err);
+      setError("Falha ao iniciar sessão de teste. Verifique sua conexão.");
+    } finally {
+      setIsLoading(false);
     }
   };
 

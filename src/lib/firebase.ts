@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, signInAnonymously } from 'firebase/auth';
 import { 
   getFirestore, 
   doc, 
@@ -125,6 +125,16 @@ export async function signIn() {
 
 export async function logOut() {
   await signOut(auth);
+}
+
+export async function signInAsGuest() {
+  try {
+    const result = await signInAnonymously(auth);
+    return result.user;
+  } catch (error) {
+    console.error("Error signing in anonymously:", error);
+    throw error;
+  }
 }
 
 // Generic Firestore Helpers

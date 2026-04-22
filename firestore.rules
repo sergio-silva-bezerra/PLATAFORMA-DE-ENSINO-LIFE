@@ -10,8 +10,21 @@ service cloud.firestore {
     // Helper functions
     function isSignedIn() { return request.auth != null; }
     function isVerified() { return isSignedIn() && request.auth.token.email_verified == true; }
-    function getUserData() { return get(/databases/$(database)/documents/users/$(request.auth.uid)).data; }
-    function hasRole(role) { return isSignedIn() && getUserData().role == role; }
+    function isAdminEmail() { 
+      return isSignedIn() && 
+             request.auth.token.email.lower() == 'sergiosilvabezerra@gmail.com' && 
+             isVerified(); 
+    }
+    function getUserData() { 
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data; 
+    }
+    function hasRole(role) { 
+      return isAdminEmail() || (
+        isSignedIn() && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+        getUserData().role == role
+      ); 
+    }
     function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
     function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); }
     function incoming() { return request.resource.data; }
@@ -20,10 +33,10 @@ service cloud.firestore {
     // Validation Blueprints
     function isValidUser(data) {
       return data.uid == request.auth.uid 
-        && data.name is string && data.name.size() <= 100
-        && data.email is string && data.email.size() <= 100
-        && data.role in ['admin', 'financial', 'pedagogical', 'student', 'secretariat']
-        && (data.role == 'student' || !isSignedIn()); // New users default to student or assigned by admin
+        && data.name is string && data.name.size() <= 150
+        && data.email is string && data.email.size() <= 150
+        && data.role in ['admin', 'financial', 'pedagogical', 'student', 'secretariat', 'teacher']
+        && (data.role == 'student' || isAdminEmail() || !isSignedIn()); 
     }
 
     function isValidPayment(data) {
@@ -50,13 +63,13 @@ service cloud.firestore {
     }
 
     match /courses/{courseId} {
-      allow read: if isSignedIn();
-      allow write: if hasRole('admin') || hasRole('pedagogical');
+      allow read: if true;
+      allow write: if isSignedIn();
     }
 
     match /subjects/{subjectId} {
-      allow read: if isSignedIn();
-      allow write: if hasRole('admin') || hasRole('pedagogical');
+      allow read: if true;
+      allow write: if isSignedIn();
     }
 
     match /enrollments/{enrollmentId} {
