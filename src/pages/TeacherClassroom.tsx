@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { 
   Settings, 
   Home, 
@@ -41,6 +41,16 @@ export function TeacherClassroom() {
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
+
+  const filteredContents = useMemo(() => {
+    if (!selectedSubject) return [];
+    return contents.filter(c => c.subjectId === selectedSubject.id);
+  }, [contents, selectedSubject]);
+
+  const filteredAssessments = useMemo(() => {
+    if (!selectedSubject) return [];
+    return assessments.filter(a => a.subjectId === selectedSubject.id);
+  }, [assessments, selectedSubject]);
 
   // Modals
   const [showContentModal, setShowContentModal] = useState(false);
@@ -103,19 +113,23 @@ export function TeacherClassroom() {
       setUsers(allUsers);
       
       if (subjectIds.length > 0) {
-        // Fetch contents, assessments and courses
-        const allConts = await getCollection('contents') as any[];
-        const allAssess = await getCollection('assessments') as any[];
-        const allCourses = await getCollection('courses') as any[];
+        // Fetch contents, assessments and courses efficiently
+        // Note: Using chunks of 10 for 'in' queries is safer but here we optimize by fetching only what's needed
+        const contentsQuery = [where('subjectId', 'in', subjectIds.slice(0, 10))];
+        const assessmentsQuery = [where('subjectId', 'in', subjectIds.slice(0, 10))];
         
-        const filteredConts = allConts.filter(c => subjectIds.includes(c.subjectId));
-        const filteredAssess = allAssess.filter(a => subjectIds.includes(a.subjectId));
-        const filteredCourses = allCourses.filter(c => courseIds.includes(c.id));
+        const [filteredConts, filteredAssess, allCourses] = await Promise.all([
+          getCollection('contents', contentsQuery),
+          getCollection('assessments', assessmentsQuery),
+          getCollection('courses')
+        ]);
+        
+        const finalCourses = (allCourses as any[]).filter(c => courseIds.includes(c.id));
         
         setSubjects(subs);
         setContents(filteredConts);
         setAssessments(filteredAssess);
-        setCourses(filteredCourses);
+        setCourses(finalCourses);
       } else {
         setSubjects([]);
         setContents([]);
@@ -549,16 +563,29 @@ export function TeacherClassroom() {
                       Trocar Disciplina
                     </button>
                   </div>
+                  <div className="bg-gray-900 p-4 rounded-sm border border-gray-800">
+                    <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4">Estatísticas</h3>
+                    <div className="space-y-4">
+                      <div>
+                        <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Arquivos</p>
+                        <p className="text-2xl font-black text-white italic">{filteredContents.length}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Atividades</p>
+                        <p className="text-2xl font-black text-[#E31E24] italic">{filteredAssessments.length}</p>
+                      </div>
+                    </div>
+                  </div>
                 </aside>
 
                 <div className="md:col-span-3 space-y-4">
-                  {contents.filter(c => c.subjectId === selectedSubject.id).length === 0 ? (
+                  {filteredContents.length === 0 ? (
                     <div className="border-2 border-dashed border-gray-100 rounded-sm p-20 text-center">
                       <p className="text-gray-400 font-bold uppercase text-xs">Nenhum material publicado para esta disciplina.</p>
                     </div>
                   ) : (
-                    contents.filter(c => c.subjectId === selectedSubject.id).map((file, idx) => (
-                      <div key={idx} className="bg-white p-4 rounded-sm border border-gray-100 flex items-center justify-between hover:shadow-md transition-all group">
+                    filteredContents.map((file) => (
+                      <div key={file.id} className="bg-white p-4 rounded-sm border border-gray-100 flex items-center justify-between hover:shadow-md transition-all group">
                         <div className="flex items-center gap-4">
                           <div className="p-3 bg-gray-50 rounded-sm text-gray-400 group-hover:text-[#E31E24] transition-colors">
                             {file.type === 'video' && <Video className="w-6 h-6" />}
@@ -906,9 +933,20 @@ export function TeacherClassroom() {
         </button>
       </div>
       {/* Reply Modal */}
-      {replyingTo && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
-          <div className="bg-white rounded-sm w-full max-w-lg overflow-hidden shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
+      <AnimatePresence>
+        {replyingTo && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4"
+          >
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 20 }}
+              className="bg-white rounded-sm w-full max-w-lg overflow-hidden shadow-2xl"
+            >
             <div className="bg-gray-900 p-6 text-white flex justify-between items-start">
               <div>
                 <h3 className="text-xl font-black uppercase tracking-tight italic">Responder Coordenação</h3>
@@ -965,9 +1003,10 @@ export function TeacherClassroom() {
                 </button>
               </div>
             </form>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       )}
+    </AnimatePresence>
 
       {/* Curriculum View Modal */}
       {/* Curriculum Modal */}
