@@ -1,5 +1,11 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, signInAnonymously } from 'firebase/auth';
+import { 
+  getAuth, 
+  GoogleAuthProvider, 
+  signInWithPopup, 
+  signOut, 
+  signInAnonymously 
+} from 'firebase/auth';
 import { 
   getFirestore, 
   doc, 
@@ -13,14 +19,17 @@ import {
   getDocFromServer,
   Timestamp
 } from 'firebase/firestore';
-import firebaseConfig from '../../firebase-applet-config.json';
+import { firebaseConfig } from './firebaseConfig';
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
 // Initialize Services
 export const auth = getAuth(app);
-export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
+// Use default database if firestoreDatabaseId is not provided or is '(default)'
+export const db = (firebaseConfig.firestoreDatabaseId && firebaseConfig.firestoreDatabaseId !== '(default)') 
+  ? getFirestore(app, firebaseConfig.firestoreDatabaseId)
+  : getFirestore(app);
 export const googleProvider = new GoogleAuthProvider();
 
 /**
@@ -59,12 +68,16 @@ export async function testConnection() {
     await getDocFromServer(doc(db, '_connection_test_', 'ping'));
     console.log("Firebase connection established successfully.");
   } catch (error: any) {
+    console.warn("Firebase Connection Test Result:", error?.code, error?.message);
+    
     if (error?.message?.includes('the client is offline')) {
       console.error("Firebase is offline. Please check your network and configuration.");
+    } else if (error?.code === 'permission-denied') {
+      console.log("Firebase server reached (Permission Denied - this is normal if the document doesn't exist).");
+    } else if (error?.code === 'not-found') {
+      console.log("Firebase server reached (Document not found).");
     } else {
-      // It's normal if it fails with permission denied if the doc doesn't exist 
-      // but it still confirms we reached the server.
-      console.log("Firebase server reached.");
+      console.log("Firebase server reached (but returned an error).");
     }
   }
 }
