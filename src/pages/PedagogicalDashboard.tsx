@@ -26,7 +26,6 @@ export function PedagogicalDashboard() {
   const stats = [
     { label: 'Cursos Ativos', value: coursesCount.toString(), icon: GraduationCap, color: 'bg-red-600' },
     { label: 'Disciplinas', value: subjectsCount.toString(), icon: BookOpen, color: 'bg-red-500' },
-    { label: 'Matrículas Reais', value: '0', icon: Users, color: 'bg-red-400' },
     { label: 'Frequência Média', value: 'N/A', icon: Clock, color: 'bg-red-700' },
   ];
 
@@ -59,20 +58,12 @@ export function PedagogicalDashboard() {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 gap-8">
         <div className="bg-white p-8 rounded-sm border border-gray-100 shadow-sm space-y-6">
           <h2 className="text-xl font-black text-gray-900 uppercase tracking-tight">Status Curricular Real</h2>
           <div className="flex flex-col items-center justify-center py-12 text-center space-y-4">
              <BarChart3 className="w-12 h-12 text-gray-200" />
              <p className="text-gray-400 font-bold uppercase text-xs">Os gráficos de desempenho aparecerão conforme os dados reais forem inseridos.</p>
-          </div>
-        </div>
-
-        <div className="bg-white p-8 rounded-sm border border-gray-100 shadow-sm space-y-6">
-          <h2 className="text-xl font-black text-gray-900 uppercase tracking-tight">Novos Alunos / Matrículas</h2>
-          <div className="flex flex-col items-center justify-center py-12 text-center space-y-4">
-             <Users className="w-12 h-12 text-gray-200" />
-             <p className="text-gray-400 font-bold uppercase text-xs">Aguardando as primeiras matrículas via Portal do Aluno.</p>
           </div>
         </div>
       </div>

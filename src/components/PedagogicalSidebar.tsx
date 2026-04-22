@@ -18,7 +18,6 @@ import { cn } from '../lib/utils';
 const menuItems = [
   { icon: LayoutDashboard, label: 'Dashboard', path: '/pedagogico' },
   { icon: HeartPulse, label: 'Turmas', path: '/pedagogico/turmas' },
-  { icon: Users, label: 'Alunos', path: '/pedagogico/alunos' },
   { icon: BookOpen, label: 'Conteúdos', path: '/pedagogico/conteudos' },
   { icon: Calendar, label: 'Cronograma', path: '/pedagogico/cronograma' },
   { icon: BarChart3, label: 'Desempenho', path: '/pedagogico/desempenho' },

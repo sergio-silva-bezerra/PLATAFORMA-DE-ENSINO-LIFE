@@ -177,7 +177,6 @@ export default function App() {
         {/* Pedagogical Routes */}
         <Route path="/pedagogico" element={<PedagogicalLayout><PedagogicalDashboard /></PedagogicalLayout>} />
         <Route path="/pedagogico/turmas" element={<PedagogicalLayout><Courses /></PedagogicalLayout>} />
-        <Route path="/pedagogico/alunos" element={<PedagogicalLayout><Students /></PedagogicalLayout>} />
         <Route path="/pedagogico/conteudos" element={<PedagogicalLayout><PedagogicalContent /></PedagogicalLayout>} />
         <Route path="/pedagogico/cronograma" element={<PedagogicalLayout><PedagogicalSchedule /></PedagogicalLayout>} />
         <Route path="/pedagogico/desempenho" element={<PedagogicalLayout><PedagogicalPerformance /></PedagogicalLayout>} />
