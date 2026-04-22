@@ -6,7 +6,7 @@ import { signIn, signInAsGuest } from '../lib/firebase';
 
 export function Login() {
   const navigate = useNavigate();
-  const [role, setRole] = useState<'aluno' | 'admin' | 'secretaria' | 'financeiro' | 'pedagogico' | 'professor'>('aluno');
+  const [role, setRole] = useState<'aluno' | 'admin' | 'secretaria' | 'financeiro' | 'pedagogico'>('aluno');
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -23,7 +23,6 @@ export function Login() {
       else if (role === 'pedagogico') navigate('/pedagogico');
       else if (role === 'secretaria') navigate('/secretaria');
       else if (role === 'financeiro') navigate('/financeiro');
-      else if (role === 'professor') navigate('/professor/sala-virtual');
       else navigate('/aluno');
     } catch (err: any) {
       console.error("Google login failed:", err);
@@ -66,7 +65,6 @@ export function Login() {
         secretaria: { id: 'secretaria', pass: 'sec123', path: '/secretaria' },
         financeiro: { id: 'financeiro', pass: 'fin123', path: '/financeiro' },
         pedagogico: { id: 'pedagogico', pass: 'ped123', path: '/pedagogico' },
-        professor: { id: 'professor', pass: 'prof123', path: '/professor/sala-virtual' },
       };
 
       const cred = credentials[role];
@@ -194,19 +192,6 @@ export function Login() {
             >
               <BookOpen className={cn("w-6 h-6", role === 'pedagogico' ? "scale-110" : "group-hover:scale-110")} />
               <span className="text-[10px] font-black uppercase tracking-wider">Pedagógico</span>
-            </button>
-
-            <button 
-              onClick={() => setRole('professor')}
-              className={cn(
-                "flex flex-col items-center gap-2 p-4 rounded-sm border-2 transition-all group",
-                role === 'professor' 
-                  ? "border-[#E31E24] bg-[#E31E24]/5 text-[#E31E24]" 
-                  : "border-gray-100 hover:border-gray-200 text-gray-400"
-              )}
-            >
-              <User className={cn("w-6 h-6", role === 'professor' ? "scale-110" : "group-hover:scale-110")} />
-              <span className="text-[10px] font-black uppercase tracking-wider">Professor</span>
             </button>
           </div>
 

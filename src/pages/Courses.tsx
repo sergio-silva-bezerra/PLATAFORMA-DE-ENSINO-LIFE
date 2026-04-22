@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { BookOpen, Users, Calendar, ArrowRight, Plus, X, Loader2 } from 'lucide-react';
+import { BookOpen, Users, Calendar, ArrowRight, Plus, X, Loader2, Link as LinkIcon } from 'lucide-react';
 import { getCollection, createCourse, createSubject, db } from '../lib/firebase';
 import { where } from 'firebase/firestore';
 import { Course, Subject } from '../types';
@@ -181,9 +181,25 @@ export function Courses() {
                                   </div>
                                   <div>
                                     <p className="font-bold text-gray-900 text-sm">{subject.name}</p>
-                                    <p className="text-[10px] uppercase font-bold text-gray-400">
-                                      Tutor: {subject.tutorName}
-                                    </p>
+                                    <div className="flex items-center gap-2">
+                                      <p className="text-[10px] uppercase font-bold text-gray-400">
+                                        Tutor: {subject.tutorName}
+                                      </p>
+                                      {subject.tutorId && subject.tutorId !== 'manual' && (
+                                        <button 
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            const loginUrl = window.location.origin + '/acesso-professor';
+                                            navigator.clipboard.writeText(loginUrl);
+                                            alert('Link de acesso para o professor copiado!');
+                                          }}
+                                          title="Copiar link de acesso para o professor"
+                                          className="text-[#E31E24] hover:scale-110 transition-transform"
+                                        >
+                                          <LinkIcon className="w-3 h-3" />
+                                        </button>
+                                      )}
+                                    </div>
                                   </div>
                                 </div>
                                 <div className="text-right">
@@ -225,7 +241,21 @@ export function Courses() {
                       </div>
                       <div className="text-right">
                         <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Tutor</p>
-                        <p className="text-xs font-semibold text-gray-700">{subject.tutorName}</p>
+                        <div className="flex items-center justify-end gap-2">
+                          <p className="text-xs font-semibold text-gray-700">{subject.tutorName}</p>
+                          {subject.tutorId && subject.tutorId !== 'manual' && (
+                            <button 
+                              onClick={() => {
+                                const loginUrl = window.location.origin + '/acesso-professor';
+                                navigator.clipboard.writeText(loginUrl);
+                                alert('Link de acesso para o professor copiado!');
+                              }}
+                              className="text-[#E31E24] hover:scale-110 transition-transform"
+                            >
+                              <LinkIcon className="w-3 h-3" />
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
                   );

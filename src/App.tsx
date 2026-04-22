@@ -30,6 +30,7 @@ import { SecretariatSidebar } from './components/SecretariatSidebar';
 import { FinancialSidebar } from './components/FinancialSidebar';
 import { PedagogicalSidebar } from './components/PedagogicalSidebar';
 import { Login } from './pages/Login';
+import { ProfessorLogin } from './pages/ProfessorLogin';
 import HealthDossier from './pages/HealthDossier';
 import SistecExport from './pages/SistecExport';
 import PreceptorshipPortal from './pages/PreceptorshipPortal';
@@ -113,6 +114,7 @@ export default function App() {
       <Routes>
         {/* Login Route */}
         <Route path="/login" element={<Login />} />
+        <Route path="/acesso-professor" element={<ProfessorLogin />} />
 
         {/* Admin Routes */}
         <Route path="/admin" element={<AdminLayout><Dashboard /></AdminLayout>} />
