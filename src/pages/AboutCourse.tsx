@@ -123,7 +123,9 @@ export function AboutCourse() {
                     <span className="font-black text-[10px]">é</span>
                  </div>
                </div>
-               <span className="font-black text-2xl tracking-tighter italic">ser <span className="font-light">educacional</span></span>
+               <span className="font-black text-2xl tracking-tighter leading-none italic text-white flex items-center gap-2">
+                 Life <span className="font-light not-italic text-sm">CURSOS TÉCNICOS</span>
+               </span>
             </div>
           </div>
         </div>

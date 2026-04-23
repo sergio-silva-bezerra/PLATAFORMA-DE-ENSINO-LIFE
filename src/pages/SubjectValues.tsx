@@ -116,7 +116,7 @@ export function SubjectValues() {
              <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
                 <div className="w-6 h-6 border-2 border-white rotate-45"></div>
              </div>
-             <span className="text-2xl font-black italic">ser <span className="font-light not-italic text-sm">educacional</span></span>
+             <span className="text-2xl font-black italic">Life <span className="font-light not-italic text-sm uppercase tracking-widest">Cursos Técnicos</span></span>
           </div>
       </div>
       <div className="bg-[#C1191F] -mx-4 py-4 text-center">

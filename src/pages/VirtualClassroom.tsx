@@ -253,8 +253,7 @@ export function VirtualClassroom() {
               <div className="w-2 h-2 bg-black rounded-full"></div>
               <div className="w-2 h-2 bg-black rounded-full"></div>
             </div>
-            <span className="text-[10px] font-black leading-none mt-1">ser</span>
-            <span className="text-[8px] font-medium leading-none">educacional</span>
+            <span className="text-xl font-black tracking-tighter text-gray-900 leading-none">Life</span>
           </div>
           <div className="h-8 w-[1px] bg-gray-200 mx-2"></div>
           <span className="text-xs font-bold text-gray-600 uppercase tracking-wider">
