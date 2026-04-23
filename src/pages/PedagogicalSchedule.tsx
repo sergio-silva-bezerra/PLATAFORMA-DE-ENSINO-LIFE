@@ -1,5 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { 
+  format, 
+  addMonths, 
+  subMonths, 
+  startOfMonth, 
+  endOfMonth, 
+  eachDayOfInterval, 
+  isSameMonth, 
+  isSameDay, 
+  startOfWeek, 
+  endOfWeek,
+  parseISO
+} from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { 
   Plus, 
   Calendar as CalendarIcon, 
   Clock, 
@@ -32,6 +46,7 @@ export function PedagogicalSchedule({ viewOnly = false }: PedagogicalSchedulePro
   const [showEventModal, setShowEventModal] = useState(false);
   const [editingEvent, setEditingEvent] = useState<any>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [currentDate, setCurrentDate] = useState(new Date());
   
   // New Event Form State
   const [eventForm, setEventForm] = useState({
@@ -145,7 +160,14 @@ export function PedagogicalSchedule({ viewOnly = false }: PedagogicalSchedulePro
 
   const handleOpenCreateModal = () => {
     setEditingEvent(null);
-    setEventForm({ title: '', description: '', type: 'aula', date: '', time: '', location: '' });
+    setEventForm({ 
+      title: '', 
+      description: '', 
+      type: 'aula', 
+      date: format(currentDate, 'yyyy-MM-dd'), 
+      time: '08:00', 
+      location: '' 
+    });
     setShowEventModal(true);
   };
 
@@ -204,6 +226,39 @@ export function PedagogicalSchedule({ viewOnly = false }: PedagogicalSchedulePro
     }
   };
 
+  const handlePrevMonth = () => setCurrentDate(subMonths(currentDate, 1));
+  const handleNextMonth = () => setCurrentDate(addMonths(currentDate, 1));
+
+  const monthStart = startOfMonth(currentDate);
+  const monthEnd = endOfMonth(monthStart);
+  const startDate = startOfWeek(monthStart);
+  const endDate = endOfWeek(monthEnd);
+
+  const calendarDays = eachDayOfInterval({
+    start: startDate,
+    end: endDate,
+  });
+
+  const getEventsForDay = (day: Date) => {
+    return events.filter(event => isSameDay(parseISO(event.date), day));
+  };
+
+  const handleDayClick = (day: Date) => {
+    const dayEvents = getEventsForDay(day);
+    if (dayEvents.length > 0) {
+      setSelectedEvent(dayEvents[0]);
+      fetchComments(dayEvents[0].id);
+    } else {
+      setSelectedEvent({ 
+        id: 'no-event', 
+        title: 'Sem Eventos', 
+        date: format(day, 'yyyy-MM-dd'), 
+        description: 'Não há evento cadastrado para este dia.' 
+      });
+      setComments([]);
+    }
+  };
+
   if (loading && events.length === 0) {
     return (
       <div className="h-[60vh] flex items-center justify-center">
@@ -231,32 +286,65 @@ export function PedagogicalSchedule({ viewOnly = false }: PedagogicalSchedulePro
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Calendar View (Simplified) */}
+        {/* Calendar View (Interactive) */}
         <div className="lg:col-span-1 space-y-6">
           <div className="bg-white p-6 rounded-sm border border-gray-100 shadow-sm space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="font-bold text-gray-900 uppercase text-sm tracking-widest">Abril 2026</h2>
+              <h2 className="font-bold text-gray-900 uppercase text-sm tracking-widest">
+                {format(currentDate, 'MMMM yyyy', { locale: ptBR })}
+              </h2>
               <div className="flex gap-2">
-                <button className="p-1 hover:bg-gray-100 rounded-full transition-colors"><ChevronLeft className="w-5 h-5 text-gray-400" /></button>
-                <button className="p-1 hover:bg-gray-100 rounded-full transition-colors"><ChevronRight className="w-5 h-5 text-gray-400" /></button>
+                <button 
+                  onClick={handlePrevMonth}
+                  className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+                >
+                  <ChevronLeft className="w-5 h-5 text-gray-400" />
+                </button>
+                <button 
+                  onClick={handleNextMonth}
+                  className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+                >
+                  <ChevronRight className="w-5 h-5 text-gray-400" />
+                </button>
               </div>
             </div>
             
-            <div className="grid grid-cols-7 gap-2 text-center text-xs">
+            <div className="grid grid-cols-7 gap-1 text-center text-xs">
               {['D', 'S', 'T', 'Q', 'Q', 'S', 'S'].map(d => (
-                <span key={d} className="text-[10px] font-black text-gray-400 uppercase">{d}</span>
+                <span key={d} className="text-[10px] font-black text-gray-400 uppercase mb-2">{d}</span>
               ))}
-              {Array.from({ length: 30 }).map((_, i) => (
-                <div 
-                  key={i} 
-                  className={cn(
-                    "aspect-square flex items-center justify-center font-bold rounded-sm cursor-pointer transition-all h-8 w-8 mx-auto",
-                    i + 1 === 10 ? "bg-[#E31E24] text-white shadow-lg shadow-[#E31E24]/20" : "text-gray-600 hover:bg-gray-50"
-                  )}
-                >
-                  {i + 1}
-                </div>
-              ))}
+              {calendarDays.map((day, i) => {
+                const dayEvents = getEventsForDay(day);
+                const hasEvents = dayEvents.length > 0;
+                const isSelected = selectedEvent && isSameDay(parseISO(selectedEvent.date), day);
+                const isCurrentMonth = isSameMonth(day, monthStart);
+                const isToday = isSameDay(day, new Date());
+
+                return (
+                  <button 
+                    key={i} 
+                    onClick={() => handleDayClick(day)}
+                    className={cn(
+                      "aspect-square flex flex-col items-center justify-center font-bold rounded-sm cursor-pointer transition-all h-9 w-9 mx-auto relative",
+                      !isCurrentMonth ? "opacity-20" : "",
+                      isSelected 
+                        ? "bg-[#E31E24] text-white shadow-lg shadow-[#E31E24]/20 z-10" 
+                        : isToday
+                          ? "border border-[#E31E24] text-[#E31E24]"
+                          : "text-gray-700 hover:bg-gray-50",
+                    )}
+                  >
+                    <span>{format(day, 'd')}</span>
+                    {hasEvents && !isSelected && (
+                      <div className={cn(
+                        "absolute bottom-1 w-1 h-1 rounded-full",
+                        dayEvents[0].type === 'aula' ? "bg-blue-500" :
+                        dayEvents[0].type === 'workshop' ? "bg-purple-500" : "bg-red-500"
+                      )}></div>
+                    )}
+                  </button>
+                );
+              })}
             </div>
 
             <div className="pt-6 border-t border-gray-50 space-y-4">
@@ -285,7 +373,9 @@ export function PedagogicalSchedule({ viewOnly = false }: PedagogicalSchedulePro
                 <div className="p-4 bg-gray-50 border-b border-gray-100 flex justify-between items-center text-gray-900">
                   <div>
                     <h3 className="font-black uppercase text-xs tracking-wider">{selectedEvent.title}</h3>
-                    <p className="text-[10px] text-gray-500 font-bold">{new Date(selectedEvent.date).toLocaleDateString('pt-BR')}</p>
+                    <p className="text-[10px] text-gray-500 font-bold">
+                      {format(parseISO(selectedEvent.date), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                    </p>
                   </div>
                   <button onClick={() => setSelectedEvent(null)}><X className="w-4 h-4 text-gray-400 hover:text-gray-900" /></button>
                 </div>
@@ -295,51 +385,55 @@ export function PedagogicalSchedule({ viewOnly = false }: PedagogicalSchedulePro
                     {selectedEvent.description || "Nenhuma descrição fornecida."}
                   </div>
 
-                  <div className="space-y-3">
-                    <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                      <MessageSquare className="w-3 h-3" />
-                      Interações
-                    </h4>
-                    {comments.length === 0 ? (
-                      <p className="text-center text-gray-400 text-[10px] py-4 italic font-medium">Nenhum comentário ainda.</p>
-                    ) : (
-                      comments.map((comment) => (
-                        <div key={comment.id} className={cn(
-                          "p-3 rounded-sm space-y-1 border",
-                          comment.userRole === 'student' ? "bg-white border-gray-100" : "bg-red-50/50 border-red-100"
-                        )}>
-                          <div className="flex justify-between items-center">
-                            <span className="text-[10px] font-black text-gray-900 uppercase">
-                              {comment.userName} <span className="text-gray-400 font-bold ml-1">({getRoleLabel(comment.userRole)})</span>
-                            </span>
-                            <span className="text-[10px] text-gray-400 font-bold">{new Date(comment.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
+                  {selectedEvent.id !== 'no-event' && (
+                    <div className="space-y-3">
+                      <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                        <MessageSquare className="w-3 h-3" />
+                        Interações
+                      </h4>
+                      {comments.length === 0 ? (
+                        <p className="text-center text-gray-400 text-[10px] py-4 italic font-medium">Nenhum comentário ainda.</p>
+                      ) : (
+                        comments.map((comment) => (
+                          <div key={comment.id} className={cn(
+                            "p-3 rounded-sm space-y-1 border",
+                            comment.userRole === 'student' ? "bg-white border-gray-100" : "bg-red-50/50 border-red-100"
+                          )}>
+                            <div className="flex justify-between items-center">
+                              <span className="text-[10px] font-black text-gray-900 uppercase">
+                                {comment.userName} <span className="text-gray-400 font-bold ml-1">({getRoleLabel(comment.userRole)})</span>
+                              </span>
+                              <span className="text-[10px] text-gray-400 font-bold">{new Date(comment.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
+                            </div>
+                            <p className="text-xs text-gray-600 font-medium leading-relaxed">{comment.text}</p>
                           </div>
-                          <p className="text-xs text-gray-600 font-medium leading-relaxed">{comment.text}</p>
-                        </div>
-                      ))
-                    )}
-                  </div>
+                        ))
+                      )}
+                    </div>
+                  )}
                 </div>
 
-                <div className="p-4 border-t border-gray-100 bg-white">
-                  <div className="flex gap-2">
-                    <input 
-                      type="text" 
-                      value={newComment}
-                      onChange={(e) => setNewComment(e.target.value)}
-                      onKeyPress={(e) => e.key === 'Enter' && handleSendComment()}
-                      placeholder="Adicionar um comentário..."
-                      className="flex-1 text-xs border border-gray-200 p-2 rounded-sm focus:ring-1 focus:ring-[#E31E24] focus:border-[#E31E24] outline-none font-medium"
-                    />
-                    <button 
-                      onClick={handleSendComment}
-                      disabled={isSendingComment || !newComment.trim()}
-                      className="p-2 bg-[#E31E24] text-white rounded-sm hover:bg-[#C1191F] disabled:opacity-50 transition-colors"
-                    >
-                      {isSendingComment ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                    </button>
+                {selectedEvent.id !== 'no-event' && (
+                  <div className="p-4 border-t border-gray-100 bg-white">
+                    <div className="flex gap-2">
+                      <input 
+                        type="text" 
+                        value={newComment}
+                        onChange={(e) => setNewComment(e.target.value)}
+                        onKeyPress={(e) => e.key === 'Enter' && handleSendComment()}
+                        placeholder="Adicionar um comentário..."
+                        className="flex-1 text-xs border border-gray-200 p-2 rounded-sm focus:ring-1 focus:ring-[#E31E24] focus:border-[#E31E24] outline-none font-medium"
+                      />
+                      <button 
+                        onClick={handleSendComment}
+                        disabled={isSendingComment || !newComment.trim()}
+                        className="p-2 bg-[#E31E24] text-white rounded-sm hover:bg-[#C1191F] disabled:opacity-50 transition-colors"
+                      >
+                        {isSendingComment ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                      </button>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             )}
           </AnimatePresence>
