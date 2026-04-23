@@ -164,6 +164,34 @@
         "submittedAt": { "type": "string", "format": "date-time" }
       },
       "required": ["assessmentId", "studentId", "status"]
+    },
+    "Forum": {
+      "title": "Forum",
+      "description": "Discussion forums created by teachers",
+      "type": "object",
+      "properties": {
+        "subjectId": { "type": "string" },
+        "teacherId": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "points": { "type": "number", "description": "Optional points for participation" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["subjectId", "teacherId", "title", "createdAt"]
+    },
+    "ForumMessage": {
+      "title": "ForumMessage",
+      "description": "Messages/Replies in a forum",
+      "type": "object",
+      "properties": {
+        "forumId": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "userRole": { "type": "string" },
+        "text": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["forumId", "userId", "text", "createdAt"]
     }
   },
   "firestore": {
@@ -206,6 +234,14 @@
     "submissions": {
       "schema": "Submission",
       "description": "Student submissions"
+    },
+    "forums": {
+      "schema": "Forum",
+      "description": "Discussion forums"
+    },
+    "forum_messages": {
+      "schema": "ForumMessage",
+      "description": "Forum replies"
     }
   }
 }

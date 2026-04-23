@@ -33,11 +33,16 @@ export function VirtualClassroom() {
   const [contents, setContents] = useState<any[]>([]);
   const [assessments, setAssessments] = useState<any[]>([]);
   const [submissions, setSubmissions] = useState<any[]>([]);
+  const [forums, setForums] = useState<any[]>([]);
+  const [forumMessages, setForumMessages] = useState<any[]>([]);
   const [courses, setCourses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
   const [selectedSubject, setSelectedSubject] = useState<any>(null);
-  const [activeView, setActiveView] = useState<'inicio' | 'conteudo' | 'avaliacao'>('inicio');
+  const [activeView, setActiveView] = useState<'inicio' | 'conteudo' | 'avaliacao' | 'forum'>('inicio');
+  const [activeForum, setActiveForum] = useState<any>(null);
+  const [newForumMessage, setNewForumMessage] = useState('');
+  const [isSendingForumMessage, setIsSendingForumMessage] = useState(false);
   const [showCurriculumModal, setShowCurriculumModal] = useState(false);
   const [viewingCurriculum, setViewingCurriculum] = useState<any>(null);
 
@@ -81,6 +86,8 @@ export function VirtualClassroom() {
       const assess = await getCollection('assessments');
       const allSubmissions = await getCollection('submissions');
       const coursesData = await getCollection('courses');
+      const allForums = await getCollection('forums');
+      const allMessages = await getCollection('forum_messages');
       
       const mySubmissions = (allSubmissions as any[]).filter(s => s.studentEmail === studentEmail);
       
@@ -88,6 +95,8 @@ export function VirtualClassroom() {
       setContents(conts);
       setAssessments(assess);
       setSubmissions(mySubmissions);
+      setForums(allForums);
+      setForumMessages(allMessages);
       setCourses(coursesData);
     } catch (err) {
       console.error("Error fetching student classroom data:", err);
@@ -161,6 +170,37 @@ export function VirtualClassroom() {
     }
   };
 
+  const handleSendForumMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!activeForum || !newForumMessage.trim()) return;
+
+    setIsSendingForumMessage(true);
+    try {
+      const { addDocument } = await import('../lib/firebase');
+      
+      const msgData = {
+        forumId: activeForum.id,
+        userId: user.id || user.email,
+        userName: user.displayName || user.email,
+        userRole: 'student',
+        text: newForumMessage,
+        createdAt: new Date().toISOString()
+      };
+
+      await addDocument('forum_messages', msgData);
+      setNewForumMessage('');
+      
+      // Refresh messages
+      const allMsgs = await getCollection('forum_messages') as any[];
+      setForumMessages(allMsgs);
+    } catch (err) {
+      console.error("Error sending message to forum:", err);
+      alert("Erro ao enviar mensagem.");
+    } finally {
+      setIsSendingForumMessage(false);
+    }
+  };
+
   const getSubmissionStatus = (assessmentId: string) => {
     const sub = submissions.find(s => s.assessmentId === assessmentId);
     return sub ? sub.status : 'Pendente';
@@ -231,6 +271,13 @@ export function VirtualClassroom() {
             >
               <PenTool className="w-5 h-5 text-white" />
               <span className="text-[9px] font-bold text-white uppercase mt-1">Avaliação</span>
+            </button>
+            <button 
+              onClick={() => setActiveView('forum')}
+              className={`flex flex-col items-center group ${activeView === 'forum' ? 'scale-110 opacity-100' : 'opacity-70'}`}
+            >
+              <MessageSquare className="w-5 h-5 text-white" />
+              <span className="text-[9px] font-bold text-white uppercase mt-1">Fórum</span>
             </button>
           </nav>
         </div>
@@ -508,6 +555,122 @@ export function VirtualClassroom() {
                         </div>
                       );
                     })}
+                  </div>
+                )}
+              </motion.div>
+            )}
+
+            {activeView === 'forum' && (
+              <motion.div key="subject-forum" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+                {!activeForum ? (
+                  <div className="space-y-6">
+                    <header className="flex justify-between items-center">
+                      <h2 className="text-2xl font-black uppercase tracking-tight">Fórum de Discussão</h2>
+                      <button onClick={() => setActiveView('inicio')} className="text-xs font-bold text-gray-400">Voltar</button>
+                    </header>
+
+                    <div className="space-y-4">
+                      {forums.filter(f => f.subjectId === selectedSubject.id).length === 0 ? (
+                        <div className="bg-gray-50 p-12 text-center rounded-sm">
+                          <p className="text-sm font-bold text-gray-400 uppercase">Nenhum tópico de discussão iniciado.</p>
+                        </div>
+                      ) : (
+                        forums.filter(f => f.subjectId === selectedSubject.id).map((f: any) => (
+                          <button 
+                            key={f.id}
+                            onClick={() => setActiveForum(f)}
+                            className="w-full bg-white p-6 rounded-sm border border-gray-100 flex items-center justify-between hover:shadow-lg hover:border-[#E31E24] transition-all group text-left"
+                          >
+                            <div className="flex items-center gap-6">
+                              <div className="bg-gray-50 p-4 rounded-sm text-gray-400 group-hover:text-[#E31E24] group-hover:bg-red-50 transition-all">
+                                <MessageSquare className="w-6 h-6" />
+                              </div>
+                              <div>
+                                <h4 className="font-bold text-gray-900 group-hover:text-[#E31E24] transition-colors">{f.title}</h4>
+                                <div className="flex items-center gap-3 mt-1">
+                                  <p className="text-[10px] uppercase font-black text-gray-400">
+                                    {forumMessages.filter(m => m.forumId === f.id).length} Participações
+                                  </p>
+                                  {f.isEvaluative && (
+                                    <span className="bg-yellow-100 text-yellow-700 text-[9px] font-black px-2 py-0.5 rounded-sm uppercase tracking-widest">
+                                      Vale {f.points} pontos
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                            <ChevronRight className="w-5 h-5 text-gray-200 group-hover:text-[#E31E24] group-hover:translate-x-1 transition-all" />
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-col h-[600px] bg-white border border-gray-100 rounded-sm overflow-hidden shadow-2xl animate-in slide-in-from-right duration-300">
+                    <div className="bg-gray-900 p-6 text-white flex justify-between items-center shrink-0">
+                      <div className="flex items-center gap-4">
+                        <button onClick={() => setActiveForum(null)} className="p-2 hover:bg-white/10 rounded-full transition-colors">
+                          <ChevronLeft className="w-5 h-5" />
+                        </button>
+                        <div>
+                          <h3 className="text-xl font-black uppercase tracking-tight italic">{activeForum.title}</h3>
+                          <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Discussão Ativa • {selectedSubject.name}</p>
+                        </div>
+                      </div>
+                      {activeForum.isEvaluative && (
+                        <div className="bg-[#E31E24] px-4 py-2 rounded-sm shadow-lg shadow-[#E31E24]/20">
+                          <p className="text-[10px] font-black text-white uppercase tracking-widest">Atividade Avaliativa</p>
+                          <p className="text-sm font-black text-white leading-none">{activeForum.points} Pontos</p>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar bg-gray-50">
+                      {forumMessages.filter(m => m.forumId === activeForum.id).length === 0 ? (
+                        <div className="h-full flex flex-col items-center justify-center text-center opacity-40">
+                           <MessageSquare className="w-12 h-12 mb-4" />
+                           <p className="text-[10px] font-black uppercase tracking-widest">Nenhuma mensagem ainda.</p>
+                        </div>
+                      ) : (
+                        forumMessages
+                          .filter(m => m.forumId === activeForum.id)
+                          .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+                          .map((msg, idx) => (
+                            <div key={idx} className={`flex ${msg.userRole === 'teacher' ? 'justify-start' : 'justify-end'}`}>
+                              <div className={`max-w-[80%] ${msg.userRole === 'teacher' ? 'bg-white border-l-4 border-gray-900' : 'bg-red-50 border-r-4 border-[#E31E24]'} p-4 rounded-sm shadow-sm`}>
+                                <div className="flex items-center justify-between gap-4 mb-2">
+                                  <span className={`text-[10px] font-black uppercase tracking-widest ${msg.userRole === 'teacher' ? 'text-gray-900' : 'text-[#E31E24]'}`}>
+                                    {msg.userName} {msg.userRole === 'teacher' && '• Professor'}
+                                  </span>
+                                  <span className="text-[8px] font-bold text-gray-400 uppercase">
+                                    {new Date(msg.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                                  </span>
+                                </div>
+                                <p className="text-sm text-gray-700 leading-relaxed font-medium">{msg.text}</p>
+                              </div>
+                            </div>
+                          ))
+                      )}
+                    </div>
+
+                    <form onSubmit={handleSendForumMessage} className="p-6 bg-white border-t border-gray-100 shrink-0">
+                      <div className="flex gap-4">
+                        <textarea 
+                          rows={2}
+                          placeholder="Digite sua contribuição para a discussão..."
+                          className="flex-1 bg-gray-50 border border-gray-100 rounded-sm p-4 text-sm focus:ring-2 focus:ring-[#E31E24]/20 outline-none resize-none transition-all"
+                          value={newForumMessage}
+                          onChange={e => setNewForumMessage(e.target.value)}
+                        />
+                        <button 
+                          type="submit"
+                          disabled={isSendingForumMessage || !newForumMessage.trim()}
+                          className="bg-gray-900 text-white px-8 rounded-sm font-black text-xs uppercase tracking-widest hover:bg-[#E31E24] transition-all shadow-xl shadow-black/10 disabled:opacity-50"
+                        >
+                          {isSendingForumMessage ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : 'Enviar'}
+                        </button>
+                      </div>
+                    </form>
                   </div>
                 )}
               </motion.div>

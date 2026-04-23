@@ -26,7 +26,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { getCollection, publishContent, createAssessment, auth, getTeacherSubjects, updateDocument } from '../lib/firebase';
+import { getCollection, publishContent, createAssessment, auth, getTeacherSubjects, updateDocument, addDocument } from '../lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { where } from 'firebase/firestore';
 import { cn } from '../lib/utils';
@@ -40,9 +40,19 @@ export function TeacherClassroom() {
   const [contents, setContents] = useState<any[]>([]);
   const [assessments, setAssessments] = useState<any[]>([]);
   const [submissions, setSubmissions] = useState<any[]>([]);
+  const [forums, setForums] = useState<any[]>([]);
+  const [forumMessages, setForumMessages] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
+
+  // Modals & Forum States
+  const [showContentModal, setShowContentModal] = useState(false);
+  const [showForumModal, setShowForumModal] = useState(false);
+  const [isSubmittingForum, setIsSubmittingForum] = useState(false);
+  const [activeForum, setActiveForum] = useState<any>(null);
+  const [newMessage, setNewMessage] = useState('');
+  const [isSendingMessage, setIsSendingMessage] = useState(false);
 
   const filteredContents = useMemo(() => {
     if (!selectedSubject) return [];
@@ -54,8 +64,17 @@ export function TeacherClassroom() {
     return assessments.filter(a => a.subjectId === selectedSubject.id);
   }, [assessments, selectedSubject]);
 
+  const filteredForums = useMemo(() => {
+    if (!selectedSubject) return [];
+    return forums.filter(f => f.subjectId === selectedSubject.id);
+  }, [forums, selectedSubject]);
+
+  const filteredMessages = useMemo(() => {
+    if (!activeForum) return [];
+    return forumMessages.filter(m => m.forumId === activeForum.id).sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+  }, [forumMessages, activeForum]);
+
   // Modals
-  const [showContentModal, setShowContentModal] = useState(false);
   const [showAssessmentModal, setShowAssessmentModal] = useState(false);
   const [showCurriculumModal, setShowCurriculumModal] = useState(false);
   const [showSubmissionModal, setShowSubmissionModal] = useState(false);
@@ -72,6 +91,7 @@ export function TeacherClassroom() {
 
   // Forms
   const [newContent, setNewContent] = useState({ subjectId: '', title: '', type: 'pdf' as any, url: '' });
+  const [newForum, setNewForum] = useState({ title: '', description: '', points: 0, isEvaluative: false });
   const [newAssessment, setNewAssessment] = useState({ 
     subjectId: '', 
     title: '', 
@@ -134,12 +154,15 @@ export function TeacherClassroom() {
         // Note: Using chunks of 10 for 'in' queries is safer but here we optimize by fetching only what's needed
         const contentsQuery = [where('subjectId', 'in', subjectIds.slice(0, 10))];
         const assessmentsQuery = [where('subjectId', 'in', subjectIds.slice(0, 10))];
+        const forumsQuery = [where('subjectId', 'in', subjectIds.slice(0, 10))];
         
-        const [filteredConts, filteredAssess, allSubmissions, allCourses] = await Promise.all([
+        const [filteredConts, filteredAssess, allSubmissions, allCourses, filteredForums, allMessages] = await Promise.all([
           getCollection('contents', contentsQuery),
           getCollection('assessments', assessmentsQuery),
           getCollection('submissions'),
-          getCollection('courses')
+          getCollection('courses'),
+          getCollection('forums', forumsQuery),
+          getCollection('forum_messages')
         ]);
         
         const finalCourses = (allCourses as any[]).filter(c => courseIds.includes(c.id));
@@ -148,12 +171,15 @@ export function TeacherClassroom() {
         setContents(filteredConts);
         setAssessments(filteredAssess);
         setSubmissions(allSubmissions);
+        setForums(filteredForums);
+        setForumMessages(allMessages);
         setCourses(finalCourses);
       } else {
         setSubjects([]);
         setContents([]);
         setAssessments([]);
         setSubmissions([]);
+        setForums([]);
         setCourses([]);
       }
     } catch (err) {
@@ -193,21 +219,27 @@ export function TeacherClassroom() {
         const allAssess = await getCollection('assessments') as any[];
         const allSubmissions = await getCollection('submissions') as any[];
         const allCourses = await getCollection('courses') as any[];
+        const allForums = await getCollection('forums') as any[];
+        const allMessages = await getCollection('forum_messages') as any[];
         
         const filteredConts = allConts.filter(c => subjectIds.includes(c.subjectId));
         const filteredAssess = allAssess.filter(a => subjectIds.includes(a.subjectId));
         const filteredCourses = allCourses.filter(c => courseIds.includes(c.id));
+        const filteredForums = allForums.filter(f => subjectIds.includes(f.subjectId));
         
         setSubjects(subs);
         setContents(filteredConts);
         setAssessments(filteredAssess);
         setSubmissions(allSubmissions);
+        setForums(filteredForums);
+        setForumMessages(allMessages);
         setCourses(filteredCourses);
       } else {
         setSubjects([]);
         setContents([]);
         setAssessments([]);
         setSubmissions([]);
+        setForums([]);
         setCourses([]);
       }
     } catch (err) {
@@ -273,6 +305,80 @@ export function TeacherClassroom() {
       alert("Erro ao salvar nota.");
     } finally {
       setIsSubmittingGrade(false);
+    }
+  };
+
+  const handleCreateForum = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedSubject || !newForum.title.trim()) return;
+
+    setIsSubmittingForum(true);
+    try {
+      const forumData = {
+        subjectId: selectedSubject.id,
+        teacherId: user.uid || user.email,
+        title: newForum.title,
+        description: newForum.description,
+        points: newForum.isEvaluative ? Number(newForum.points) : 0,
+        createdAt: new Date().toISOString()
+      };
+
+      const forumId = await addDocument('forums', forumData);
+      
+      // Send initial message from teacher if description is provided
+      if (newForum.description.trim()) {
+        await addDocument('forum_messages', {
+          forumId,
+          userId: user.uid || user.email,
+          userName: user.displayName || user.name || 'Professor',
+          userRole: 'teacher',
+          text: newForum.description,
+          createdAt: new Date().toISOString()
+        });
+      }
+
+      setNewForum({ title: '', description: '', points: 0, isEvaluative: false });
+      setShowForumModal(false);
+      
+      // Refresh
+      if (auth.currentUser && !auth.currentUser.isAnonymous) {
+        fetchTeacherData(user.uid);
+      } else {
+        fetchTeacherDataByEmail(user.email);
+      }
+    } catch (err) {
+      console.error("Error creating forum:", err);
+      alert("Erro ao criar fórum.");
+    } finally {
+      setIsSubmittingForum(false);
+    }
+  };
+
+  const handleSendMessage = async () => {
+    if (!activeForum || !newMessage.trim()) return;
+
+    setIsSendingMessage(true);
+    try {
+      const msgData = {
+        forumId: activeForum.id,
+        userId: user.uid || user.email,
+        userName: user.displayName || user.name || 'Professor',
+        userRole: 'teacher',
+        text: newMessage,
+        createdAt: new Date().toISOString()
+      };
+
+      await addDocument('forum_messages', msgData);
+      setNewMessage('');
+      
+      // Refresh messages
+      const allMsgs = await getCollection('forum_messages') as any[];
+      setForumMessages(allMsgs);
+    } catch (err) {
+      console.error("Error sending message:", err);
+      alert("Erro ao enviar mensagem.");
+    } finally {
+      setIsSendingMessage(false);
     }
   };
 
@@ -877,11 +983,22 @@ export function TeacherClassroom() {
               className="space-y-6"
             >
               <div className="flex flex-col gap-1 border-b border-gray-100 pb-4">
-                <div className="flex items-center gap-2 text-[10px] font-black text-gray-900 uppercase tracking-widest">
-                  <MessageSquare className="w-3 h-3" />
-                  Fórum de Discussão
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="flex items-center gap-2 text-[10px] font-black text-gray-900 uppercase tracking-widest">
+                      <MessageSquare className="w-3 h-3" />
+                      Fórum de Discussão
+                    </div>
+                    <h2 className="text-3xl font-black text-gray-900 uppercase tracking-tight">{selectedSubject.name}</h2>
+                  </div>
+                  <button 
+                    onClick={() => setShowForumModal(true)}
+                    className="flex items-center gap-2 bg-[#E31E24] text-white px-6 py-3 rounded-sm font-black text-[10px] uppercase tracking-widest shadow-xl shadow-[#E31E24]/20 hover:bg-[#C1191F] transition-all"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Novo Tópico
+                  </button>
                 </div>
-                <h2 className="text-3xl font-black text-gray-900 uppercase tracking-tight">{selectedSubject.name}</h2>
               </div>
 
               <div className="flex items-center justify-between">
@@ -897,10 +1014,101 @@ export function TeacherClassroom() {
                 </button>
               </div>
 
-              <div className="bg-white border border-gray-100 rounded-sm shadow-sm p-12 text-center">
-                <MessageSquare className="w-12 h-12 text-gray-200 mx-auto mb-4" />
-                <p className="text-gray-400 font-bold uppercase text-xs">O fórum desta disciplina será habilitado em breve para interação com os alunos.</p>
-              </div>
+              {activeForum ? (
+                <div className="bg-white border border-gray-100 rounded-sm shadow-sm overflow-hidden flex flex-col h-[600px]">
+                  <div className="bg-gray-900 p-4 text-white flex justify-between items-center shrink-0">
+                    <div>
+                      <h4 className="font-bold uppercase tracking-tight text-sm italic">{activeForum.title}</h4>
+                      {activeForum.points > 0 && (
+                        <p className="text-[9px] font-bold text-[#E31E24] uppercase tracking-widest mt-0.5 italic">Vale até {activeForum.points} pontos</p>
+                      )}
+                    </div>
+                    <button 
+                      onClick={() => setActiveForum(null)}
+                      className="text-[10px] font-black uppercase text-gray-400 hover:text-white"
+                    >
+                      Sair da Discussão
+                    </button>
+                  </div>
+                  
+                  <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-gray-50 custom-scrollbar">
+                    {filteredMessages.map((msg: any) => (
+                      <div key={msg.id} className={`flex flex-col ${msg.userId === (user.uid || user.email) ? 'items-end' : 'items-start'}`}>
+                        <div className={`max-w-[80%] rounded-sm p-4 shadow-sm ${
+                          msg.userRole === 'teacher' 
+                          ? 'bg-gray-900 text-white' 
+                          : 'bg-white border border-gray-200 text-gray-900'
+                        }`}>
+                          <div className="flex items-center gap-2 mb-2">
+                             <span className={`text-[9px] font-black uppercase tracking-widest ${msg.userRole === 'teacher' ? 'text-[#E31E24]' : 'text-gray-400'}`}>
+                               {msg.userName} {msg.userRole === 'teacher' && '• Professor'}
+                             </span>
+                          </div>
+                          <p className="text-xs leading-relaxed whitespace-pre-wrap">{msg.text}</p>
+                          <p className={`text-[8px] mt-2 font-medium opacity-50 ${msg.userRole === 'teacher' ? 'text-white' : 'text-gray-400'}`}>
+                            {new Date(msg.createdAt).toLocaleString('pt-BR')}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="p-4 border-t border-gray-100 bg-white shrink-0">
+                    <div className="flex gap-2">
+                      <textarea 
+                        className="flex-1 bg-gray-50 border border-gray-100 rounded-sm p-3 text-xs focus:ring-1 focus:ring-[#E31E24] outline-none min-h-[50px] resize-none"
+                        placeholder="Escreva sua participação..."
+                        value={newMessage}
+                        onChange={e => setNewMessage(e.target.value)}
+                      />
+                      <button 
+                        onClick={handleSendMessage}
+                        disabled={isSendingMessage || !newMessage.trim()}
+                        className="bg-[#E31E24] text-white px-6 rounded-sm font-black text-[10px] uppercase tracking-widest hover:bg-[#C1191F] transition-all disabled:opacity-50"
+                      >
+                        {isSendingMessage ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Enviar'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-4">
+                  {filteredForums.length === 0 ? (
+                    <div className="bg-white border border-gray-100 rounded-sm shadow-sm p-12 text-center">
+                      <MessageSquare className="w-12 h-12 text-gray-200 mx-auto mb-4" />
+                      <p className="text-gray-400 font-bold uppercase text-[10px]">Crie o primeiro tópico de discussão para esta disciplina.</p>
+                    </div>
+                  ) : (
+                    filteredForums.map((f: any) => (
+                      <button 
+                        key={f.id}
+                        onClick={() => setActiveForum(f)}
+                        className="bg-white p-6 rounded-sm border border-gray-100 flex items-center justify-between hover:border-[#E31E24] hover:shadow-lg transition-all group text-left"
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className="p-3 bg-gray-50 rounded-sm text-gray-400 group-hover:text-[#E31E24] group-hover:bg-red-50 transition-all">
+                            <MessageSquare className="w-6 h-6" />
+                          </div>
+                          <div>
+                            <h4 className="font-bold text-gray-900 uppercase tracking-tight">{f.title}</h4>
+                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1 italic">
+                              Criado em {new Date(f.createdAt).toLocaleDateString('pt-BR')}
+                              {f.points > 0 && ` • Vale ${f.points} pontos`}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-4">
+                           <div className="text-right">
+                              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Participações</p>
+                              <p className="text-lg font-black text-gray-900 italic">{forumMessages.filter(m => m.forumId === f.id).length}</p>
+                           </div>
+                           <ChevronRight className="w-5 h-5 text-gray-200 group-hover:text-[#E31E24] group-hover:translate-x-1 transition-all" />
+                        </div>
+                      </button>
+                    ))
+                  )}
+                </div>
+              )}
             </motion.div>
           )}
         </AnimatePresence>
@@ -1338,6 +1546,90 @@ export function TeacherClassroom() {
         </motion.div>
       )}
     </AnimatePresence>
+
+      {/* Forum Modal */}
+      {showForumModal && (
+        <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-lg rounded-sm shadow-2xl p-8 animate-in fade-in zoom-in duration-200">
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900 uppercase tracking-tight">Novo Tópico de Fórum</h2>
+                <p className="text-[10px] font-black text-[#E31E24] uppercase tracking-widest">{selectedSubject?.name}</p>
+              </div>
+              <button onClick={() => setShowForumModal(false)}><X className="w-6 h-6 text-gray-400" /></button>
+            </div>
+            
+            <form onSubmit={handleCreateForum} className="space-y-4">
+              <div>
+                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Título do Tópico</label>
+                <input 
+                  type="text"
+                  required
+                  placeholder="Ex: Discussão sobre a Unidade 1"
+                  className="w-full bg-gray-50 border border-gray-100 rounded-sm p-3 text-xs focus:ring-1 focus:ring-[#E31E24] outline-none"
+                  value={newForum.title}
+                  onChange={e => setNewForum({ ...newForum, title: e.target.value })}
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Ponto de Partida / Descrição</label>
+                <textarea 
+                  required
+                  placeholder="Inicie a discussão apresentando o tema..."
+                  className="w-full bg-gray-50 border border-gray-100 rounded-sm p-3 text-xs focus:ring-1 focus:ring-[#E31E24] outline-none min-h-[100px]"
+                  value={newForum.description}
+                  onChange={e => setNewForum({ ...newForum, description: e.target.value })}
+                />
+              </div>
+
+              <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-sm">
+                <div className="flex items-center gap-2">
+                  <input 
+                    type="checkbox"
+                    id="isEvaluative"
+                    checked={newForum.isEvaluative}
+                    onChange={e => setNewForum({ ...newForum, isEvaluative: e.target.checked })}
+                    className="accent-[#E31E24]"
+                  />
+                  <label htmlFor="isEvaluative" className="text-[10px] font-black text-gray-700 uppercase tracking-widest cursor-pointer">Atribuir Pontuação</label>
+                </div>
+                
+                {newForum.isEvaluative && (
+                  <div className="flex items-center gap-2 flex-1">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Pontos:</label>
+                    <input 
+                      type="number"
+                      min="1"
+                      max="100"
+                      className="w-20 bg-white border border-gray-100 rounded-sm p-2 text-xs focus:ring-1 focus:ring-[#E31E24] outline-none"
+                      value={newForum.points}
+                      onChange={e => setNewForum({ ...newForum, points: Number(e.target.value) })}
+                    />
+                  </div>
+                )}
+              </div>
+
+              <div className="pt-4 flex gap-2">
+                <button 
+                  type="button"
+                  onClick={() => setShowForumModal(false)}
+                  className="flex-1 px-6 py-3 border border-gray-100 text-gray-400 font-bold text-[10px] uppercase tracking-widest hover:bg-gray-50 transition-all rounded-sm"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  type="submit"
+                  disabled={isSubmittingForum}
+                  className="flex-1 bg-[#E31E24] text-white px-8 py-3 rounded-sm font-black text-[10px] uppercase tracking-widest shadow-xl shadow-[#E31E24]/20 hover:bg-[#C1191F] transition-all disabled:opacity-50"
+                >
+                  {isSubmittingForum ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : 'Criar Tópico'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Curriculum View Modal */}
       {/* Curriculum Modal */}
