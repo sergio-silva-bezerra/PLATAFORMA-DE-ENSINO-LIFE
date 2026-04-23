@@ -21,7 +21,8 @@ import {
   X
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { getCollection } from '../lib/firebase';
+import { getCollection, auth } from '../lib/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
 import { motion, AnimatePresence } from 'motion/react';
 
 export function VirtualClassroom() {
@@ -29,28 +30,62 @@ export function VirtualClassroom() {
   const [subjects, setSubjects] = useState<any[]>([]);
   const [contents, setContents] = useState<any[]>([]);
   const [assessments, setAssessments] = useState<any[]>([]);
+  const [submissions, setSubmissions] = useState<any[]>([]);
   const [courses, setCourses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<any>(null);
   const [selectedSubject, setSelectedSubject] = useState<any>(null);
   const [activeView, setActiveView] = useState<'inicio' | 'conteudo' | 'avaliacao'>('inicio');
   const [showCurriculumModal, setShowCurriculumModal] = useState(false);
   const [viewingCurriculum, setViewingCurriculum] = useState<any>(null);
 
+  // Assessment taking state
+  const [activeAssessment, setActiveAssessment] = useState<any>(null);
+  const [studentAnswers, setStudentAnswers] = useState<Record<string, any>>({});
+  const [submittingAssessment, setSubmittingAssessment] = useState(false);
+  const [assessmentResult, setAssessmentResult] = useState<any>(null);
+
   useEffect(() => {
-    fetchData();
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      // Check for provisional student session
+      const pEmail = localStorage.getItem('p_student_email');
+      const pName = localStorage.getItem('p_student_name');
+
+      if (currentUser || pEmail) {
+        const loggedUser = currentUser ? {
+          email: currentUser.email,
+          displayName: currentUser.displayName,
+          id: currentUser.uid
+        } : {
+          email: pEmail,
+          displayName: pName,
+          id: pEmail
+        };
+        setUser(loggedUser);
+        fetchData(loggedUser.email || '');
+      } else {
+        navigate('/login-aluno');
+      }
+    });
+
+    return () => unsubscribe();
   }, []);
 
-  async function fetchData() {
+  async function fetchData(studentEmail: string) {
     setLoading(true);
     try {
       const subs = await getCollection('subjects');
       const conts = await getCollection('contents');
       const assess = await getCollection('assessments');
+      const allSubmissions = await getCollection('submissions');
       const coursesData = await getCollection('courses');
+      
+      const mySubmissions = allSubmissions.filter(s => s.studentEmail === studentEmail);
       
       setSubjects(subs);
       setContents(conts);
       setAssessments(assess);
+      setSubmissions(mySubmissions);
       setCourses(coursesData);
     } catch (err) {
       console.error("Error fetching student classroom data:", err);
@@ -58,6 +93,76 @@ export function VirtualClassroom() {
       setLoading(false);
     }
   }
+
+  const handleStartAssessment = (assessment: any) => {
+    setActiveAssessment(assessment);
+    setStudentAnswers({});
+    setAssessmentResult(null);
+  };
+
+  const handleSubmitAssessment = async () => {
+    if (!activeAssessment) return;
+    setSubmittingAssessment(true);
+
+    try {
+      let automaticGrade = 0;
+      let hasDiscursive = false;
+
+      if (activeAssessment.type === 'test') {
+        activeAssessment.questions.forEach((q: any) => {
+          if (q.type === 'objective') {
+            if (studentAnswers[q.id] === q.correctOption) {
+              automaticGrade += Number(q.points) || 0;
+            }
+          } else {
+            hasDiscursive = true;
+          }
+        });
+      } else {
+        hasDiscursive = true;
+      }
+
+      const totalGrade = hasDiscursive ? 0 : automaticGrade;
+      const status = hasDiscursive ? 'Em Avaliação' : 'Avaliada';
+
+      // Import database tools needed
+      const { addDocument } = await import('../lib/firebase');
+      
+      const newSubmission = {
+        assessmentId: activeAssessment.id,
+        studentName: user.displayName || user.email,
+        studentId: user.id,
+        studentEmail: user.email,
+        answers: studentAnswers,
+        automaticGrade,
+        manualGrade: 0,
+        totalGrade,
+        status,
+        submittedAt: new Date().toISOString()
+      };
+
+      await addDocument('submissions', newSubmission);
+
+      setAssessmentResult({
+        automaticGrade,
+        status,
+        totalPoints: activeAssessment.totalPoints
+      });
+      
+      // Refresh data
+      if (user?.email) fetchData(user.email);
+    } catch (err) {
+      console.error("Error submitting assessment:", err);
+      alert("Erro ao enviar avaliação.");
+    } finally {
+      setSubmittingAssessment(false);
+    }
+  };
+
+  const getSubmissionStatus = (assessmentId: string) => {
+    const sub = submissions.find(s => s.assessmentId === assessmentId);
+    return sub ? sub.status : 'Pendente';
+  };
 
   const filteredContents = contents.filter(c => c.subjectId === selectedSubject?.id);
   const filteredAssessments = assessments.filter(a => a.subjectId === selectedSubject?.id);
@@ -326,24 +431,81 @@ export function VirtualClassroom() {
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {filteredAssessments.map((a: any) => (
-                      <div key={a.id} className="bg-white p-8 rounded-sm border border-gray-100 shadow-sm space-y-6">
-                        <div className="flex justify-between items-start">
-                          <div className="p-3 bg-gray-50 rounded-sm text-gray-400"><ClipboardList className="w-6 h-6" /></div>
-                          <span className="px-3 py-1 bg-red-100 text-red-700 text-[10px] font-black uppercase rounded-sm">Em Aberto</span>
-                        </div>
-                        <div>
-                          <h4 className="text-xl font-bold uppercase tracking-tight mb-2">{a.title}</h4>
-                          <div className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase">
-                            <Clock className="w-4 h-4" />
-                            Expira em: {new Date(a.dueDate).toLocaleDateString('pt-BR')}
+                    {filteredAssessments.map((a: any) => {
+                      const status = getSubmissionStatus(a.id);
+                      const submission = submissions.find(s => s.assessmentId === a.id);
+                      
+                      return (
+                        <div key={a.id} className="bg-white p-8 rounded-sm border border-gray-100 shadow-sm space-y-6 flex flex-col justify-between">
+                          <div className="space-y-6">
+                            <div className="flex justify-between items-start">
+                              <div className="p-3 bg-gray-50 rounded-sm text-gray-400">
+                                <ClipboardList className="w-6 h-6" />
+                              </div>
+                              <span className={`px-3 py-1 text-[10px] font-black uppercase rounded-sm ${
+                                status === 'Avaliada' ? 'bg-green-100 text-green-700' : 
+                                status === 'Em Avaliação' ? 'bg-blue-100 text-blue-700' : 
+                                'bg-red-100 text-red-700'
+                              }`}>
+                                {status === 'Avaliada' ? 'AVALIADA' : 
+                                 status === 'Em Avaliação' ? 'EM CORREÇÃO' : 
+                                 'A REALIZAR'}
+                              </span>
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="text-[10px] font-black text-[#E31E24] uppercase tracking-widest">
+                                  {a.type === 'test' ? 'Teste Interativo' : 'Trabalho / Entrega'}
+                                </span>
+                              </div>
+                              <h4 className="text-xl font-bold uppercase tracking-tight mb-2 leading-tight">{a.title}</h4>
+                              <div className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase">
+                                <Clock className="w-4 h-4" />
+                                {status === 'Avaliada' || status === 'Em Avaliação' ? 
+                                  `Realizada em: ${new Date(submission?.submittedAt).toLocaleDateString('pt-BR')}` :
+                                  `Expira em: ${new Date(a.dueDate).toLocaleDateString('pt-BR')}`
+                                }
+                              </div>
+                            </div>
+
+                            {status === 'Avaliada' && (
+                              <div className="bg-green-50 p-4 rounded-sm border border-green-100">
+                                <p className="text-[10px] font-black text-green-700 uppercase tracking-widest mb-1">Resultado Final:</p>
+                                <div className="text-2xl font-black text-green-900">
+                                  {submission.totalGrade} / {a.totalPoints} <span className="text-xs text-green-600 font-bold">PONTOS</span>
+                                </div>
+                                {submission.feedback && (
+                                  <div className="mt-3 pt-3 border-t border-green-100 italic text-xs text-green-800">
+                                    "{submission.feedback}"
+                                  </div>
+                                )}
+                              </div>
+                            )}
                           </div>
+                          
+                          {status === 'Pendente' && (
+                            <button 
+                              onClick={() => handleStartAssessment(a)}
+                              className="w-full bg-gray-900 text-white py-4 rounded-sm font-black text-xs uppercase tracking-widest hover:bg-[#E31E24] transition-all transform hover:-translate-y-1"
+                            >
+                              Iniciar Atividade
+                            </button>
+                          )}
+
+                          {status === 'Em Avaliação' && (
+                            <div className="w-full bg-gray-100 text-gray-400 py-4 rounded-sm font-black text-[10px] uppercase tracking-widest text-center">
+                              Aguardando Correção do Professor
+                            </div>
+                          )}
+
+                          {status === 'Avaliada' && (
+                            <div className="w-full bg-green-100 text-green-700 py-4 rounded-sm font-black text-[10px] uppercase tracking-widest text-center">
+                              Concluída com Sucesso
+                            </div>
+                          )}
                         </div>
-                        <button className="w-full bg-gray-900 text-white py-4 rounded-sm font-black text-xs uppercase tracking-widest hover:bg-black transition-all">
-                          Iniciar Avaliação
-                        </button>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </motion.div>
@@ -424,6 +586,206 @@ export function VirtualClassroom() {
                       </a>
                     )}
                   </div>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+
+        {/* Active Assessment Modal */}
+        <AnimatePresence>
+          {activeAssessment && (
+            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                className="bg-white w-full max-w-3xl rounded-sm shadow-2xl p-0 overflow-hidden flex flex-col max-h-[95vh]"
+              >
+                {/* Modal Header */}
+                <div className="bg-gray-900 p-6 text-white flex justify-between items-center">
+                  <div className="flex items-center gap-4">
+                    <div className="bg-[#E31E24] p-3 rounded-sm">
+                      <PenTool className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-black uppercase tracking-tight italic">{activeAssessment.title}</h3>
+                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{selectedSubject.name} • {activeAssessment.type === 'test' ? 'Teste Online' : 'Trabalho de Entrega'}</p>
+                    </div>
+                  </div>
+                  {!assessmentResult && (
+                    <button 
+                      onClick={() => !submittingAssessment && setActiveAssessment(null)}
+                      className="p-2 hover:bg-white/10 rounded-full transition-colors"
+                    >
+                      <X className="w-6 h-6" />
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
+                  {assessmentResult ? (
+                    <motion.div 
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="flex flex-col items-center justify-center py-12 text-center"
+                    >
+                      <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-6">
+                        <BarChart2 className="w-10 h-10 text-green-600" />
+                      </div>
+                      <h3 className="text-3xl font-black text-gray-900 uppercase tracking-tighter mb-2">Avaliação Finalizada!</h3>
+                      <p className="text-gray-500 font-medium uppercase text-xs tracking-widest mb-8">Suas respostas foram enviadas com sucesso para o sistema.</p>
+                      
+                      <div className="grid grid-cols-2 gap-4 w-full max-w-md">
+                        <div className="bg-gray-50 p-6 rounded-sm border border-gray-100">
+                          <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Status</p>
+                          <p className="text-lg font-black text-gray-900 uppercase">{assessmentResult.status}</p>
+                        </div>
+                        <div className="bg-gray-50 p-6 rounded-sm border border-gray-100">
+                          <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Nota Preliminar</p>
+                          <p className="text-lg font-black text-[#E31E24]">{assessmentResult.automaticGrade} / {assessmentResult.totalPoints}</p>
+                        </div>
+                      </div>
+
+                      {assessmentResult.status === 'Em Avaliação' && (
+                        <p className="mt-8 text-[10px] font-black text-gray-400 uppercase tracking-widest bg-yellow-50 px-6 py-3 rounded-full border border-yellow-100">
+                          * Esta avaliação contém questões discursivas que serão revisadas pelo professor.
+                        </p>
+                      )}
+
+                      <button 
+                        onClick={() => setActiveAssessment(null)}
+                        className="mt-12 px-12 py-4 bg-gray-900 text-white rounded-sm font-black text-xs uppercase tracking-widest hover:bg-black transition-all"
+                      >
+                        Concluir e Voltar
+                      </button>
+                    </motion.div>
+                  ) : (
+                    <div className="space-y-8">
+                      {activeAssessment.description && (
+                        <div className="bg-blue-50 p-4 rounded-sm border-l-4 border-blue-500">
+                          <p className="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-1">Instruções do Professor:</p>
+                          <p className="text-sm text-blue-900 italic">{activeAssessment.description}</p>
+                        </div>
+                      )}
+
+                      {activeAssessment.type === 'test' ? (
+                        <div className="space-y-12">
+                          {activeAssessment.questions.map((q: any, idx: number) => (
+                            <div key={q.id} className="space-y-4">
+                              <div className="flex items-start gap-4">
+                                <span className="bg-gray-900 text-white w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-sm font-black italic">
+                                  {idx + 1}
+                                </span>
+                                <div className="space-y-1">
+                                  <h4 className="text-lg font-bold text-gray-900 leading-tight">{q.text}</h4>
+                                  <p className="text-[10px] font-black text-[#E31E24] uppercase tracking-widest italic">{q.points} Pontos • {q.type === 'objective' ? 'Múltipla Escolha' : 'Discursiva'}</p>
+                                </div>
+                              </div>
+
+                              {q.type === 'objective' ? (
+                                <div className="grid grid-cols-1 gap-3 ml-12">
+                                  {q.options.map((opt: string, optIdx: number) => (
+                                    <button
+                                      key={optIdx}
+                                      onClick={() => setStudentAnswers({ ...studentAnswers, [q.id]: optIdx })}
+                                      className={`p-4 text-left rounded-sm border transition-all flex items-center gap-4 ${
+                                        studentAnswers[q.id] === optIdx 
+                                        ? 'bg-red-50 border-[#E31E24] ring-2 ring-[#E31E24]/10' 
+                                        : 'bg-gray-50 border-gray-100 hover:border-gray-300'
+                                      }`}
+                                    >
+                                      <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black italic border ${
+                                        studentAnswers[q.id] === optIdx
+                                        ? 'bg-[#E31E24] text-white border-[#E31E24]'
+                                        : 'bg-white text-gray-400 border-gray-200'
+                                      }`}>
+                                        {String.fromCharCode(65 + optIdx)}
+                                      </span>
+                                      <span className={`text-sm font-medium ${studentAnswers[q.id] === optIdx ? 'text-red-900' : 'text-gray-600'}`}>
+                                        {opt}
+                                      </span>
+                                    </button>
+                                  ))}
+                                </div>
+                              ) : (
+                                <div className="ml-12 space-y-2">
+                                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest italic">Sua Resposta:</label>
+                                  <textarea 
+                                    className="w-full bg-gray-50 border border-gray-100 rounded-sm p-4 text-sm focus:ring-2 focus:ring-[#E31E24]/20 outline-none min-h-[150px] italic"
+                                    placeholder="Escreva sua resposta detalhadamente aqui..."
+                                    value={studentAnswers[q.id] || ''}
+                                    onChange={e => setStudentAnswers({ ...studentAnswers, [q.id]: e.target.value })}
+                                  />
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="space-y-6 py-12 flex flex-col items-center">
+                          <div className="w-24 h-24 bg-gray-50 rounded-full flex items-center justify-center border-2 border-dashed border-gray-200 mb-4">
+                            <Download className="w-10 h-10 text-gray-300" />
+                          </div>
+                          <div className="text-center">
+                            <h4 className="text-xl font-bold uppercase tracking-tight text-gray-900">Entrega de Trabalho</h4>
+                            <p className="text-xs text-gray-500 font-medium max-w-sm mt-2">Esta atividade requer a entrega de um arquivo ou link contendo o desenvolvimento do trabalho proposto.</p>
+                          </div>
+                          <div className="w-full space-y-4 max-w-md">
+                            <div className="space-y-1">
+                              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest italic">Link do Trabalho (Drive, Dropbox, etc)</label>
+                              <input 
+                                type="url"
+                                className="w-full bg-gray-50 border border-gray-100 rounded-sm p-4 text-sm outline-none focus:ring-2 focus:ring-[#E31E24]/20"
+                                placeholder="https://..."
+                                value={studentAnswers['deliveryUrl'] || ''}
+                                onChange={e => setStudentAnswers({ ...studentAnswers, deliveryUrl: e.target.value })}
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest italic">Comentários Adicionais</label>
+                              <textarea 
+                                className="w-full bg-gray-50 border border-gray-100 rounded-sm p-4 text-sm outline-none focus:ring-2 focus:ring-[#E31E24]/20 min-h-[100px] italic"
+                                placeholder="Observações sobre seu trabalho..."
+                                value={studentAnswers['comment'] || ''}
+                                onChange={e => setStudentAnswers({ ...studentAnswers, comment: e.target.value })}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Modal Footer */}
+                      <div className="pt-8 border-t border-gray-100 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                           <Clock className="w-4 h-4 text-gray-400" />
+                           <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                             Sua resposta será salva formalmente no sistema.
+                           </span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <button 
+                            onClick={() => setActiveAssessment(null)}
+                            className="px-6 py-4 rounded-sm font-black text-[10px] uppercase tracking-widest text-gray-400 hover:text-gray-600 transition-colors"
+                          >
+                            Cancelar
+                          </button>
+                          <button 
+                            onClick={handleSubmitAssessment}
+                            disabled={submittingAssessment}
+                            className="bg-[#E31E24] text-white px-12 py-4 rounded-sm font-black text-xs uppercase tracking-widest shadow-xl shadow-[#E31E24]/20 hover:bg-[#C1191F] transition-all flex items-center gap-2 disabled:opacity-50"
+                          >
+                            {submittingAssessment ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <PenTool className="w-4 h-4" />
+                            )}
+                            Enviar Atividade
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </motion.div>
             </div>

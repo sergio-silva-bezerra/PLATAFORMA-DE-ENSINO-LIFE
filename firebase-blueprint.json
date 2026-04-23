@@ -122,12 +122,29 @@
       "type": "object",
       "properties": {
         "subjectId": { "type": "string" },
+        "teacherId": { "type": "string" },
         "title": { "type": "string" },
         "description": { "type": "string" },
+        "type": { "type": "string", "enum": ["test", "assignment"] },
+        "questions": { 
+          "type": "array", 
+          "items": { 
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "text": { "type": "string" },
+              "type": { "type": "string", "enum": ["objective", "discursive"] },
+              "options": { "type": "array", "items": { "type": "string" } },
+              "correctOption": { "type": "number" },
+              "points": { "type": "number" }
+            }
+          }
+        },
         "dueDate": { "type": "string", "format": "date-time" },
-        "totalPoints": { "type": "number" }
+        "totalPoints": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" }
       },
-      "required": ["subjectId", "title", "dueDate"]
+      "required": ["subjectId", "teacherId", "title", "type", "dueDate"]
     },
     "Submission": {
       "title": "Submission",
@@ -136,10 +153,14 @@
       "properties": {
         "assessmentId": { "type": "string" },
         "studentId": { "type": "string" },
+        "studentName": { "type": "string" },
+        "answers": { "type": "object" },
         "fileUrl": { "type": "string" },
-        "grade": { "type": "number" },
+        "automaticGrade": { "type": "number" },
+        "manualGrade": { "type": "number" },
+        "totalGrade": { "type": "number" },
         "feedback": { "type": "string" },
-        "status": { "type": "string", "enum": ["Pendente", "Corrigido"] },
+        "status": { "type": "string", "enum": ["Pendente", "Em Avaliação", "Avaliada"] },
         "submittedAt": { "type": "string", "format": "date-time" }
       },
       "required": ["assessmentId", "studentId", "status"]

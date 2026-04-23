@@ -228,8 +228,17 @@ export async function publishContent(subjectId: string, subjectName: string, tit
   });
 }
 
-export async function createAssessment(subjectId: string, title: string, dueDate: string) {
-  return addDocument('assessments', { subjectId, title, dueDate, status: 'Ativo' });
+export async function createAssessment(data: {
+  subjectId: string,
+  teacherId: string,
+  title: string,
+  description?: string,
+  type: 'test' | 'assignment',
+  questions?: any[],
+  dueDate: string,
+  totalPoints?: number
+}) {
+  return addDocument('assessments', { ...data, status: 'Ativa' });
 }
 
 export async function getTeachers() {

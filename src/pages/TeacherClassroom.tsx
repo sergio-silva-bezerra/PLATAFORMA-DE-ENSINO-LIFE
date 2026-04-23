@@ -21,7 +21,8 @@ import {
   AlertTriangle,
   Download,
   Eye,
-  Link2
+  Link2,
+  BarChart2
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
@@ -38,6 +39,7 @@ export function TeacherClassroom() {
   const [courses, setCourses] = useState<any[]>([]);
   const [contents, setContents] = useState<any[]>([]);
   const [assessments, setAssessments] = useState<any[]>([]);
+  const [submissions, setSubmissions] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
@@ -56,6 +58,13 @@ export function TeacherClassroom() {
   const [showContentModal, setShowContentModal] = useState(false);
   const [showAssessmentModal, setShowAssessmentModal] = useState(false);
   const [showCurriculumModal, setShowCurriculumModal] = useState(false);
+  const [showSubmissionModal, setShowSubmissionModal] = useState(false);
+  const [selectedAssessmentSubmissions, setSelectedAssessmentSubmissions] = useState<any>(null);
+  const [gradingSubmission, setGradingSubmission] = useState<any>(null);
+  const [manualGrade, setManualGrade] = useState(0);
+  const [feedbackText, setFeedbackText] = useState('');
+  const [isSubmittingGrade, setIsSubmittingGrade] = useState(false);
+  
   const [viewingCurriculum, setViewingCurriculum] = useState<any>(null);
   const [replyingTo, setReplyingTo] = useState<any>(null);
   const [replyText, setReplyText] = useState('');
@@ -63,7 +72,15 @@ export function TeacherClassroom() {
 
   // Forms
   const [newContent, setNewContent] = useState({ subjectId: '', title: '', type: 'pdf' as any, url: '' });
-  const [newAssessment, setNewAssessment] = useState({ subjectId: '', title: '', dueDate: '' });
+  const [newAssessment, setNewAssessment] = useState({ 
+    subjectId: '', 
+    title: '', 
+    description: '',
+    type: 'assignment' as 'test' | 'assignment',
+    dueDate: '',
+    questions: [] as any[],
+    totalPoints: 10
+  });
 
   useEffect(() => {
     // 1. Check for firebase auth first
@@ -118,9 +135,10 @@ export function TeacherClassroom() {
         const contentsQuery = [where('subjectId', 'in', subjectIds.slice(0, 10))];
         const assessmentsQuery = [where('subjectId', 'in', subjectIds.slice(0, 10))];
         
-        const [filteredConts, filteredAssess, allCourses] = await Promise.all([
+        const [filteredConts, filteredAssess, allSubmissions, allCourses] = await Promise.all([
           getCollection('contents', contentsQuery),
           getCollection('assessments', assessmentsQuery),
+          getCollection('submissions'),
           getCollection('courses')
         ]);
         
@@ -129,11 +147,13 @@ export function TeacherClassroom() {
         setSubjects(subs);
         setContents(filteredConts);
         setAssessments(filteredAssess);
+        setSubmissions(allSubmissions);
         setCourses(finalCourses);
       } else {
         setSubjects([]);
         setContents([]);
         setAssessments([]);
+        setSubmissions([]);
         setCourses([]);
       }
     } catch (err) {
@@ -171,6 +191,7 @@ export function TeacherClassroom() {
       if (subjectIds.length > 0) {
         const allConts = await getCollection('contents') as any[];
         const allAssess = await getCollection('assessments') as any[];
+        const allSubmissions = await getCollection('submissions') as any[];
         const allCourses = await getCollection('courses') as any[];
         
         const filteredConts = allConts.filter(c => subjectIds.includes(c.subjectId));
@@ -180,11 +201,13 @@ export function TeacherClassroom() {
         setSubjects(subs);
         setContents(filteredConts);
         setAssessments(filteredAssess);
+        setSubmissions(allSubmissions);
         setCourses(filteredCourses);
       } else {
         setSubjects([]);
         setContents([]);
         setAssessments([]);
+        setSubmissions([]);
         setCourses([]);
       }
     } catch (err) {
@@ -217,6 +240,39 @@ export function TeacherClassroom() {
       alert("Erro ao enviar resposta.");
     } finally {
       setSubmittingReply(false);
+    }
+  };
+
+  const handleGradeSubmission = async () => {
+    if (!gradingSubmission) return;
+    setIsSubmittingGrade(true);
+    try {
+      const totalGrade = (gradingSubmission.automaticGrade || 0) + Number(manualGrade);
+      
+      await updateDocument('submissions', gradingSubmission.id, {
+        manualGrade: Number(manualGrade),
+        totalGrade,
+        feedback: feedbackText,
+        status: 'Avaliada',
+        gradedAt: new Date().toISOString()
+      });
+
+      // Update local state
+      setSubmissions(submissions.map(s => s.id === gradingSubmission.id ? {
+        ...s,
+        manualGrade: Number(manualGrade),
+        totalGrade,
+        feedback: feedbackText,
+        status: 'Avaliada'
+      } : s));
+      
+      setGradingSubmission(null);
+      alert("Avaliação concluída com sucesso!");
+    } catch (err) {
+      console.error("Error grading submission:", err);
+      alert("Erro ao salvar nota.");
+    } finally {
+      setIsSubmittingGrade(false);
     }
   };
 
@@ -258,13 +314,39 @@ export function TeacherClassroom() {
       alert("Selecione uma disciplina primeiro.");
       return;
     }
-    await createAssessment(finalSubjectId, newAssessment.title, newAssessment.dueDate);
-    setShowAssessmentModal(false);
-    setNewAssessment({ subjectId: '', title: '', dueDate: '' });
-    if (auth.currentUser && !auth.currentUser.isAnonymous) {
-      fetchTeacherData(user.uid);
-    } else {
-      fetchTeacherDataByEmail(user.email);
+    
+    // Calculate total points from questions if test
+    let totalPoints = newAssessment.totalPoints;
+    if (newAssessment.type === 'test' && newAssessment.questions.length > 0) {
+      totalPoints = newAssessment.questions.reduce((sum, q) => sum + (Number(q.points) || 0), 0);
+    }
+
+    try {
+      await createAssessment({
+        ...newAssessment,
+        subjectId: finalSubjectId,
+        teacherId: user.uid,
+        totalPoints,
+        createdAt: new Date().toISOString()
+      });
+      setShowAssessmentModal(false);
+      setNewAssessment({ 
+        subjectId: '', 
+        title: '', 
+        description: '',
+        type: 'assignment',
+        dueDate: '',
+        questions: [],
+        totalPoints: 10
+      });
+      if (auth.currentUser && !auth.currentUser.isAnonymous) {
+        fetchTeacherData(user.uid);
+      } else {
+        fetchTeacherDataByEmail(user.email);
+      }
+    } catch (err) {
+      console.error("Error creating assessment:", err);
+      alert("Erro ao criar avaliação.");
     }
   };
 
@@ -709,25 +791,46 @@ export function TeacherClassroom() {
                     <p className="text-gray-400 font-bold uppercase text-xs">Nenhuma avaliação criada para esta disciplina.</p>
                   </div>
                 ) : (
-                  assessments.filter(a => a.subjectId === selectedSubject.id).map((item, idx) => (
-                    <div key={idx} className="bg-white p-6 rounded-sm border border-gray-100 shadow-sm space-y-4 hover:border-[#E31E24] transition-all">
-                      <div className="flex justify-between items-start">
-                        <div className="bg-gray-100 p-2 text-gray-500 rounded-sm"><FilePlus className="w-5 h-5" /></div>
-                        <span className="px-2 py-1 bg-green-100 text-green-700 text-[9px] font-black uppercase rounded-sm">Ativa</span>
-                      </div>
-                      <div>
-                        <h4 className="font-bold text-gray-900">{item.title}</h4>
-                        <p className="text-[10px] text-gray-400 font-bold uppercase mt-1">Disciplina ID: {item.subjectId}</p>
-                      </div>
-                      <div className="pt-4 border-t border-gray-50 flex items-center justify-between">
-                        <div className="flex items-center gap-2 text-xs text-gray-500">
-                          <Clock className="w-4 h-4" />
-                          <span>Vence em: {new Date(item.dueDate).toLocaleDateString('pt-BR')}</span>
+                  assessments.filter(a => a.subjectId === selectedSubject.id).map((item, idx) => {
+                    const count = submissions.filter(s => s.assessmentId === item.id).length;
+                    const pendingCount = submissions.filter(s => s.assessmentId === item.id && s.status === 'Em Avaliação').length;
+
+                    return (
+                      <div key={idx} className="bg-white p-6 rounded-sm border border-gray-100 shadow-sm space-y-4 hover:border-[#E31E24] transition-all group">
+                        <div className="flex justify-between items-start">
+                          <div className="bg-gray-100 p-2 text-gray-500 rounded-sm group-hover:bg-[#E31E24] group-hover:text-white transition-colors">
+                            <BarChart2 className="w-5 h-5" />
+                          </div>
+                          <span className={`px-2 py-1 text-[9px] font-black uppercase rounded-sm ${
+                            item.type === 'test' ? 'bg-blue-50 text-blue-600' : 'bg-purple-50 text-purple-600'
+                          }`}>
+                            {item.type === 'test' ? 'Teste' : 'Trabalho'}
+                          </span>
                         </div>
-                        <button className="text-[#E31E24] font-black uppercase text-[10px] tracking-widest">Corrigir</button>
+                        <div>
+                          <h4 className="font-bold text-gray-900 line-clamp-1">{item.title}</h4>
+                          <p className="text-[10px] text-gray-400 font-bold uppercase mt-1">
+                            {count} Entregas {pendingCount > 0 && <span className="text-[#E31E24]">({pendingCount} pendentes)</span>}
+                          </p>
+                        </div>
+                        <div className="pt-4 border-t border-gray-50 flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2 text-[9px] text-gray-400 font-black uppercase">
+                            <Clock className="w-3 h-3" />
+                            <span>{new Date(item.dueDate).toLocaleDateString('pt-BR')}</span>
+                          </div>
+                          <button 
+                            onClick={() => {
+                              setSelectedAssessmentSubmissions(item);
+                              setShowSubmissionModal(true);
+                            }}
+                            className="bg-gray-900 text-white px-4 py-2 rounded-sm font-black uppercase text-[9px] tracking-widest hover:bg-[#E31E24] transition-all"
+                          >
+                            Ver Entregas
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  ))
+                    );
+                  })
                 )}
               </div>
             </motion.div>
@@ -873,46 +976,236 @@ export function TeacherClassroom() {
       {/* Assessment Modal */}
       {showAssessmentModal && (
         <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-md rounded-sm shadow-2xl p-8">
+          <div className="bg-white w-full max-w-2xl rounded-sm shadow-2xl p-8 max-h-[90vh] overflow-y-auto custom-scrollbar">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold uppercase text-gray-900 tracking-tight">Nova Avaliação</h2>
-              <button onClick={() => setShowAssessmentModal(false)}><X className="w-6 h-6 text-gray-400" /></button>
+              <div>
+                <h2 className="text-xl font-bold uppercase text-gray-900 tracking-tight italic">Nova Atividade Acadêmica</h2>
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">Configure os parâmetros da avaliação</p>
+              </div>
+              <button 
+                onClick={() => {
+                  setShowAssessmentModal(false);
+                  setNewAssessment({ ...newAssessment, questions: [] });
+                }}
+              >
+                <X className="w-6 h-6 text-gray-400" />
+              </button>
             </div>
-            <form onSubmit={handleCreateAssessment} className="space-y-4">
-              <div className="space-y-1">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Disciplina</label>
-                <select 
-                  className="w-full bg-gray-50 border border-gray-100 rounded-sm p-3 text-sm"
-                  value={newAssessment.subjectId || selectedSubject?.id || ''}
-                  onChange={e => setNewAssessment({...newAssessment, subjectId: e.target.value})}
-                  required
-                >
-                  <option value="">Selecione a disciplina</option>
-                  {subjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                </select>
+            
+            <form onSubmit={handleCreateAssessment} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Disciplina</label>
+                  <select 
+                    className="w-full bg-gray-50 border border-gray-100 rounded-sm p-3 text-sm focus:ring-2 focus:ring-[#E31E24]/20 outline-none"
+                    value={newAssessment.subjectId || selectedSubject?.id || ''}
+                    onChange={e => setNewAssessment({...newAssessment, subjectId: e.target.value})}
+                    required
+                  >
+                    <option value="">Selecione a disciplina</option>
+                    {subjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Título da Atividade</label>
+                  <input 
+                    type="text" 
+                    className="w-full bg-gray-50 border border-gray-100 rounded-sm p-3 text-sm focus:ring-2 focus:ring-[#E31E24]/20 outline-none"
+                    placeholder="Ex: Prova Mensal - Anatomia"
+                    value={newAssessment.title}
+                    onChange={e => setNewAssessment({...newAssessment, title: e.target.value})}
+                    required
+                  />
+                </div>
               </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Tipo de Atividade</label>
+                  <select 
+                    className="w-full bg-gray-50 border border-gray-100 rounded-sm p-3 text-sm focus:ring-2 focus:ring-[#E31E24]/20 outline-none"
+                    value={newAssessment.type}
+                    onChange={e => setNewAssessment({...newAssessment, type: e.target.value as any})}
+                  >
+                    <option value="test">Teste Interativo (Questões Online)</option>
+                    <option value="assignment">Trabalho (Entrega de Arquivo)</option>
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Data Limite de Entrega</label>
+                  <input 
+                    type="date" 
+                    className="w-full bg-gray-50 border border-gray-100 rounded-sm p-3 text-sm focus:ring-2 focus:ring-[#E31E24]/20 outline-none"
+                    value={newAssessment.dueDate}
+                    onChange={e => setNewAssessment({...newAssessment, dueDate: e.target.value})}
+                    required
+                  />
+                </div>
+              </div>
+
               <div className="space-y-1">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Título da Avaliação</label>
-                <input 
-                  type="text" 
-                  className="w-full bg-gray-50 border border-gray-100 rounded-sm p-3 text-sm"
-                  placeholder="Ex: Prova Mensal - Unidade 01"
-                  value={newAssessment.title}
-                  onChange={e => setNewAssessment({...newAssessment, title: e.target.value})}
-                  required
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Instruções / Descrição</label>
+                <textarea 
+                  className="w-full bg-gray-50 border border-gray-100 rounded-sm p-3 text-sm focus:ring-2 focus:ring-[#E31E24]/20 outline-none"
+                  rows={2}
+                  placeholder="Instruções para o aluno..."
+                  value={newAssessment.description}
+                  onChange={e => setNewAssessment({...newAssessment, description: e.target.value})}
                 />
               </div>
-              <div className="space-y-1">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Data de Vencimento</label>
-                <input 
-                  type="date" 
-                  className="w-full bg-gray-50 border border-gray-100 rounded-sm p-3 text-sm transition-all"
-                  value={newAssessment.dueDate}
-                  onChange={e => setNewAssessment({...newAssessment, dueDate: e.target.value})}
-                  required
-                />
+
+              {newAssessment.type === 'test' && (
+                <div className="space-y-4 pt-4 border-t border-gray-100">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xs font-black text-gray-900 uppercase tracking-widest flex items-center gap-2">
+                      <Plus className="w-4 h-4 text-[#E31E24]" />
+                      Questões do Teste
+                    </h3>
+                    <button 
+                      type="button"
+                      onClick={() => {
+                        const newQ = {
+                          id: Math.random().toString(36).substr(2, 9),
+                          text: '',
+                          type: 'objective',
+                          options: ['', '', '', ''],
+                          correctOption: 0,
+                          points: 1
+                        };
+                        setNewAssessment({
+                          ...newAssessment,
+                          questions: [...newAssessment.questions, newQ]
+                        });
+                      }}
+                      className="text-[10px] font-black text-[#E31E24] hover:underline uppercase tracking-widest"
+                    >
+                      + Adicionar Questão
+                    </button>
+                  </div>
+
+                  <div className="space-y-6">
+                    {newAssessment.questions.map((q, qIdx) => (
+                      <div key={q.id} className="bg-gray-50 p-6 rounded-sm border border-gray-200 relative group/q">
+                        <button 
+                          type="button"
+                          onClick={() => {
+                            const updated = newAssessment.questions.filter((_, i) => i !== qIdx);
+                            setNewAssessment({ ...newAssessment, questions: updated });
+                          }}
+                          className="absolute top-2 right-2 p-1 text-gray-300 hover:text-red-500 opacity-0 group-hover/q:opacity-100 transition-opacity"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                        
+                        <div className="flex items-center gap-4 mb-4">
+                          <span className="w-8 h-8 bg-gray-900 text-white flex items-center justify-center rounded-full text-xs font-black">
+                            {qIdx + 1}
+                          </span>
+                          <div className="flex-1 space-y-1">
+                            <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Enunciado da Questão</label>
+                            <input 
+                              type="text"
+                              className="w-full bg-white border border-gray-200 rounded-sm p-2 text-sm focus:ring-1 focus:ring-[#E31E24] outline-none"
+                              placeholder="Digite a pergunta..."
+                              value={q.text}
+                              onChange={e => {
+                                const updated = [...newAssessment.questions];
+                                updated[qIdx].text = e.target.value;
+                                setNewAssessment({ ...newAssessment, questions: updated });
+                              }}
+                              required
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4 mb-4">
+                          <div className="space-y-1">
+                            <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Tipo de Questão</label>
+                            <select 
+                              className="w-full bg-white border border-gray-200 rounded-sm p-2 text-xs"
+                              value={q.type}
+                              onChange={e => {
+                                const updated = [...newAssessment.questions];
+                                updated[qIdx].type = e.target.value as any;
+                                setNewAssessment({ ...newAssessment, questions: updated });
+                              }}
+                            >
+                              <option value="objective">Múltipla Escolha (Objetiva)</option>
+                              <option value="discursive">Discursiva (Subjetiva)</option>
+                            </select>
+                          </div>
+                          <div className="space-y-1">
+                            <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Pontuação</label>
+                            <input 
+                              type="number"
+                              className="w-full bg-white border border-gray-200 rounded-sm p-2 text-xs"
+                              value={q.points}
+                              onChange={e => {
+                                const updated = [...newAssessment.questions];
+                                updated[qIdx].points = Number(e.target.value);
+                                setNewAssessment({ ...newAssessment, questions: updated });
+                              }}
+                            />
+                          </div>
+                        </div>
+
+                        {q.type === 'objective' && (
+                          <div className="space-y-3">
+                            <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Alternativas (Marque a correta)</label>
+                            {q.options.map((opt: string, optIdx: number) => (
+                              <div key={optIdx} className="flex items-center gap-2">
+                                <input 
+                                  type="radio"
+                                  name={`correct-${q.id}`}
+                                  checked={q.correctOption === optIdx}
+                                  onChange={() => {
+                                    const updated = [...newAssessment.questions];
+                                    updated[qIdx].correctOption = optIdx;
+                                    setNewAssessment({ ...newAssessment, questions: updated });
+                                  }}
+                                  className="w-4 h-4 accent-[#E31E24]"
+                                />
+                                <input 
+                                  type="text"
+                                  className="flex-1 bg-white border border-gray-200 rounded-sm p-2 text-xs focus:ring-1 focus:ring-[#E31E24] outline-none"
+                                  placeholder={`Alternativa ${String.fromCharCode(65 + optIdx)}`}
+                                  value={opt}
+                                  onChange={e => {
+                                    const updated = [...newAssessment.questions];
+                                    updated[qIdx].options[optIdx] = e.target.value;
+                                    setNewAssessment({ ...newAssessment, questions: updated });
+                                  }}
+                                  required
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+
+                    {newAssessment.questions.length === 0 && (
+                      <div className="py-10 border-2 border-dashed border-gray-100 text-center rounded-sm">
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Clique em "Adicionar Questão" para compor o teste.</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              <div className="flex items-center justify-between pt-6 border-t border-gray-100">
+                <div className="text-[10px] font-black text-gray-900 uppercase tracking-widest p-4 bg-gray-50 rounded-sm">
+                  TOTAL DE PONTOS: <span className="text-[#E31E24] text-lg">
+                    {newAssessment.type === 'test' 
+                      ? newAssessment.questions.reduce((sum, q) => sum + (Number(q.points) || 0), 0)
+                      : newAssessment.totalPoints
+                    }
+                  </span>
+                </div>
+                <button type="submit" className="bg-[#E31E24] text-white px-10 py-4 rounded-sm font-black text-xs uppercase tracking-widest shadow-xl shadow-[#E31E24]/20 hover:bg-[#C1191F] transition-all">
+                  Finalizar e Publicar
+                </button>
               </div>
-              <button type="submit" className="w-full bg-gray-900 text-white py-4 rounded-sm font-black text-xs uppercase tracking-widest mt-4">Criar Avaliação</button>
             </form>
           </div>
         </div>
@@ -1061,6 +1354,208 @@ export function TeacherClassroom() {
           </div>
         </div>
       )}
+      {/* Submissions Modal */}
+      <AnimatePresence>
+        {showSubmissionModal && selectedAssessmentSubmissions && (
+          <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white w-full max-w-4xl rounded-sm shadow-2xl p-0 overflow-hidden flex flex-col max-h-[90vh]"
+            >
+              <div className="bg-gray-900 p-6 text-white flex justify-between items-center">
+                <div>
+                  <h2 className="text-xl font-black uppercase tracking-tight italic">Controle de Entregas</h2>
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">
+                    {selectedAssessmentSubmissions.title} • {selectedAssessmentSubmissions.type === 'test' ? 'Teste' : 'Trabalho'}
+                  </p>
+                </div>
+                <button onClick={() => setShowSubmissionModal(false)}>
+                  <X className="w-6 h-6 text-gray-400 hover:text-white" />
+                </button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
+                <div className="grid grid-cols-1 gap-4">
+                  {submissions.filter(s => s.assessmentId === selectedAssessmentSubmissions.id).length === 0 ? (
+                    <div className="py-20 text-center border-2 border-dashed border-gray-100 rounded-sm">
+                      <p className="text-gray-400 font-bold uppercase text-[10px] tracking-widest">Nenhuma entrega recebida até o momento.</p>
+                    </div>
+                  ) : (
+                    submissions
+                      .filter(s => s.assessmentId === selectedAssessmentSubmissions.id)
+                      .map(sub => (
+                        <div key={sub.id} className="bg-gray-50 p-6 rounded-sm border border-gray-200 flex items-center justify-between">
+                          <div className="flex items-center gap-6">
+                            <div className="w-12 h-12 bg-gray-900 text-white rounded-full flex items-center justify-center text-lg font-black italic">
+                              {sub.studentName.charAt(0)}
+                            </div>
+                            <div>
+                              <h4 className="font-bold text-gray-900">{sub.studentName}</h4>
+                              <div className="flex items-center gap-3 mt-1">
+                                <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${
+                                  sub.status === 'Avaliada' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
+                                }`}>
+                                  {sub.status === 'Avaliada' ? 'Avaliada' : 'Em Correção'}
+                                </span>
+                                <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest tracking-widest">
+                                  Entregue em: {new Date(sub.submittedAt).toLocaleDateString('pt-BR')}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center gap-6">
+                            <div className="text-right">
+                              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Pontuação Final</p>
+                              <p className="text-xl font-black text-[#E31E24]">
+                                {sub.status === 'Avaliada' ? `${sub.totalGrade} / ${selectedAssessmentSubmissions.totalPoints}` : '---'}
+                              </p>
+                            </div>
+                            <button 
+                              onClick={() => {
+                                setGradingSubmission(sub);
+                                setManualGrade(sub.manualGrade || 0);
+                                setFeedbackText(sub.feedback || '');
+                              }}
+                              className="px-6 py-3 bg-gray-900 text-white rounded-sm font-black text-[10px] uppercase tracking-widest hover:bg-[#E31E24] transition-all"
+                            >
+                              {sub.status === 'Avaliada' ? 'Revisar Nota' : 'Avaliar Agora'}
+                            </button>
+                          </div>
+                        </div>
+                      ))
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Grading Modal */}
+      <AnimatePresence>
+        {gradingSubmission && (
+          <div className="fixed inset-0 bg-black/60 z-[110] flex items-center justify-center p-4">
+            <motion.div 
+               initial={{ opacity: 0, y: 20 }}
+               animate={{ opacity: 1, y: 0 }}
+               exit={{ opacity: 0, y: 20 }}
+               className="bg-white w-full max-w-2xl rounded-sm shadow-2xl p-8 max-h-[95vh] overflow-y-auto custom-scrollbar"
+            >
+              <div className="flex justify-between items-center mb-8 pb-4 border-b border-gray-100">
+                <div>
+                   <h3 className="text-2xl font-black uppercase tracking-tight italic">Avaliar Aluno</h3>
+                   <p className="text-[10px] font-black text-[#E31E24] uppercase tracking-widest mt-1">{gradingSubmission.studentName} • {selectedAssessmentSubmissions.title}</p>
+                </div>
+                <button onClick={() => setGradingSubmission(null)}><X className="w-6 h-6 text-gray-400" /></button>
+              </div>
+
+              <div className="space-y-8">
+                {/* Answers View */}
+                <div className="space-y-6">
+                   <h4 className="text-xs font-black text-gray-900 uppercase tracking-widest flex items-center gap-2">
+                     <PenTool className="w-4 h-4 text-[#E31E24]" />
+                     Respostas Enviadas
+                   </h4>
+                   
+                   {selectedAssessmentSubmissions.type === 'test' ? (
+                     <div className="space-y-4">
+                        {selectedAssessmentSubmissions.questions.map((q: any, idx: number) => (
+                          <div key={q.id} className="bg-gray-50 p-4 rounded-sm border border-gray-200">
+                             <div className="flex justify-between items-start mb-2">
+                               <p className="text-sm font-bold text-gray-900">{idx + 1}. {q.text}</p>
+                               <span className="text-[10px] font-black uppercase text-gray-400">{q.points} Pontos</span>
+                             </div>
+                             
+                             {q.type === 'objective' ? (
+                               <div className="flex items-center gap-4 text-xs">
+                                 <p className={`font-bold ${gradingSubmission.answers[q.id] === q.correctOption ? 'text-green-600' : 'text-red-600'}`}>
+                                   Resposta do Aluno: {String.fromCharCode(65 + gradingSubmission.answers[q.id])} 
+                                   ({q.options[gradingSubmission.answers[q.id]]})
+                                 </p>
+                                 <p className="text-gray-400 italic">
+                                   Correta: {String.fromCharCode(65 + q.correctOption)}
+                                 </p>
+                               </div>
+                             ) : (
+                               <div className="mt-2 p-3 bg-white rounded-sm border border-gray-100 italic text-sm text-gray-600">
+                                 {gradingSubmission.answers[q.id] || '(Sem resposta)'}
+                               </div>
+                             )}
+                          </div>
+                        ))}
+                     </div>
+                   ) : (
+                     <div className="bg-blue-50 p-6 rounded-sm border border-blue-100">
+                        <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-2 italic">Arquivo/Link Entregue:</p>
+                        <a 
+                          href={gradingSubmission.answers.deliveryUrl} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-[#E31E24] font-bold underline text-sm break-all"
+                        >
+                          {gradingSubmission.answers.deliveryUrl}
+                        </a>
+                        {gradingSubmission.answers.comment && (
+                          <p className="mt-4 text-xs text-blue-900 leading-relaxed italic">"{gradingSubmission.answers.comment}"</p>
+                        )}
+                     </div>
+                   )}
+                </div>
+
+                <div className="space-y-6 pt-8 border-t border-gray-100">
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                         <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Nota Automática (Objetivas)</label>
+                         <div className="bg-gray-100 p-4 rounded-sm font-black text-xl text-gray-600">
+                           {gradingSubmission.automaticGrade || 0}
+                         </div>
+                      </div>
+                      <div className="space-y-2">
+                         <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Nota Manual (A definir)</label>
+                         <input 
+                           type="number"
+                           className="w-full bg-gray-50 border-2 border-gray-200 outline-none focus:border-[#E31E24] p-3 text-xl font-black rounded-sm transition-all"
+                           value={manualGrade}
+                           onChange={e => setManualGrade(Number(e.target.value))}
+                           max={selectedAssessmentSubmissions.totalPoints}
+                         />
+                      </div>
+                   </div>
+
+                   <div className="space-y-2">
+                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Feedback / Observações</label>
+                      <textarea 
+                        rows={3}
+                        className="w-full bg-gray-50 border border-gray-100 rounded-sm p-4 text-sm outline-none focus:ring-2 focus:ring-[#E31E24]/20 italic"
+                        placeholder="Parabéns pelo desempenho ou indique o que precisa ser melhorado..."
+                        value={feedbackText}
+                        onChange={e => setFeedbackText(e.target.value)}
+                      />
+                   </div>
+
+                   <div className="flex items-center justify-between p-6 bg-gray-900 rounded-sm text-white">
+                      <div>
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Nota Total Final</p>
+                        <p className="text-3xl font-black italic">{(gradingSubmission.automaticGrade || 0) + Number(manualGrade)} / {selectedAssessmentSubmissions.totalPoints}</p>
+                      </div>
+                      <button 
+                        onClick={handleGradeSubmission}
+                        disabled={isSubmittingGrade}
+                        className="bg-[#E31E24] text-white px-12 py-4 rounded-sm font-black text-xs uppercase tracking-widest hover:bg-[#C1191F] transition-all flex items-center gap-2"
+                      >
+                         {isSubmittingGrade ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+                         Lançar Nota Oficial
+                      </button>
+                   </div>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
