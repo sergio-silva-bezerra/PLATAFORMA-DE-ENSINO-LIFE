@@ -26,10 +26,11 @@ export function PedagogicalSchedule() {
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [showEventModal, setShowEventModal] = useState(false);
+  const [editingEvent, setEditingEvent] = useState<any>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   // New Event Form State
-  const [newEvent, setNewEvent] = useState({
+  const [eventForm, setEventForm] = useState({
     title: '',
     description: '',
     type: 'aula',
@@ -48,7 +49,34 @@ export function PedagogicalSchedule() {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         const profile = await getUserProfile(user.uid);
-        setCurrentUser(profile);
+        
+        // If profile doesn't have role but we are in teacher or pedagogical context, inject it
+        if (!profile || !profile.role) {
+          const isTeacherPath = window.location.pathname.includes('/professor');
+          const isPedagogicalPath = window.location.pathname.includes('/pedagogico');
+          const teacherEmail = localStorage.getItem('p_teacher_email');
+          
+          const extendedProfile = {
+            ...profile,
+            uid: user.uid,
+            name: profile?.name || localStorage.getItem('p_teacher_name') || user.displayName || 'Usuário',
+            role: profile?.role || (isPedagogicalPath ? 'pedagogical' : (isTeacherPath || teacherEmail ? 'teacher' : 'student'))
+          };
+          setCurrentUser(extendedProfile);
+        } else {
+          setCurrentUser(profile);
+        }
+      } else {
+        // Handle case where user might be accessing via mock login path
+        const isPedagogicalPath = window.location.pathname.includes('/pedagogico');
+        const teacherEmail = localStorage.getItem('p_teacher_email');
+        if (isPedagogicalPath || teacherEmail) {
+          setCurrentUser({
+            name: localStorage.getItem('p_teacher_name') || 'Coordenação',
+            role: isPedagogicalPath ? 'pedagogical' : 'teacher',
+            uid: 'mock-id'
+          });
+        }
       }
     });
 
@@ -80,26 +108,52 @@ export function PedagogicalSchedule() {
     }
   }
 
-  const handleCreateEvent = async (e: React.FormEvent) => {
+  const handleSaveEvent = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentUser) return;
     
     setIsSubmitting(true);
     try {
-      await addDocument('academic_events', {
-        ...newEvent,
-        creatorId: currentUser.uid,
-        creatorName: currentUser.name,
-        creatorRole: currentUser.role,
-      });
+      if (editingEvent) {
+        await updateDocument('academic_events', editingEvent.id, {
+          ...eventForm
+        });
+      } else {
+        await addDocument('academic_events', {
+          ...eventForm,
+          creatorId: currentUser.uid,
+          creatorName: currentUser.name,
+          creatorRole: currentUser.role,
+        });
+      }
       setShowEventModal(false);
-      setNewEvent({ title: '', description: '', type: 'aula', date: '', time: '', location: '' });
+      setEditingEvent(null);
+      setEventForm({ title: '', description: '', type: 'aula', date: '', time: '', location: '' });
       fetchEvents();
     } catch (err) {
-      console.error("Error creating event:", err);
+      console.error("Error saving event:", err);
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleOpenCreateModal = () => {
+    setEditingEvent(null);
+    setEventForm({ title: '', description: '', type: 'aula', date: '', time: '', location: '' });
+    setShowEventModal(true);
+  };
+
+  const handleOpenEditModal = (event: any) => {
+    setEditingEvent(event);
+    setEventForm({
+      title: event.title,
+      description: event.description,
+      type: event.type,
+      date: event.date,
+      time: event.time,
+      location: event.location,
+    });
+    setShowEventModal(true);
   };
 
   const handleSendComment = async () => {
@@ -161,8 +215,8 @@ export function PedagogicalSchedule() {
         </div>
         {(currentUser?.role === 'pedagogical' || currentUser?.role === 'teacher' || currentUser?.role === 'admin') && (
           <button 
-            onClick={() => setShowEventModal(true)}
-            className="flex items-center gap-2 bg-[#E31E24] text-white px-6 py-3 rounded-sm font-bold text-sm shadow-lg shadow-[#E31E24]/20 hover:bg-[#C1191F] transition-all"
+            onClick={handleOpenCreateModal}
+            className="flex items-center gap-2 bg-[#E31E24] text-white px-6 py-4 rounded-sm font-black text-xs uppercase tracking-widest shadow-xl shadow-[#E31E24]/20 hover:bg-[#C1191F] transition-all transform hover:-translate-y-1 active:scale-95"
           >
             <Plus className="w-5 h-5" />
             Novo Evento
@@ -349,16 +403,27 @@ export function PedagogicalSchedule() {
                         COMENTÁRIOS
                       </div>
                     </div>
-                    {(currentUser?.role === 'pedagogical' || currentUser?.role === 'admin') && (
-                      <button 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteEvent(event.id);
-                        }}
-                        className="p-2 text-gray-300 hover:text-red-600 hover:bg-red-50 rounded-sm transition-colors"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                    {(currentUser?.role === 'pedagogical' || currentUser?.role === 'admin' || currentUser?.role === 'teacher') && (
+                      <div className="flex items-center gap-1">
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleOpenEditModal(event);
+                          }}
+                          className="p-2 text-gray-300 hover:text-blue-600 hover:bg-blue-50 rounded-sm transition-colors"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteEvent(event.id);
+                          }}
+                          className="p-2 text-gray-300 hover:text-red-600 hover:bg-red-50 rounded-sm transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     )}
                     <button className="p-2 text-gray-300 hover:text-gray-900 hover:bg-gray-50 rounded-sm transition-colors">
                       <MoreVertical className="w-5 h-5" />
@@ -377,20 +442,22 @@ export function PedagogicalSchedule() {
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
             <div className="bg-white w-full max-w-md rounded-sm shadow-2xl overflow-hidden border-t-4 border-[#E31E24]">
               <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-                <h2 className="text-lg font-black text-gray-900 uppercase tracking-tight">Cadastrar Novo Evento</h2>
+                <h2 className="text-lg font-black text-gray-900 uppercase tracking-tight">
+                  {editingEvent ? 'Editar Evento Acadêmico' : 'Cadastrar Novo Evento'}
+                </h2>
                 <button onClick={() => setShowEventModal(false)} className="p-2 hover:bg-gray-200 rounded-full transition-colors">
                   <X className="w-5 h-5 text-gray-500" />
                 </button>
               </div>
               
-              <form onSubmit={handleCreateEvent} className="p-6 space-y-5">
+              <form onSubmit={handleSaveEvent} className="p-6 space-y-5">
                 <div className="space-y-2">
                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Título do Evento</label>
                   <input 
                     type="text" 
                     required
-                    value={newEvent.title}
-                    onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
+                    value={eventForm.title}
+                    onChange={(e) => setEventForm({ ...eventForm, title: e.target.value })}
                     className="w-full border border-gray-200 p-3 text-sm focus:ring-1 focus:ring-[#E31E24] focus:border-[#E31E24] outline-none font-bold text-gray-700 bg-gray-50/30 rounded-sm"
                     placeholder="Ex: Aula Magna de Cinema"
                   />
@@ -400,8 +467,8 @@ export function PedagogicalSchedule() {
                   <div className="space-y-2">
                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Tipo</label>
                     <select 
-                      value={newEvent.type}
-                      onChange={(e) => setNewEvent({ ...newEvent, type: e.target.value })}
+                      value={eventForm.type}
+                      onChange={(e) => setEventForm({ ...eventForm, type: e.target.value })}
                       className="w-full border border-gray-200 p-3 text-sm focus:ring-1 focus:ring-[#E31E24] focus:border-[#E31E24] outline-none font-bold text-gray-700 bg-gray-50/30 rounded-sm"
                     >
                       <option value="aula">Aula Presencial</option>
@@ -416,8 +483,8 @@ export function PedagogicalSchedule() {
                     <input 
                       type="date" 
                       required
-                      value={newEvent.date}
-                      onChange={(e) => setNewEvent({ ...newEvent, date: e.target.value })}
+                      value={eventForm.date}
+                      onChange={(e) => setEventForm({ ...eventForm, date: e.target.value })}
                       className="w-full border border-gray-200 p-3 text-sm focus:ring-1 focus:ring-[#E31E24] focus:border-[#E31E24] outline-none font-bold text-gray-700 bg-gray-50/30 rounded-sm"
                     />
                   </div>
@@ -429,8 +496,8 @@ export function PedagogicalSchedule() {
                     <input 
                       type="time" 
                       required
-                      value={newEvent.time}
-                      onChange={(e) => setNewEvent({ ...newEvent, time: e.target.value })}
+                      value={eventForm.time}
+                      onChange={(e) => setEventForm({ ...eventForm, time: e.target.value })}
                       className="w-full border border-gray-200 p-3 text-sm focus:ring-1 focus:ring-[#E31E24] focus:border-[#E31E24] outline-none font-bold text-gray-700 bg-gray-50/30 rounded-sm"
                     />
                   </div>
@@ -439,8 +506,8 @@ export function PedagogicalSchedule() {
                     <input 
                       type="text" 
                       required
-                      value={newEvent.location}
-                      onChange={(e) => setNewEvent({ ...newEvent, location: e.target.value })}
+                      value={eventForm.location}
+                      onChange={(e) => setEventForm({ ...eventForm, location: e.target.value })}
                       className="w-full border border-gray-200 p-3 text-sm focus:ring-1 focus:ring-[#E31E24] focus:border-[#E31E24] outline-none font-bold text-gray-700 bg-gray-50/30 rounded-sm"
                       placeholder="Ex: Sala 204"
                     />
@@ -450,8 +517,8 @@ export function PedagogicalSchedule() {
                 <div className="space-y-2">
                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Descrição</label>
                   <textarea 
-                    value={newEvent.description}
-                    onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
+                    value={eventForm.description}
+                    onChange={(e) => setEventForm({ ...eventForm, description: e.target.value })}
                     rows={3}
                     className="w-full border border-gray-200 p-3 text-sm focus:ring-1 focus:ring-[#E31E24] focus:border-[#E31E24] outline-none font-bold text-gray-700 bg-gray-50/30 rounded-sm resize-none"
                     placeholder="Detalhes sobre o evento..."
@@ -462,16 +529,16 @@ export function PedagogicalSchedule() {
                   <button 
                     type="button"
                     onClick={() => setShowEventModal(false)}
-                    className="flex-1 px-6 py-3 border border-gray-200 text-gray-600 rounded-sm font-bold text-xs uppercase tracking-widest hover:bg-gray-50 transition-all"
+                    className="flex-1 px-6 py-3 border border-gray-200 text-gray-600 rounded-sm font-bold text-xs uppercase tracking-widest hover:bg-gray-50 transition-all font-black"
                   >
                     Cancelar
                   </button>
                   <button 
                     type="submit"
                     disabled={isSubmitting}
-                    className="flex-1 bg-[#E31E24] text-white px-6 py-3 rounded-sm font-bold text-xs uppercase tracking-widest shadow-lg shadow-[#E31E24]/20 hover:bg-[#C1191F] disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+                    className="flex-1 bg-[#E31E24] text-white px-6 py-3 rounded-sm font-bold text-xs uppercase tracking-widest shadow-lg shadow-[#E31E24]/20 hover:bg-[#C1191F] disabled:opacity-50 transition-all flex items-center justify-center gap-2 font-black"
                   >
-                    {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Confirmar Evento'}
+                    {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : (editingEvent ? 'Salvar Alterações' : 'Confirmar Evento')}
                   </button>
                 </div>
               </form>
