@@ -1168,35 +1168,55 @@ export function TeacherClassroom() {
                         </div>
 
                         {q.type === 'objective' && (
-                          <div className="space-y-3">
-                            <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Alternativas (Marque a correta)</label>
-                            {q.options.map((opt: string, optIdx: number) => (
-                              <div key={optIdx} className="flex items-center gap-2">
-                                <input 
-                                  type="radio"
-                                  name={`correct-${q.id}`}
-                                  checked={q.correctOption === optIdx}
-                                  onChange={() => {
-                                    const updated = [...newAssessment.questions];
-                                    updated[qIdx].correctOption = optIdx;
-                                    setNewAssessment({ ...newAssessment, questions: updated });
-                                  }}
-                                  className="w-4 h-4 accent-[#E31E24]"
-                                />
-                                <input 
-                                  type="text"
-                                  className="flex-1 bg-white border border-gray-200 rounded-sm p-2 text-xs focus:ring-1 focus:ring-[#E31E24] outline-none"
-                                  placeholder={`Alternativa ${String.fromCharCode(65 + optIdx)}`}
-                                  value={opt}
-                                  onChange={e => {
-                                    const updated = [...newAssessment.questions];
-                                    updated[qIdx].options[optIdx] = e.target.value;
-                                    setNewAssessment({ ...newAssessment, questions: updated });
-                                  }}
-                                  required
-                                />
-                              </div>
-                            ))}
+                          <div className="space-y-4">
+                            <div className="space-y-3">
+                              <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Alternativas (Marque a correta)</label>
+                              {q.options.map((opt: string, optIdx: number) => (
+                                <div key={optIdx} className="flex items-center gap-2">
+                                  <input 
+                                    type="radio"
+                                    name={`correct-${q.id}`}
+                                    checked={q.correctOption === optIdx}
+                                    onChange={() => {
+                                      const updated = [...newAssessment.questions];
+                                      updated[qIdx].correctOption = optIdx;
+                                      setNewAssessment({ ...newAssessment, questions: updated });
+                                    }}
+                                    className="w-4 h-4 accent-[#E31E24]"
+                                  />
+                                  <input 
+                                    type="text"
+                                    className="flex-1 bg-white border border-gray-200 rounded-sm p-2 text-xs focus:ring-1 focus:ring-[#E31E24] outline-none"
+                                    placeholder={`Alternativa ${String.fromCharCode(65 + optIdx)}`}
+                                    value={opt}
+                                    onChange={e => {
+                                      const updated = [...newAssessment.questions];
+                                      updated[qIdx].options[optIdx] = e.target.value;
+                                      setNewAssessment({ ...newAssessment, questions: updated });
+                                    }}
+                                    required
+                                  />
+                                </div>
+                              ))}
+                            </div>
+
+                            <div className="space-y-1">
+                              <label className="text-[9px] font-black text-[#E31E24] uppercase tracking-widest flex items-center gap-2">
+                                <MessageSquare className="w-3 h-3" />
+                                Breve Explicação / Justificativa para o aluno
+                              </label>
+                              <textarea 
+                                className="w-full bg-white border border-gray-200 rounded-sm p-3 text-xs focus:ring-1 focus:ring-[#E31E24] outline-none italic text-gray-600"
+                                rows={2}
+                                placeholder="Esta explicação aparecerá para o aluno após ele responder a questão..."
+                                value={q.explanation || ''}
+                                onChange={e => {
+                                  const updated = [...newAssessment.questions];
+                                  updated[qIdx].explanation = e.target.value;
+                                  setNewAssessment({ ...newAssessment, questions: updated });
+                                }}
+                              />
+                            </div>
                           </div>
                         )}
                       </div>

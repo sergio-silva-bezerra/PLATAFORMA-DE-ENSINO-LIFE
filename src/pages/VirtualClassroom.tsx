@@ -18,6 +18,8 @@ import {
   Loader2,
   Download,
   Eye,
+  CheckCircle2,
+  ArrowRight,
   X
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -652,6 +654,86 @@ export function VirtualClassroom() {
                           * Esta avaliação contém questões discursivas que serão revisadas pelo professor.
                         </p>
                       )}
+
+                      <div className="w-full max-w-2xl mt-12 space-y-8 text-left">
+                        <div className="flex items-center gap-2 mb-4 border-b border-gray-100 pb-2">
+                           <MessageSquare className="w-4 h-4 text-[#E31E24]" />
+                           <h4 className="text-xs font-black uppercase tracking-widest text-gray-900">Feedback Detalhado por Questão</h4>
+                        </div>
+
+                        {activeAssessment.questions.map((q: any, idx: number) => {
+                          const isCorrect = q.type === 'objective' && studentAnswers[q.id] === q.correctOption;
+                          const studentChoice = studentAnswers[q.id];
+
+                          return (
+                            <div key={q.id} className="bg-gray-50 p-6 rounded-sm border border-gray-200">
+                              <div className="flex items-start gap-4 mb-4">
+                                <span className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-[10px] font-black italic ${
+                                  q.type === 'discursive' ? 'bg-gray-900 text-white' :
+                                  isCorrect ? 'bg-green-600 text-white' : 'bg-red-600 text-white'
+                                }`}>
+                                  {idx + 1}
+                                </span>
+                                <h5 className="text-sm font-bold text-gray-900 leading-snug">{q.text}</h5>
+                              </div>
+
+                              {q.type === 'objective' ? (
+                                <div className="ml-10 space-y-4">
+                                  <div className="space-y-2">
+                                    {q.options.map((opt: string, optIdx: number) => (
+                                      <div 
+                                        key={optIdx}
+                                        className={`p-3 rounded-sm text-xs flex items-center justify-between border ${
+                                          optIdx === q.correctOption 
+                                          ? 'bg-green-50 border-green-200 text-green-900 border-l-4' 
+                                          : optIdx === studentChoice 
+                                          ? 'bg-red-50 border-red-200 text-red-900 border-l-4'
+                                          : 'bg-white border-gray-100 text-gray-500 opacity-60'
+                                        }`}
+                                      >
+                                        <div className="flex items-center gap-3">
+                                          <span className="font-black opacity-40 italic">{String.fromCharCode(65 + optIdx)})</span>
+                                          <span className="font-medium">{opt}</span>
+                                        </div>
+                                        {optIdx === q.correctOption && <CheckCircle2 className="w-4 h-4 text-green-600" />}
+                                        {optIdx === studentChoice && optIdx !== q.correctOption && <ArrowRight className="w-4 h-4 text-red-600" />}
+                                      </div>
+                                    ))}
+                                  </div>
+
+                                  <div className={`p-4 rounded-sm border-l-4 ${isCorrect ? 'bg-green-50 border-green-600' : 'bg-red-50 border-red-600'}`}>
+                                    <div className="flex items-center gap-2 mb-1">
+                                      {isCorrect ? (
+                                        <div className="flex items-center gap-2">
+                                          <span className="text-[10px] font-black text-green-700 uppercase tracking-widest italic">Muito bom! Você acertou.</span>
+                                        </div>
+                                      ) : (
+                                        <div className="flex items-center gap-2">
+                                          <span className="text-[10px] font-black text-red-700 uppercase tracking-widest italic">Não foi dessa vez. A resposta correta era a {String.fromCharCode(65 + q.correctOption)}.</span>
+                                        </div>
+                                      )}
+                                    </div>
+                                    {q.explanation && (
+                                      <div className="mt-2 text-xs text-gray-700 italic leading-relaxed">
+                                        <p className="font-bold text-[9px] uppercase tracking-tighter text-gray-400 mb-1">Explicação do Professor:</p>
+                                        {q.explanation}
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="ml-10">
+                                  <div className="bg-white p-4 border border-gray-100 rounded-sm italic text-gray-600 text-xs">
+                                     <p className="font-bold text-[9px] uppercase tracking-tighter text-gray-400 mb-2">Sua Resposta:</p>
+                                     {studentAnswers[q.id]}
+                                  </div>
+                                  <p className="mt-3 text-[9px] font-black text-gray-400 uppercase tracking-widest">Aguardando correção manual do professor.</p>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
 
                       <button 
                         onClick={() => setActiveAssessment(null)}
