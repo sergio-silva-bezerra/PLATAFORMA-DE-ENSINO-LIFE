@@ -22,7 +22,10 @@ import {
   Download,
   Eye,
   Link2,
-  BarChart2
+  BarChart2,
+  Calendar as CalendarIcon,
+  Send,
+  Filter
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
@@ -30,10 +33,11 @@ import { getCollection, publishContent, createAssessment, auth, getTeacherSubjec
 import { onAuthStateChanged } from 'firebase/auth';
 import { where } from 'firebase/firestore';
 import { cn } from '../lib/utils';
+import { PedagogicalSchedule } from './PedagogicalSchedule';
 
 export function TeacherClassroom() {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'inicio' | 'conteudo' | 'avaliacoes' | 'alunos' | 'forum'>('inicio');
+  const [activeTab, setActiveTab] = useState<'inicio' | 'conteudo' | 'avaliacoes' | 'alunos' | 'forum' | 'cronograma'>('inicio');
   const [selectedSubject, setSelectedSubject] = useState<any>(null);
   const [subjects, setSubjects] = useState<any[]>([]);
   const [courses, setCourses] = useState<any[]>([]);
@@ -547,6 +551,15 @@ export function TeacherClassroom() {
                 <MessageSquare className={`w-5 h-5 ${activeTab === 'forum' ? 'text-white' : 'text-white/70'}`} />
                 <span className="text-[9px] font-bold text-white uppercase mt-1">Fórum</span>
                 {activeTab === 'forum' && <motion.div layoutId="activeTabT" className="absolute -bottom-4 w-12 h-1 bg-[#E31E24]" />}
+              </button>
+
+              <button 
+                onClick={() => setActiveTab('cronograma')}
+                className={`flex flex-col items-center group relative z-10 transition-all ${activeTab === 'cronograma' ? 'scale-110' : 'opacity-60 hover:opacity-100'}`}
+              >
+                <CalendarIcon className={`w-5 h-5 ${activeTab === 'cronograma' ? 'text-white' : 'text-white/70'}`} />
+                <span className="text-[9px] font-bold text-white uppercase mt-1">Cronograma</span>
+                {activeTab === 'cronograma' && <motion.div layoutId="activeTabT" className="absolute -bottom-4 w-12 h-1 bg-[#E31E24]" />}
               </button>
             </>
           )}
@@ -1109,6 +1122,17 @@ export function TeacherClassroom() {
                   )}
                 </div>
               )}
+            </motion.div>
+          )}
+
+          {activeTab === 'cronograma' && (
+            <motion.div 
+              key="cronograma"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+            >
+              <PedagogicalSchedule />
             </motion.div>
           )}
         </AnimatePresence>

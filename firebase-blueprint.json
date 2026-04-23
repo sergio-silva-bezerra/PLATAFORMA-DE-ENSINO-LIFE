@@ -192,6 +192,41 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["forumId", "userId", "text", "createdAt"]
+    },
+    "AcademicEvent": {
+      "title": "AcademicEvent",
+      "description": "Calendar events for subjects and school schedule",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "type": { "type": "string", "enum": ["aula", "workshop", "prazo", "seminario", "outro"] },
+        "date": { "type": "string", "format": "date" },
+        "time": { "type": "string" },
+        "location": { "type": "string" },
+        "courseId": { "type": "string" },
+        "subjectId": { "type": "string" },
+        "creatorId": { "type": "string" },
+        "creatorName": { "type": "string" },
+        "creatorRole": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "type", "date", "creatorId", "createdAt"]
+    },
+    "EventComment": {
+      "title": "EventComment",
+      "description": "Comments on academic events",
+      "type": "object",
+      "properties": {
+        "eventId": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "userRole": { "type": "string" },
+        "text": { "type": "string" },
+        "replyTo": { "type": "string", "description": "ID of the comment being replied to" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["eventId", "userId", "text", "createdAt"]
     }
   },
   "firestore": {
@@ -242,6 +277,14 @@
     "forum_messages": {
       "schema": "ForumMessage",
       "description": "Forum replies"
+    },
+    "academic_events": {
+      "schema": "AcademicEvent",
+      "description": "Calendar events"
+    },
+    "event_comments": {
+      "schema": "EventComment",
+      "description": "Comments on events"
     }
   }
 }

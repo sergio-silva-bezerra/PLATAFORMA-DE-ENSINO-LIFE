@@ -20,12 +20,14 @@ import {
   Eye,
   CheckCircle2,
   ArrowRight,
-  X
+  X,
+  Calendar as CalendarIcon
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { getCollection, auth } from '../lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { motion, AnimatePresence } from 'motion/react';
+import { PedagogicalSchedule } from './PedagogicalSchedule';
 
 export function VirtualClassroom() {
   const navigate = useNavigate();
@@ -39,7 +41,7 @@ export function VirtualClassroom() {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
   const [selectedSubject, setSelectedSubject] = useState<any>(null);
-  const [activeView, setActiveView] = useState<'inicio' | 'conteudo' | 'avaliacao' | 'forum'>('inicio');
+  const [activeView, setActiveView] = useState<'inicio' | 'conteudo' | 'avaliacao' | 'forum' | 'cronograma'>('inicio');
   const [activeForum, setActiveForum] = useState<any>(null);
   const [newForumMessage, setNewForumMessage] = useState('');
   const [isSendingForumMessage, setIsSendingForumMessage] = useState(false);
@@ -278,6 +280,13 @@ export function VirtualClassroom() {
             >
               <MessageSquare className="w-5 h-5 text-white" />
               <span className="text-[9px] font-bold text-white uppercase mt-1">Fórum</span>
+            </button>
+            <button 
+              onClick={() => setActiveView('cronograma')}
+              className={`flex flex-col items-center group ${activeView === 'cronograma' ? 'scale-110 opacity-100' : 'opacity-70'}`}
+            >
+              <CalendarIcon className="w-5 h-5 text-white" />
+              <span className="text-[9px] font-bold text-white uppercase mt-1">Cronograma</span>
             </button>
           </nav>
         </div>
@@ -673,6 +682,20 @@ export function VirtualClassroom() {
                     </form>
                   </div>
                 )}
+              </motion.div>
+            )}
+            {activeView === 'cronograma' && (
+              <motion.div 
+                key="subject-schedule"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="space-y-6"
+              >
+                <header className="flex justify-between items-center">
+                  <h2 className="text-2xl font-black uppercase tracking-tight">Cronograma de Aulas</h2>
+                  <button onClick={() => setActiveView('inicio')} className="text-xs font-bold text-gray-400">Voltar</button>
+                </header>
+                <PedagogicalSchedule />
               </motion.div>
             )}
           </AnimatePresence>
