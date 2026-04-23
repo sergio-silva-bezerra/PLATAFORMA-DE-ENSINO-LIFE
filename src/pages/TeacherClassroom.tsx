@@ -315,11 +315,8 @@ export function TeacherClassroom() {
       return;
     }
     
-    // Calculate total points from questions if test
-    let totalPoints = newAssessment.totalPoints;
-    if (newAssessment.type === 'test' && newAssessment.questions.length > 0) {
-      totalPoints = newAssessment.questions.reduce((sum, q) => sum + (Number(q.points) || 0), 0);
-    }
+    // The total points is what the teacher assigned in the form
+    const totalPoints = newAssessment.totalPoints;
 
     try {
       await createAssessment({
@@ -1054,6 +1051,27 @@ export function TeacherClassroom() {
                 />
               </div>
 
+              <div className="w-full md:w-64 pt-4 border-t border-gray-50">
+                <div className="bg-gray-900 p-4 rounded-sm">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-2 block">Pontuação Total da Atividade</label>
+                  <div className="flex items-center gap-3">
+                    <input 
+                      type="number" 
+                      className="w-24 bg-white/10 border border-white/20 rounded-sm p-2 text-lg font-black text-white focus:ring-2 focus:ring-[#E31E24] outline-none"
+                      value={newAssessment.totalPoints}
+                      onChange={e => setNewAssessment({...newAssessment, totalPoints: Number(e.target.value)})}
+                      min={0}
+                    />
+                    <span className="text-[10px] font-black text-[#E31E24] uppercase tracking-widest">Valor Máximo</span>
+                  </div>
+                  {newAssessment.type === 'test' && newAssessment.questions.length > 0 && (
+                    <p className="text-[9px] font-bold text-gray-500 mt-2 uppercase tracking-tighter">
+                      Soma das questões: {newAssessment.questions.reduce((sum, q) => sum + (Number(q.points) || 0), 0)} pts
+                    </p>
+                  )}
+                </div>
+              </div>
+
               {newAssessment.type === 'test' && (
                 <div className="space-y-4 pt-4 border-t border-gray-100">
                   <div className="flex items-center justify-between">
@@ -1456,7 +1474,7 @@ export function TeacherClassroom() {
                 {/* Answers View */}
                 <div className="space-y-6">
                    <h4 className="text-xs font-black text-gray-900 uppercase tracking-widest flex items-center gap-2">
-                     <PenTool className="w-4 h-4 text-[#E31E24]" />
+                     <FileText className="w-4 h-4 text-[#E31E24]" />
                      Respostas Enviadas
                    </h4>
                    

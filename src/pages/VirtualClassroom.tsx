@@ -80,7 +80,7 @@ export function VirtualClassroom() {
       const allSubmissions = await getCollection('submissions');
       const coursesData = await getCollection('courses');
       
-      const mySubmissions = allSubmissions.filter(s => s.studentEmail === studentEmail);
+      const mySubmissions = (allSubmissions as any[]).filter(s => s.studentEmail === studentEmail);
       
       setSubjects(subs);
       setContents(conts);
