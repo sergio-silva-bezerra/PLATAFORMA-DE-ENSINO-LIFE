@@ -23,7 +23,7 @@ import {
   X,
   Calendar as CalendarIcon
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { getCollection, auth } from '../lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { motion, AnimatePresence } from 'motion/react';
@@ -31,6 +31,7 @@ import { PedagogicalSchedule } from './PedagogicalSchedule';
 
 export function VirtualClassroom() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [subjects, setSubjects] = useState<any[]>([]);
   const [contents, setContents] = useState<any[]>([]);
   const [assessments, setAssessments] = useState<any[]>([]);
@@ -80,6 +81,12 @@ export function VirtualClassroom() {
     return () => unsubscribe();
   }, []);
 
+  useEffect(() => {
+    if (!loading && !selectedSubject) {
+      navigate('/aluno');
+    }
+  }, [loading, selectedSubject, navigate]);
+
   async function fetchData(studentEmail: string) {
     setLoading(true);
     try {
@@ -100,6 +107,16 @@ export function VirtualClassroom() {
       setForums(allForums);
       setForumMessages(allMessages);
       setCourses(coursesData);
+
+      // Handle direct subject access from dashboard
+      const state = location.state as { selectedSubjectId?: string };
+      if (state?.selectedSubjectId) {
+        const subject = subs.find(s => s.id === state.selectedSubjectId);
+        if (subject) {
+          setSelectedSubject(subject);
+          setActiveView('inicio');
+        }
+      }
     } catch (err) {
       console.error("Error fetching student classroom data:", err);
     } finally {
@@ -225,7 +242,7 @@ export function VirtualClassroom() {
       <header className="px-6 py-4 flex items-center justify-between border-b border-gray-100 sticky top-0 bg-white z-50">
         <div className="flex items-center gap-4">
           <button 
-            onClick={() => selectedSubject ? setSelectedSubject(null) : navigate('/aluno')}
+            onClick={() => navigate('/aluno')}
             className="p-2 hover:bg-gray-50 rounded-full transition-colors md:hidden"
           >
             <ChevronLeft className="w-5 h-5" />
@@ -380,10 +397,10 @@ export function VirtualClassroom() {
                   </div>
                   <div className="relative z-10 space-y-4">
                     <button 
-                      onClick={() => setSelectedSubject(null)}
+                      onClick={() => navigate('/aluno')}
                       className="flex items-center gap-2 text-[10px] font-black uppercase text-gray-400 hover:text-white transition-colors mb-4"
                     >
-                      <ChevronLeft className="w-4 h-4" /> Voltar para disciplinas
+                      <ChevronLeft className="w-4 h-4" /> Voltar para o painel
                     </button>
                     <h2 className="text-4xl font-black uppercase tracking-tighter">{selectedSubject.name}</h2>
                     <p className="text-gray-400 font-bold uppercase tracking-widest text-xs">Professor Corresponsável: {selectedSubject.tutorName}</p>
@@ -703,21 +720,12 @@ export function VirtualClassroom() {
 
         {/* Back Button */}
         <div className="flex justify-center pt-12">
-          {!selectedSubject ? (
-            <button 
-              onClick={() => navigate('/aluno')}
-              className="text-gray-400 hover:text-gray-600 font-bold text-xs uppercase tracking-widest transition-colors flex items-center gap-2"
-            >
-              <ChevronLeft className="w-4 h-4" /> Voltar para o Portal
-            </button>
-          ) : (
-            <button 
-              onClick={() => setSelectedSubject(null)}
-              className="text-gray-400 hover:text-gray-600 font-bold text-xs uppercase tracking-widest transition-colors flex items-center gap-2"
-            >
-              <ChevronLeft className="w-4 h-4" /> Voltar para disciplinas
-            </button>
-          )}
+          <button 
+            onClick={() => navigate('/aluno')}
+            className="text-gray-400 hover:text-gray-600 font-bold text-xs uppercase tracking-widest transition-colors flex items-center gap-2"
+          >
+            <ChevronLeft className="w-4 h-4" /> Voltar para o Portal
+          </button>
         </div>
 
         {/* Curriculum View Modal */}

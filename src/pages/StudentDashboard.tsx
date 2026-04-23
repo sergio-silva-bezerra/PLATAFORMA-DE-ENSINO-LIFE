@@ -119,9 +119,9 @@ export function StudentDashboard() {
         <div className="lg:col-span-2 space-y-6">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-black text-gray-900 uppercase tracking-tight">Suas Disciplinas Ativas</h2>
-            <Link to="/aluno/sala-virtual" className="text-[10px] font-black text-[#E31E24] uppercase tracking-widest hover:underline">
-              Ver Todas no AVA 3.0
-            </Link>
+            <span className="text-[10px] font-black text-[#E31E24] uppercase tracking-widest cursor-default">
+              Selecione uma Disciplina Abaixo
+            </span>
           </div>
 
           {subjects.length === 0 ? (
@@ -142,13 +142,13 @@ export function StudentDashboard() {
                     <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
                       DOCENTE: <span className="text-gray-900">{subject.tutorName}</span>
                     </p>
-                    <Link 
-                      to="/aluno/sala-virtual"
+                    <button 
+                      onClick={() => navigate('/aluno/sala-virtual', { state: { selectedSubjectId: subject.id } })}
                       className="flex items-center gap-2 px-6 py-2.5 bg-gray-900 text-white rounded-sm text-[10px] font-black uppercase tracking-widest hover:bg-black transition-all w-fit shadow-xl shadow-black/10"
                     >
                       <Play className="w-3 h-3 fill-white" />
                       Entrar na Sala Virtual
-                    </Link>
+                    </button>
                   </div>
 
                   <div className="flex flex-col items-center gap-1">
@@ -202,7 +202,7 @@ export function StudentDashboard() {
               {[
                 { label: 'Secretaria Digital', icon: FileText, onClick: () => navigate('/aluno/secretaria') },
                 { label: 'Matriz Curricular', icon: GraduationCap, onClick: () => setShowCurriculumModal(true) },
-                { label: 'Biblioteca Virtual', icon: BookOpen, onClick: () => navigate('/aluno/sala-virtual') },
+                { label: 'Biblioteca Virtual', icon: BookOpen, onClick: () => {} },
               ].map((item) => (
                 <button 
                   key={item.label} 
