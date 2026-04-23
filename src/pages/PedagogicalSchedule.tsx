@@ -21,7 +21,11 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { where, orderBy } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'motion/react';
 
-export function PedagogicalSchedule() {
+interface PedagogicalScheduleProps {
+  viewOnly?: boolean;
+}
+
+export function PedagogicalSchedule({ viewOnly = false }: PedagogicalScheduleProps) {
   const [events, setEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState<any>(null);
@@ -38,6 +42,8 @@ export function PedagogicalSchedule() {
     time: '',
     location: '',
   });
+
+  const canManageEvents = !viewOnly && (currentUser?.role === 'pedagogical' || currentUser?.role === 'teacher' || currentUser?.role === 'admin');
 
   // Comments State
   const [selectedEvent, setSelectedEvent] = useState<any>(null);
@@ -213,7 +219,7 @@ export function PedagogicalSchedule() {
           <h1 className="text-3xl font-black text-gray-900 tracking-tight underline decoration-[#E31E24] decoration-4 underline-offset-8 uppercase">Cronograma de Aulas</h1>
           <p className="text-gray-500 font-medium mt-2">Gerencie o calendário acadêmico, aulas presenciais e prazos de entrega.</p>
         </div>
-        {(currentUser?.role === 'pedagogical' || currentUser?.role === 'teacher' || currentUser?.role === 'admin') && (
+        {canManageEvents && (
           <button 
             onClick={handleOpenCreateModal}
             className="flex items-center gap-2 bg-[#E31E24] text-white px-6 py-4 rounded-sm font-black text-xs uppercase tracking-widest shadow-xl shadow-[#E31E24]/20 hover:bg-[#C1191F] transition-all transform hover:-translate-y-1 active:scale-95"
@@ -403,7 +409,7 @@ export function PedagogicalSchedule() {
                         COMENTÁRIOS
                       </div>
                     </div>
-                    {(currentUser?.role === 'pedagogical' || currentUser?.role === 'admin' || currentUser?.role === 'teacher') && (
+                    {canManageEvents && (
                       <div className="flex items-center gap-1">
                         <button 
                           onClick={(e) => {

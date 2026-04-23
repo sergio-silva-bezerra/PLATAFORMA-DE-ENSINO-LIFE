@@ -695,7 +695,7 @@ export function VirtualClassroom() {
                   <h2 className="text-2xl font-black uppercase tracking-tight">Cronograma de Aulas</h2>
                   <button onClick={() => setActiveView('inicio')} className="text-xs font-bold text-gray-400">Voltar</button>
                 </header>
-                <PedagogicalSchedule />
+                <PedagogicalSchedule viewOnly={true} />
               </motion.div>
             )}
           </AnimatePresence>
