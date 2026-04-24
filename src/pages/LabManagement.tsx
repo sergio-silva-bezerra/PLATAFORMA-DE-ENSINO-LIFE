@@ -144,7 +144,7 @@ export default function LabManagement() {
 
   const isStaff = userProfile?.role === 'pedagogical' || userProfile?.role === 'admin' || userProfile?.role === 'secretariat';
   const isTeacher = userProfile?.role === 'teacher';
-  const canManageLabs = isStaff;
+  const canManageLabs = isStaff || location.pathname.startsWith('/pedagogico');
 
   if (loading) {
     return (
