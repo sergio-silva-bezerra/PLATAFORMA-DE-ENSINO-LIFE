@@ -227,6 +227,32 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["eventId", "userId", "text", "createdAt"]
+    },
+    "BiosafetyProgress": {
+      "title": "BiosafetyProgress",
+      "description": "Student progress in mandatory biosafety modules",
+      "type": "object",
+      "properties": {
+        "studentId": { "type": "string" },
+        "studentName": { "type": "string" },
+        "studentEmail": { "type": "string" },
+        "modules": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "number" },
+              "title": { "type": "string" },
+              "status": { "type": "string", "enum": ["pending", "completed", "blocked"] },
+              "score": { "type": "number" },
+              "completedAt": { "type": "string", "format": "date-time" }
+            }
+          }
+        },
+        "overallStatus": { "type": "string", "enum": ["blocked", "released"] },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["studentId", "modules", "overallStatus"]
     }
   },
   "firestore": {
@@ -285,6 +311,10 @@
     "event_comments": {
       "schema": "EventComment",
       "description": "Comments on events"
+    },
+    "biosafety_progress": {
+      "schema": "BiosafetyProgress",
+      "description": "Student tracking for biosafety requirements"
     }
   }
 }

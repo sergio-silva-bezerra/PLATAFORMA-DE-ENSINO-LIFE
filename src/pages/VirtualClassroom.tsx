@@ -87,6 +87,12 @@ export function VirtualClassroom() {
     }
   }, [loading, selectedSubject, navigate]);
 
+  useEffect(() => {
+    if (!loading && !selectedSubject) {
+      navigate('/aluno');
+    }
+  }, [loading, selectedSubject, navigate]);
+
   async function fetchData(studentEmail: string) {
     setLoading(true);
     try {

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Play, FileText, Calendar, GraduationCap, HelpCircle, ChevronLeft, ChevronRight, ExternalLink, Loader2, Download, Eye, X, BookOpen } from 'lucide-react';
+import { Play, FileText, Calendar, GraduationCap, HelpCircle, ChevronLeft, ChevronRight, ExternalLink, Loader2, Download, Eye, X, BookOpen, ShieldAlert } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { cn } from '../lib/utils';
 import { GamificationBadges } from '../components/GamificationBadges';
@@ -201,6 +201,7 @@ export function StudentDashboard() {
             <div className="divide-y divide-gray-50">
               {[
                 { label: 'Secretaria Digital', icon: FileText, onClick: () => navigate('/aluno/secretaria') },
+                { label: 'Biossegurança', icon: ShieldAlert, onClick: () => navigate('/aluno/biosseguranca') },
                 { label: 'Matriz Curricular', icon: GraduationCap, onClick: () => setShowCurriculumModal(true) },
                 { label: 'Biblioteca Virtual', icon: BookOpen, onClick: () => {} },
               ].map((item) => (

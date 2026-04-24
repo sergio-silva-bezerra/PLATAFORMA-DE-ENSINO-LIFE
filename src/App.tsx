@@ -193,6 +193,7 @@ export default function App() {
         <Route path="/aluno/secretaria" element={<StudentLayout><StudentSecretariat /></StudentLayout>} />
         <Route path="/aluno/sobre-curso" element={<StudentLayout><AboutCourse /></StudentLayout>} />
         <Route path="/aluno/atividades-complementares" element={<StudentLayout><ComplementaryActivities /></StudentLayout>} />
+        <Route path="/aluno/biosseguranca" element={<StudentLayout><BiosafetyModule /></StudentLayout>} />
         <Route path="/aluno/sala-virtual" element={<VirtualClassroom />} />
         <Route path="/professor/sala-virtual" element={<TeacherClassroom />} />
         <Route path="/aluno/horarios" element={<StudentLayout><Schedule /></StudentLayout>} />

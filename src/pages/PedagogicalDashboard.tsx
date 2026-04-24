@@ -7,6 +7,7 @@ export function PedagogicalDashboard() {
   const [coursesCount, setCoursesCount] = useState(0);
   const [subjectsCount, setSubjectsCount] = useState(0);
   const [studentsCount, setStudentsCount] = useState(0);
+  const [biosafetyStats, setBiosafetyStats] = useState({ released: 0, total: 0 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -15,9 +16,15 @@ export function PedagogicalDashboard() {
         const courses = await getCollection('courses');
         const subjects = await getCollection('subjects');
         const students = await getCollection('users', [where('role', '==', 'student')]);
+        const biosafety = await getCollection('biosafety_progress');
+        
         setCoursesCount(courses.length);
         setSubjectsCount(subjects.length);
         setStudentsCount(students.length);
+        setBiosafetyStats({
+          released: biosafety.filter((p: any) => p.overallStatus === 'released').length,
+          total: biosafety.length
+        });
       } catch (err) {
         console.error("Error fetching pedagogical stats:", err);
       } finally {
@@ -31,6 +38,12 @@ export function PedagogicalDashboard() {
     { label: 'Cursos Ativos', value: coursesCount > 0 ? coursesCount.toString() : '0', icon: GraduationCap, color: 'bg-red-600' },
     { label: 'Disciplinas', value: subjectsCount > 0 ? subjectsCount.toString() : '0', icon: BookOpen, color: 'bg-red-500' },
     { label: 'Alunos Matriculados', value: studentsCount > 0 ? studentsCount.toString() : '0', icon: Users, color: 'bg-red-700' },
+    { 
+      label: 'Biossegurança (Aptos)', 
+      value: biosafetyStats.total > 0 ? `${biosafetyStats.released}/${biosafetyStats.total}` : '0/0', 
+      icon: CheckCircle, 
+      color: 'bg-green-600' 
+    },
   ];
 
   if (loading) {

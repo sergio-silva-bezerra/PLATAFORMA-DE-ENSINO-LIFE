@@ -94,6 +94,38 @@ export async function getUserProfile(uid: string) {
   }
 }
 
+export async function getBiosafetyProgress(studentId: string) {
+  try {
+    const q = query(collection(db, 'biosafety_progress'), where('studentId', '==', studentId));
+    const snap = await getDocs(q);
+    if (!snap.empty) {
+      return { id: snap.docs[0].id, ...snap.docs[0].data() } as any;
+    }
+    return null;
+  } catch (err) {
+    return handleFirestoreError(err, 'get', 'biosafety_progress');
+  }
+}
+
+export async function saveBiosafetyProgress(data: any) {
+  try {
+    const q = query(collection(db, 'biosafety_progress'), where('studentId', '==', data.studentId));
+    const snap = await getDocs(q);
+    
+    if (!snap.empty) {
+      const docRef = doc(db, 'biosafety_progress', snap.docs[0].id);
+      await updateDoc(docRef, {
+        ...data,
+        updatedAt: Timestamp.now().toDate().toISOString()
+      });
+    } else {
+      await addDocument('biosafety_progress', data);
+    }
+  } catch (err) {
+    return handleFirestoreError(err, 'write', 'biosafety_progress');
+  }
+}
+
 export async function createUserProfile(uid: string, name: string, email: string) {
   try {
     const userRef = doc(db, 'users', uid);
