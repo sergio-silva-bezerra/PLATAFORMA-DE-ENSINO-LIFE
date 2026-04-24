@@ -3,6 +3,7 @@ import { Microscope, Users, Calendar, Clock, MapPin, AlertCircle, Plus, X, Loade
 import { auth, getCollection, addDocument, updateDocument, getUserProfile, getBiosafetyProgress } from '../lib/firebase';
 import { motion, AnimatePresence } from 'motion/react';
 import { where, orderBy, Timestamp } from 'firebase/firestore';
+import { useLocation } from 'react-router-dom';
 
 interface Laboratory {
   id: string;
@@ -45,6 +46,7 @@ export default function LabManagement() {
 
   // Secondary data
   const [subjects, setSubjects] = useState<any[]>([]);
+  const location = useLocation();
 
   useEffect(() => {
     async function loadData() {
@@ -61,6 +63,12 @@ export default function LabManagement() {
         setLabs(labsData);
         setSchedules(schedulesData);
         setSubjects(subjectsData);
+
+        // Check for deep link action
+        const params = new URLSearchParams(location.search);
+        if (params.get('action') === 'new_lab') {
+          setShowLabModal(true);
+        }
       } catch (err) {
         console.error("Error loading lab data:", err);
       } finally {
@@ -134,7 +142,9 @@ export default function LabManagement() {
     }
   };
 
-  const isStaff = userProfile?.role === 'pedagogical' || userProfile?.role === 'admin' || userProfile?.role === 'secretariat' || userProfile?.role === 'teacher';
+  const isStaff = userProfile?.role === 'pedagogical' || userProfile?.role === 'admin' || userProfile?.role === 'secretariat';
+  const isTeacher = userProfile?.role === 'teacher';
+  const isAuthorizedToCreate = isStaff || userProfile?.role === 'pedagogical';
 
   if (loading) {
     return (
@@ -152,7 +162,7 @@ export default function LabManagement() {
           <p className="text-gray-500 font-medium tracking-tight">Controle de ocupação física e agendamento de bancadas.</p>
         </div>
         <div className="flex gap-3">
-          {isStaff && (
+          {(isStaff || userProfile?.role === 'pedagogical') && (
             <button 
               onClick={() => setShowLabModal(true)}
               className="bg-white border-2 border-gray-900 text-gray-900 px-6 py-3 rounded-sm text-xs font-black uppercase tracking-widest hover:bg-gray-50 transition-all flex items-center gap-2"
@@ -173,9 +183,22 @@ export default function LabManagement() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {labs.length === 0 ? (
-          <div className="col-span-full py-20 text-center bg-gray-50 rounded-sm border-2 border-dashed border-gray-200">
-            <Microscope className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-400 font-black uppercase text-xs tracking-widest">Nenhum laboratório cadastrado.</p>
+          <div className="col-span-full py-20 text-center bg-white rounded-sm border-2 border-dashed border-gray-200 flex flex-col items-center justify-center space-y-6">
+            <div className="p-6 bg-gray-50 rounded-full">
+              <Microscope className="w-12 h-12 text-gray-300" />
+            </div>
+            <div className="space-y-2">
+              <p className="text-gray-900 font-black uppercase text-sm tracking-widest">Nenhum laboratório cadastrado.</p>
+              <p className="text-gray-400 text-xs font-bold uppercase tracking-tight">Comece cadastrando as unidades físicas para habilitar agendamentos.</p>
+            </div>
+            {(isStaff || userProfile?.role === 'pedagogical') && (
+              <button 
+                onClick={() => setShowLabModal(true)}
+                className="bg-black text-white px-8 py-3 rounded-sm text-[10px] font-black uppercase tracking-[0.2em] hover:bg-[#E31E24] transition-all shadow-xl shadow-gray-200"
+              >
+                Cadastrar Primeiro Laboratório
+              </button>
+            )}
           </div>
         ) : (
           labs.map((lab) => {

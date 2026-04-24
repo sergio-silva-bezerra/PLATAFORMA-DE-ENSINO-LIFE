@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { GraduationCap, Users, BookOpen, BarChart3, Clock, CheckCircle, Loader2, Microscope, Check, X } from 'lucide-react';
+import { GraduationCap, Users, BookOpen, BarChart3, Clock, CheckCircle, Loader2, Microscope, Check, X, Plus } from 'lucide-react';
 import { getCollection, updateDocument } from '../lib/firebase';
 import { where, orderBy } from 'firebase/firestore';
+import { useNavigate } from 'react-router-dom';
 
 export function PedagogicalDashboard() {
+  const navigate = useNavigate();
   const [coursesCount, setCoursesCount] = useState(0);
   const [subjectsCount, setSubjectsCount] = useState(0);
   const [studentsCount, setStudentsCount] = useState(0);
@@ -94,14 +96,24 @@ export function PedagogicalDashboard() {
       <div className="grid grid-cols-1 gap-8">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="bg-white p-8 rounded-sm border border-gray-100 shadow-sm space-y-6">
-          <div className="flex items-center gap-4 mb-2">
-            <div className="p-3 bg-red-50 rounded-sm">
-              <Microscope className="w-6 h-6 text-[#E31E24]" />
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-red-50 rounded-sm">
+                <Microscope className="w-6 h-6 text-[#E31E24]" />
+              </div>
+              <div>
+                <h2 className="text-xl font-black text-gray-900 uppercase tracking-tight">Laboratórios Ativos (Hoje)</h2>
+                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Ocupação física confirmada para hoje.</p>
+              </div>
             </div>
-            <div>
-              <h2 className="text-xl font-black text-gray-900 uppercase tracking-tight">Laboratórios Ativos (Hoje)</h2>
-              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Ocupação física confirmada para hoje.</p>
-            </div>
+            <button 
+              onClick={() => navigate('/pedagogico/laboratorios?action=new_lab')}
+              className="p-2 bg-gray-900 text-white rounded-sm hover:bg-black transition-all flex items-center gap-2 group"
+              title="Novo Laboratório"
+            >
+              <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform" />
+              <span className="text-[8px] font-black uppercase tracking-widest pr-1">Novo</span>
+            </button>
           </div>
           
           <div className="grid grid-cols-1 gap-3">
