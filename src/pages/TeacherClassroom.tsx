@@ -29,7 +29,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { getCollection, publishContent, createAssessment, auth, getTeacherSubjects, updateDocument, addDocument } from '../lib/firebase';
+import { getCollection, publishContent, createAssessment, auth, getTeacherSubjects, updateDocument, addDocument, getUserProfile } from '../lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { where } from 'firebase/firestore';
 import { cn } from '../lib/utils';
@@ -51,6 +51,9 @@ export function TeacherClassroom() {
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
+  const [userProfile, setUserProfile] = useState<any>(null);
+
+  const isSuperVisionMode = userProfile?.role === 'pedagogical' || userProfile?.role === 'admin';
 
   // Modals & Forum States
   const [showContentModal, setShowContentModal] = useState(false);
@@ -110,12 +113,16 @@ export function TeacherClassroom() {
 
   useEffect(() => {
     // 1. Check for firebase auth first
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       // Check if we have a provisional session in localStorage
       const altEmail = localStorage.getItem('p_teacher_email');
       const altName = localStorage.getItem('p_teacher_name');
 
       if (currentUser) {
+        // Fetch profile to check role
+        const profile = await getUserProfile(currentUser.uid);
+        setUserProfile(profile);
+
         // If it's an anonymous/provisional session or we have an altEmail saved
         if (currentUser.isAnonymous && altEmail) {
           const altUser = { email: altEmail, displayName: altName, uid: currentUser.uid };
@@ -124,13 +131,15 @@ export function TeacherClassroom() {
         } else {
           // Standard Google Login
           setUser(currentUser);
-          fetchTeacherData(currentUser.uid);
+          if (profile?.role === 'pedagogical' || profile?.role === 'admin') {
+            fetchAuditorData();
+          } else {
+            fetchTeacherData(currentUser.uid);
+          }
         }
       } else {
         // 2. Fallback if not even guest
         if (altEmail) {
-          // This case shouldn't strictly happen if ProfessorLogin signs them in, 
-          // but for robustness we trigger the fetch if we have the data
           const altUser = { email: altEmail, displayName: altName, uid: altEmail };
           setUser(altUser);
           fetchTeacherDataByEmail(altEmail);
@@ -142,6 +151,35 @@ export function TeacherClassroom() {
     });
     return () => unsubscribe();
   }, []);
+
+  async function fetchAuditorData() {
+    setLoading(true);
+    try {
+      const [allSubjects, allContents, allAssessments, allSubmissions, allCourses, allForums, allMessages, allUsers] = await Promise.all([
+        getCollection('subjects'),
+        getCollection('contents'),
+        getCollection('assessments'),
+        getCollection('submissions'),
+        getCollection('courses'),
+        getCollection('forums'),
+        getCollection('forum_messages'),
+        getCollection('users')
+      ]);
+
+      setSubjects(allSubjects);
+      setContents(allContents);
+      setAssessments(allAssessments);
+      setSubmissions(allSubmissions);
+      setForums(allForums);
+      setForumMessages(allMessages);
+      setCourses(allCourses);
+      setUsers(allUsers);
+    } catch (err) {
+      console.error("Error fetching auditor data:", err);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   async function fetchTeacherDataByEmail(email: string) {
     setLoading(true);
@@ -490,8 +528,13 @@ export function TeacherClassroom() {
         </div>
         <div className="flex items-center gap-3">
           <div className="hidden md:flex flex-col items-end mr-2">
-            <span className="text-xs font-black text-gray-900">{user?.displayName || user?.email || 'Professor'}</span>
-            <span className="text-[10px] font-bold text-gray-400 uppercase">Professor Titular</span>
+            <span className="text-xs font-black text-gray-900">{user?.displayName || user?.email || 'Usuário'}</span>
+            <span className={cn(
+              "text-[10px] font-bold uppercase tracking-widest",
+              isSuperVisionMode ? "text-[#E31E24]" : "text-gray-400"
+            )}>
+              {isSuperVisionMode ? 'Modo Supervisão' : 'Professor Titular'}
+            </span>
           </div>
           <button className="bg-[#E31E24] p-2 rounded-sm text-white hover:bg-[#C1191F] transition-colors shadow-lg shadow-[#E31E24]/20">
             <Settings className="w-5 h-5" />
@@ -503,6 +546,15 @@ export function TeacherClassroom() {
       <div className="px-6 mt-4 max-w-7xl mx-auto">
         <nav className="bg-[#1a1a2e] rounded-sm h-14 flex items-center justify-around relative px-4 shadow-2xl overflow-hidden">
           <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
+          
+          {isSuperVisionMode && (
+            <div className="bg-red-600 px-6 py-1.5 flex items-center justify-center gap-2">
+              <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
+              <span className="text-[10px] font-black text-white uppercase tracking-[0.2em]">
+                Ambiente de Supervisão Pedagógica • Acesso Total para Auditoria
+              </span>
+            </div>
+          )}
           
           <button 
             onClick={() => {
@@ -589,39 +641,52 @@ export function TeacherClassroom() {
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
                   <h1 className="text-3xl font-black text-gray-900 tracking-tight">
-                    Olá, {user?.displayName?.split(' ')[0] || 'Professor'}
+                    {isSuperVisionMode ? 'Visão Geral Acadêmica' : `Olá, ${user?.displayName?.split(' ')[0] || 'Professor'}`}
                   </h1>
-                  <p className="text-gray-500 font-medium">Gestão das disciplinas e interações acadêmicas.</p>
+                  <p className="text-gray-500 font-medium">
+                    {isSuperVisionMode 
+                      ? 'Monitore todas as disciplinas e conteúdos virtuais da instituição.' 
+                      : 'Gestão das disciplinas e interações acadêmicas.'}
+                  </p>
                 </div>
                 <div className="flex items-center gap-3">
-                  <button 
-                    onClick={() => navigate('/aluno/sala-virtual')}
-                    className="flex items-center gap-2 bg-gray-100 text-gray-700 px-6 py-3 rounded-sm font-black text-xs uppercase tracking-widest hover:bg-gray-200 transition-all border border-gray-200"
-                  >
-                    <BookOpen className="w-4 h-4" />
-                    Visualizar como Aluno
-                  </button>
-                  <button 
-                    onClick={() => setShowContentModal(true)}
-                    className="flex items-center gap-2 bg-[#E31E24] text-white px-6 py-3 rounded-sm font-black text-xs uppercase tracking-widest hover:bg-[#C1191F] transition-all shadow-xl shadow-[#E31E24]/20"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Novo Material
-                  </button>
-                  <button 
-                    onClick={() => setShowAssessmentModal(true)}
-                    className="flex items-center gap-2 bg-gray-900 text-white px-6 py-3 rounded-sm font-black text-xs uppercase tracking-widest hover:bg-black transition-all"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Nova Atividade
-                  </button>
+                  {!isSuperVisionMode && (
+                    <>
+                      <button 
+                        onClick={() => navigate('/aluno/sala-virtual')}
+                        className="flex items-center gap-2 bg-gray-100 text-gray-700 px-6 py-3 rounded-sm font-black text-xs uppercase tracking-widest hover:bg-gray-200 transition-all border border-gray-200"
+                      >
+                        <BookOpen className="w-4 h-4" />
+                        Visualizar como Aluno
+                      </button>
+                      <button 
+                        onClick={() => setShowContentModal(true)}
+                        className="flex items-center gap-2 bg-[#E31E24] text-white px-6 py-3 rounded-sm font-black text-xs uppercase tracking-widest hover:bg-[#C1191F] transition-all shadow-xl shadow-[#E31E24]/20"
+                      >
+                        <Plus className="w-4 h-4" />
+                        Novo Material
+                      </button>
+                      <button 
+                        onClick={() => setShowAssessmentModal(true)}
+                        className="flex items-center gap-2 bg-gray-900 text-white px-6 py-3 rounded-sm font-black text-xs uppercase tracking-widest hover:bg-black transition-all"
+                      >
+                        <Plus className="w-4 h-4" />
+                        Nova Atividade
+                      </button>
+                    </>
+                  )}
+                  {isSuperVisionMode && (
+                    <div className="px-4 py-2 bg-gray-900 text-white rounded-sm text-[10px] font-black uppercase tracking-widest">
+                      Modo Somente Leitura / Auditoria
+                    </div>
+                  )}
                 </div>
               </div>
 
               {/* Status Section */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {[
-                  { label: 'Disciplinas', value: subjects.length.toString().padStart(2, '0'), color: 'bg-red-50 text-red-600', icon: BookOpen },
+                  { label: isSuperVisionMode ? 'Disciplinas Totais' : 'Disciplinas', value: subjects.length.toString().padStart(2, '0'), color: 'bg-red-50 text-red-600', icon: BookOpen },
                   { label: 'Avaliações Ativas', value: assessments.length.toString().padStart(2, '0'), color: 'bg-red-100/50 text-red-700', icon: Clock },
                   { label: 'Novos Fóruns', value: '00', color: 'bg-red-200/30 text-red-800', icon: MessageSquare },
                   { label: 'Materiais Publicados', value: contents.length.toString().padStart(2, '0'), color: 'bg-red-50 text-red-500', icon: CheckCircle2 },
@@ -639,7 +704,9 @@ export function TeacherClassroom() {
               {/* Disciplines Section */}
               <section className="space-y-6">
                 <div className="flex items-center justify-between border-b border-gray-100 pb-4">
-                  <h2 className="text-2xl font-bold text-gray-900">Suas Disciplinas</h2>
+                  <h2 className="text-2xl font-bold text-gray-900">
+                    {isSuperVisionMode ? 'Disciplinas Sob Supervisão' : 'Suas Disciplinas'}
+                  </h2>
                 </div>
 
                 {subjects.length === 0 ? (
@@ -719,7 +786,7 @@ export function TeacherClassroom() {
                             }}
                             className="w-full py-3 bg-gray-50 rounded-sm text-[10px] font-black uppercase tracking-widest text-gray-600 hover:bg-[#E31E24] hover:text-white transition-all shadow-sm"
                           >
-                            Gerenciar Disciplina
+                            {isSuperVisionMode ? 'Supervisionar Sala' : 'Gerenciar Disciplina'}
                           </button>
                         </div>
                       </div>
@@ -748,12 +815,14 @@ export function TeacherClassroom() {
 
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-black text-gray-900 uppercase tracking-tight">Conteúdos Publicados</h2>
-                <button 
-                  onClick={() => setShowContentModal(true)}
-                  className="bg-[#E31E24] text-white p-2 rounded-sm shadow-lg hover:bg-red-700"
-                >
-                  <Plus className="w-6 h-6" />
-                </button>
+                {!isSuperVisionMode && (
+                  <button 
+                    onClick={() => setShowContentModal(true)}
+                    className="bg-[#E31E24] text-white p-2 rounded-sm shadow-lg hover:bg-red-700"
+                  >
+                    <Plus className="w-6 h-6" />
+                  </button>
+                )}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -860,17 +929,19 @@ export function TeacherClassroom() {
                     ))
                   )}
 
-                  <div 
-                    onClick={() => setShowContentModal(true)}
-                    className="border-2 border-dashed border-gray-100 rounded-sm p-12 flex flex-col items-center justify-center gap-4 hover:border-[#E31E24] hover:bg-red-50 transition-all group cursor-pointer"
-                  >
-                    <div className="bg-gray-50 p-4 rounded-full text-gray-400 group-hover:scale-110 group-hover:bg-[#E31E24] group-hover:text-white transition-all">
-                      <Upload className="w-8 h-8" />
+                  {!isSuperVisionMode && (
+                    <div 
+                      onClick={() => setShowContentModal(true)}
+                      className="border-2 border-dashed border-gray-100 rounded-sm p-12 flex flex-col items-center justify-center gap-4 hover:border-[#E31E24] hover:bg-red-50 transition-all group cursor-pointer"
+                    >
+                      <div className="bg-gray-50 p-4 rounded-full text-gray-400 group-hover:scale-110 group-hover:bg-[#E31E24] group-hover:text-white transition-all">
+                        <Upload className="w-8 h-8" />
+                      </div>
+                      <div className="text-center">
+                        <p className="font-bold text-gray-700">Clique para publicar novos materiais</p>
+                      </div>
                     </div>
-                    <div className="text-center">
-                      <p className="font-bold text-gray-700">Clique para publicar novos materiais</p>
-                    </div>
-                  </div>
+                  )}
                 </div>
               </div>
             </motion.div>
@@ -903,12 +974,14 @@ export function TeacherClassroom() {
                   <ChevronRight className="w-3 h-3 rotate-180" />
                   Voltar às Disciplinas
                 </button>
-                <button 
-                  onClick={() => setShowAssessmentModal(true)}
-                  className="bg-gray-900 text-white px-6 py-2.5 rounded-sm text-[10px] font-black uppercase tracking-widest shadow-xl shadow-black/10"
-                >
-                  Nova Avaliação
-                </button>
+                {!isSuperVisionMode && (
+                  <button 
+                    onClick={() => setShowAssessmentModal(true)}
+                    className="bg-gray-900 text-white px-6 py-2.5 rounded-sm text-[10px] font-black uppercase tracking-widest shadow-xl shadow-black/10"
+                  >
+                    Nova Avaliação
+                  </button>
+                )}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -1014,13 +1087,15 @@ export function TeacherClassroom() {
                     </div>
                     <h2 className="text-3xl font-black text-gray-900 uppercase tracking-tight">{selectedSubject.name}</h2>
                   </div>
-                  <button 
-                    onClick={() => setShowForumModal(true)}
-                    className="flex items-center gap-2 bg-[#E31E24] text-white px-6 py-3 rounded-sm font-black text-[10px] uppercase tracking-widest shadow-xl shadow-[#E31E24]/20 hover:bg-[#C1191F] transition-all"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Novo Tópico
-                  </button>
+                  {!isSuperVisionMode && (
+                    <button 
+                      onClick={() => setShowForumModal(true)}
+                      className="flex items-center gap-2 bg-[#E31E24] text-white px-6 py-3 rounded-sm font-black text-[10px] uppercase tracking-widest shadow-xl shadow-[#E31E24]/20 hover:bg-[#C1191F] transition-all"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Novo Tópico
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -1503,19 +1578,21 @@ export function TeacherClassroom() {
       )}
 
       {/* Floating AI Helper (Avisos) */}
-      <div className="fixed bottom-8 right-8">
-        <button className="bg-gray-900 text-white w-14 h-14 rounded-full shadow-2xl flex items-center justify-center hover:scale-110 transition-transform group relative">
-          <AlertTriangle className="w-6 h-6" />
-          <span className="absolute -top-1 -right-1 bg-[#E31E24] text-white text-[10px] font-black px-1.5 py-0.5 rounded-full border-2 border-white">3</span>
-          <div className="absolute right-full mr-4 bg-white p-4 rounded-sm shadow-2xl border border-gray-100 w-64 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all">
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Alertas do Sistema</p>
-            <div className="space-y-3">
-              <p className="text-xs font-medium text-gray-600">• <strong>5 alunos</strong> com baixo desempenho na Unidade 01.</p>
-              <p className="text-xs font-medium text-gray-600">• <strong>Avaliação</strong> vence amanhã para Anatomia.</p>
+      {!isSuperVisionMode && (
+        <div className="fixed bottom-8 right-8">
+          <button className="bg-gray-900 text-white w-14 h-14 rounded-full shadow-2xl flex items-center justify-center hover:scale-110 transition-transform group relative">
+            <AlertTriangle className="w-6 h-6" />
+            <span className="absolute -top-1 -right-1 bg-[#E31E24] text-white text-[10px] font-black px-1.5 py-0.5 rounded-full border-2 border-white">3</span>
+            <div className="absolute right-full mr-4 bg-white p-4 rounded-sm shadow-2xl border border-gray-100 w-64 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all">
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Alertas do Sistema</p>
+              <div className="space-y-3">
+                <p className="text-xs font-medium text-gray-600">• <strong>5 alunos</strong> com baixo desempenho na Unidade 01.</p>
+                <p className="text-xs font-medium text-gray-600">• <strong>Avaliação</strong> vence amanhã para Anatomia.</p>
+              </div>
             </div>
-          </div>
-        </button>
-      </div>
+          </button>
+        </div>
+      )}
       {/* Reply Modal */}
       <AnimatePresence>
         {replyingTo && (
