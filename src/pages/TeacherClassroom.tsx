@@ -54,7 +54,11 @@ export function TeacherClassroom() {
   const [user, setUser] = useState<any>(null);
   const [userProfile, setUserProfile] = useState<any>(null);
 
-  const isSuperVisionMode = userProfile?.role === 'pedagogical' || userProfile?.role === 'admin' || location.pathname.startsWith('/pedagogico');
+  const isSuperVisionMode = useMemo(() => {
+    return userProfile?.role === 'pedagogical' || 
+           userProfile?.role === 'admin' || 
+           location.pathname.startsWith('/pedagogico');
+  }, [userProfile, location.pathname]);
 
   // Modals & Forum States
   const [showContentModal, setShowContentModal] = useState(false);
@@ -113,40 +117,16 @@ export function TeacherClassroom() {
   });
 
   useEffect(() => {
-    // 1. Check for firebase auth first
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
-        // Fetch profile to check role
         const profile = await getUserProfile(currentUser.uid);
         setUserProfile(profile);
-
-        // Check if we have a real staff profile
-        const isStaff = profile?.role === 'pedagogical' || profile?.role === 'admin';
-
-        // Check for provisional session in localStorage
-        const altEmail = localStorage.getItem('p_teacher_email');
-        const altName = localStorage.getItem('p_teacher_name');
-
-        if (currentUser.isAnonymous && altEmail && !isStaff) {
-          const altUser = { email: altEmail, displayName: altName, uid: currentUser.uid };
-          setUser(altUser);
-          fetchTeacherDataByEmail(altEmail);
-        } else {
-          // Standard Login or Staff Supervision
-          setUser(currentUser);
-          if (isStaff) {
-            fetchAuditorData();
-          } else {
-            fetchTeacherData(currentUser.uid);
-          }
-        }
+        setUser(currentUser);
       } else {
         const altEmail = localStorage.getItem('p_teacher_email');
         const altName = localStorage.getItem('p_teacher_name');
         if (altEmail) {
-          const altUser = { email: altEmail, displayName: altName, uid: altEmail };
-          setUser(altUser);
-          fetchTeacherDataByEmail(altEmail);
+          setUser({ email: altEmail, displayName: altName, uid: altEmail });
         } else {
           setLoading(false);
           navigate('/acesso-professor');
@@ -155,6 +135,28 @@ export function TeacherClassroom() {
     });
     return () => unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (!user) return;
+
+    const isStaff = userProfile?.role === 'pedagogical' || userProfile?.role === 'admin';
+    const supervision = isStaff || location.pathname.startsWith('/pedagogico');
+
+    if (supervision) {
+      fetchAuditorData();
+    } else {
+      if (user.isAnonymous) {
+        const altEmail = localStorage.getItem('p_teacher_email');
+        if (altEmail) {
+          fetchTeacherDataByEmail(altEmail);
+        } else {
+          fetchTeacherData(user.uid);
+        }
+      } else {
+        fetchTeacherData(user.uid);
+      }
+    }
+  }, [user, userProfile, location.pathname]);
 
   async function fetchAuditorData() {
     setLoading(true);
@@ -511,6 +513,20 @@ export function TeacherClassroom() {
 
   return (
     <div className="min-h-screen bg-white font-sans text-gray-900 overflow-x-hidden">
+      {/* Global Supervision Banner */}
+      {isSuperVisionMode && (
+        <div className="bg-red-600 py-2.5 px-6 flex items-center justify-center gap-3 relative z-[100] shadow-lg">
+          <Eye className="w-4 h-4 text-white animate-pulse" />
+          <span className="text-[11px] font-black text-white uppercase tracking-[0.25em]">
+            Modo de Supervisão Pedagógica • Monitoramento de Atividades em Tempo Real
+          </span>
+          <div className="absolute right-6 flex items-center gap-2">
+            <span className="w-2 h-2 bg-white rounded-full animate-ping" />
+            <span className="text-[9px] font-bold text-white/80 uppercase">Auditoria Ativa</span>
+          </div>
+        </div>
+      )}
+
       {/* Top Header */}
       <header className="px-6 py-4 flex items-center justify-between border-b border-gray-100 sticky top-0 bg-white z-50">
         <div className="flex items-center gap-4">
@@ -532,12 +548,14 @@ export function TeacherClassroom() {
         </div>
         <div className="flex items-center gap-3">
           <div className="hidden md:flex flex-col items-end mr-2">
-            <span className="text-xs font-black text-gray-900">{user?.displayName || user?.email || 'Usuário'}</span>
+            <span className="text-xs font-black text-gray-900">
+              {isSuperVisionMode ? 'Coordenação Pedagógica' : (user?.displayName || user?.email || 'Usuário')}
+            </span>
             <span className={cn(
               "text-[10px] font-bold uppercase tracking-widest",
               isSuperVisionMode ? "text-[#E31E24]" : "text-gray-400"
             )}>
-              {isSuperVisionMode ? 'Modo Supervisão' : 'Professor Titular'}
+              {isSuperVisionMode ? 'Auditando Processos' : 'Professor Titular'}
             </span>
           </div>
           <button className="bg-[#E31E24] p-2 rounded-sm text-white hover:bg-[#C1191F] transition-colors shadow-lg shadow-[#E31E24]/20">
@@ -550,15 +568,6 @@ export function TeacherClassroom() {
       <div className="px-6 mt-4 max-w-7xl mx-auto">
         <nav className="bg-[#1a1a2e] rounded-sm h-14 flex items-center justify-around relative px-4 shadow-2xl overflow-hidden">
           <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
-          
-          {isSuperVisionMode && (
-            <div className="bg-red-600 px-6 py-1.5 flex items-center justify-center gap-2">
-              <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
-              <span className="text-[10px] font-black text-white uppercase tracking-[0.2em]">
-                Ambiente de Supervisão Pedagógica • Acesso Total para Auditoria
-              </span>
-            </div>
-          )}
           
           <button 
             onClick={() => {
