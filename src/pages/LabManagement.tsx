@@ -144,7 +144,7 @@ export default function LabManagement() {
 
   const isStaff = userProfile?.role === 'pedagogical' || userProfile?.role === 'admin' || userProfile?.role === 'secretariat';
   const isTeacher = userProfile?.role === 'teacher';
-  const isAuthorizedToCreate = isStaff || userProfile?.role === 'pedagogical';
+  const canManageLabs = isStaff;
 
   if (loading) {
     return (
@@ -162,7 +162,7 @@ export default function LabManagement() {
           <p className="text-gray-500 font-medium tracking-tight">Controle de ocupação física e agendamento de bancadas.</p>
         </div>
         <div className="flex gap-3">
-          {(isStaff || userProfile?.role === 'pedagogical') && (
+          {canManageLabs && (
             <button 
               onClick={() => setShowLabModal(true)}
               className="bg-white border-2 border-gray-900 text-gray-900 px-6 py-3 rounded-sm text-xs font-black uppercase tracking-widest hover:bg-gray-50 transition-all flex items-center gap-2"
@@ -191,7 +191,7 @@ export default function LabManagement() {
               <p className="text-gray-900 font-black uppercase text-sm tracking-widest">Nenhum laboratório cadastrado.</p>
               <p className="text-gray-400 text-xs font-bold uppercase tracking-tight">Comece cadastrando as unidades físicas para habilitar agendamentos.</p>
             </div>
-            {(isStaff || userProfile?.role === 'pedagogical') && (
+            {canManageLabs && (
               <button 
                 onClick={() => setShowLabModal(true)}
                 className="bg-black text-white px-8 py-3 rounded-sm text-[10px] font-black uppercase tracking-[0.2em] hover:bg-[#E31E24] transition-all shadow-xl shadow-gray-200"
