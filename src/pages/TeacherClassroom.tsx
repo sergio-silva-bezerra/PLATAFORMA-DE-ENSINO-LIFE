@@ -35,9 +35,11 @@ import { where } from 'firebase/firestore';
 import { cn } from '../lib/utils';
 import { PedagogicalSchedule } from './PedagogicalSchedule';
 
+import LabManagement from './LabManagement';
+
 export function TeacherClassroom() {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'inicio' | 'conteudo' | 'avaliacoes' | 'alunos' | 'forum' | 'cronograma'>('inicio');
+  const [activeTab, setActiveTab] = useState<'inicio' | 'conteudo' | 'avaliacoes' | 'alunos' | 'forum' | 'cronograma' | 'laboratorios'>('inicio');
   const [selectedSubject, setSelectedSubject] = useState<any>(null);
   const [subjects, setSubjects] = useState<any[]>([]);
   const [courses, setCourses] = useState<any[]>([]);
@@ -559,6 +561,15 @@ export function TeacherClassroom() {
                 <CalendarIcon className={`w-5 h-5 ${activeTab === 'cronograma' ? 'text-white' : 'text-white/70'}`} />
                 <span className="text-[9px] font-bold text-white uppercase mt-1">Cronograma</span>
                 {activeTab === 'cronograma' && <motion.div layoutId="activeTabT" className="absolute -bottom-4 w-12 h-1 bg-[#E31E24]" />}
+              </button>
+
+              <button 
+                onClick={() => setActiveTab('laboratorios')}
+                className={`flex flex-col items-center group relative z-10 transition-all ${activeTab === 'laboratorios' ? 'scale-110' : 'opacity-60 hover:opacity-100'}`}
+              >
+                <Video className={`w-5 h-5 ${activeTab === 'laboratorios' ? 'text-white' : 'text-white/70'}`} />
+                <span className="text-[9px] font-bold text-white uppercase mt-1">Laboratórios</span>
+                {activeTab === 'laboratorios' && <motion.div layoutId="activeTabT" className="absolute -bottom-4 w-12 h-1 bg-[#E31E24]" />}
               </button>
             </>
           )}
@@ -1132,6 +1143,17 @@ export function TeacherClassroom() {
               exit={{ opacity: 0, y: -20 }}
             >
               <PedagogicalSchedule />
+            </motion.div>
+          )}
+
+          {activeTab === 'laboratorios' && (
+            <motion.div 
+              key="laboratorios"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+            >
+              <LabManagement />
             </motion.div>
           )}
         </AnimatePresence>

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ShieldAlert, Lock, Unlock, CheckCircle2, AlertTriangle, BookOpen, Loader2, Play, Trophy, X, ChevronRight, Users } from 'lucide-react';
 import { auth, getBiosafetyProgress, saveBiosafetyProgress, getCollection, getUserProfile } from '../lib/firebase';
 import { motion, AnimatePresence } from 'motion/react';
+import { useNavigate } from 'react-router-dom';
 
 interface Module {
   id: number;
@@ -58,6 +59,7 @@ export default function BiosafetyModule() {
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const [quizFinished, setQuizFinished] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     async function loadInitialData() {
@@ -356,7 +358,10 @@ export default function BiosafetyModule() {
               </h3>
             </div>
             {isReleased && (
-              <button className="w-full py-4 bg-black text-white rounded-sm font-black text-[10px] uppercase tracking-widest shadow-2xl hover:bg-red-600 transition-colors">
+              <button 
+                onClick={() => navigate('/aluno/laboratorios')}
+                className="w-full py-4 bg-black text-white rounded-sm font-black text-[10px] uppercase tracking-widest shadow-2xl hover:bg-red-600 transition-colors"
+              >
                  AGENDAR PRÁTICA AGORA
               </button>
             )}

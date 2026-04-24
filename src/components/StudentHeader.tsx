@@ -44,6 +44,8 @@ const tabs = [
       }
     ]
   },
+  { label: 'LABORATÓRIOS', path: '/aluno/laboratorios' },
+  { label: 'BIOSSEGURANÇA', path: '/aluno/biosseguranca' },
   { label: 'BIBLIOTECA', path: '/aluno/biblioteca' },
   { label: 'LINKS ÚTEIS', path: '/aluno/links' },
 ];

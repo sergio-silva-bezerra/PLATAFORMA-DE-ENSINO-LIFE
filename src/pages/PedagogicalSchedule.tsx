@@ -14,20 +14,6 @@ import {
 } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { 
-  format, 
-  addMonths, 
-  subMonths, 
-  startOfMonth, 
-  endOfMonth, 
-  eachDayOfInterval, 
-  isSameMonth, 
-  isSameDay, 
-  startOfWeek, 
-  endOfWeek,
-  parseISO
-} from 'date-fns';
-import { ptBR } from 'date-fns/locale';
-import { 
   Plus, 
   Calendar as CalendarIcon, 
   Clock, 

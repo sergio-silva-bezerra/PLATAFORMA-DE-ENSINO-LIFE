@@ -253,6 +253,40 @@
         "updatedAt": { "type": "string", "format": "date-time" }
       },
       "required": ["studentId", "modules", "overallStatus"]
+    },
+    "Laboratory": {
+      "title": "Laboratory",
+      "description": "Information about school laboratories",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "location": { "type": "string" },
+        "benches": { "type": "number", "description": "Total available benches/seats" },
+        "status": { "type": "string", "enum": ["Ativo", "Manutenção", "Inativo"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "benches", "status"]
+    },
+    "LabSchedule": {
+      "title": "LabSchedule",
+      "description": "Appointments for laboratory use",
+      "type": "object",
+      "properties": {
+        "labId": { "type": "string" },
+        "labName": { "type": "string" },
+        "subjectId": { "type": "string" },
+        "subjectName": { "type": "string" },
+        "teacherId": { "type": "string" },
+        "teacherName": { "type": "string" },
+        "studentId": { "type": "string", "description": "If individual reservation" },
+        "date": { "type": "string", "format": "date" },
+        "startTime": { "type": "string" },
+        "endTime": { "type": "string" },
+        "studentsCount": { "type": "number" },
+        "status": { "type": "string", "enum": ["Pendente", "Aprovado", "Recusado", "Cancelado"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["labId", "date", "startTime", "endTime", "status"]
     }
   },
   "firestore": {
@@ -315,6 +349,14 @@
     "biosafety_progress": {
       "schema": "BiosafetyProgress",
       "description": "Student tracking for biosafety requirements"
+    },
+    "laboratories": {
+      "schema": "Laboratory",
+      "description": "School labs"
+    },
+    "lab_schedules": {
+      "schema": "LabSchedule",
+      "description": "Lab appointments"
     }
   }
 }

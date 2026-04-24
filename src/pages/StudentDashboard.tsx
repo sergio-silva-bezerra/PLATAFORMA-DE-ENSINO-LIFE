@@ -13,6 +13,7 @@ export function StudentDashboard() {
   const navigate = useNavigate();
   const [subjects, setSubjects] = useState<any[]>([]);
   const [course, setCourse] = useState<any>(null);
+  const [labSchedules, setLabSchedules] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCurriculumModal, setShowCurriculumModal] = useState(false);
 
@@ -21,6 +22,12 @@ export function StudentDashboard() {
       try {
         const subjectsData = await getCollection('subjects');
         setSubjects(subjectsData);
+
+        const schedules = await getCollection('lab_schedules', [
+          where('status', '==', 'Aprovado'),
+          where('date', '==', new Date().toISOString().split('T')[0])
+        ]);
+        setLabSchedules(schedules);
 
         // Fetch student's course (Curriculum)
         // For now, if there's at least one subject, we grab its courseId as a proxy for the student's current course
@@ -193,6 +200,32 @@ export function StudentDashboard() {
           </div>
 
           <GamificationBadges />
+
+          <div className="bg-white rounded-sm border border-gray-100 shadow-sm overflow-hidden">
+            <div className="bg-[#E31E24] px-4 py-3 border-b border-[#E31E24] flex items-center justify-between">
+              <p className="text-[10px] font-black text-white uppercase tracking-widest">Laboratórios Hoje</p>
+              <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+            </div>
+            <div className="p-4 space-y-3">
+              {labSchedules.length === 0 ? (
+                <p className="text-[10px] text-gray-400 font-bold uppercase text-center py-4">Nenhuma prática agendada para hoje.</p>
+              ) : (
+                labSchedules.map(s => (
+                  <div key={s.id} className="p-3 bg-gray-50 rounded-sm space-y-1">
+                    <p className="text-xs font-black text-gray-800 uppercase tracking-tight">{s.labName}</p>
+                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest leading-none">{s.startTime} - {s.endTime}</p>
+                    <p className="text-[9px] text-[#E31E24] font-black uppercase mt-2">{s.subjectName}</p>
+                  </div>
+                ))
+              )}
+              <button 
+                onClick={() => navigate('/aluno/laboratorios')}
+                className="w-full py-2 bg-gray-900 text-white text-[9px] font-black rounded-sm uppercase tracking-widest hover:bg-black transition-all"
+              >
+                Ver Grade Completa
+              </button>
+            </div>
+          </div>
 
           <div className="bg-white rounded-sm border border-gray-100 shadow-sm overflow-hidden">
             <div className="bg-gray-50 px-4 py-3 border-b border-gray-50">
