@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { GraduationCap, Users, BookOpen, BarChart3, Clock, CheckCircle, Loader2 } from 'lucide-react';
 import { getCollection } from '../lib/firebase';
+import { where } from 'firebase/firestore';
 
 export function PedagogicalDashboard() {
   const [coursesCount, setCoursesCount] = useState(0);
   const [subjectsCount, setSubjectsCount] = useState(0);
+  const [studentsCount, setStudentsCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -12,8 +14,10 @@ export function PedagogicalDashboard() {
       try {
         const courses = await getCollection('courses');
         const subjects = await getCollection('subjects');
+        const students = await getCollection('users', [where('role', '==', 'student')]);
         setCoursesCount(courses.length);
         setSubjectsCount(subjects.length);
+        setStudentsCount(students.length);
       } catch (err) {
         console.error("Error fetching pedagogical stats:", err);
       } finally {
@@ -24,9 +28,9 @@ export function PedagogicalDashboard() {
   }, []);
 
   const stats = [
-    { label: 'Cursos Ativos', value: coursesCount.toString(), icon: GraduationCap, color: 'bg-red-600' },
-    { label: 'Disciplinas', value: subjectsCount.toString(), icon: BookOpen, color: 'bg-red-500' },
-    { label: 'Frequência Média', value: 'N/A', icon: Clock, color: 'bg-red-700' },
+    { label: 'Cursos Ativos', value: coursesCount > 0 ? coursesCount.toString() : '0', icon: GraduationCap, color: 'bg-red-600' },
+    { label: 'Disciplinas', value: subjectsCount > 0 ? subjectsCount.toString() : '0', icon: BookOpen, color: 'bg-red-500' },
+    { label: 'Alunos Matriculados', value: studentsCount > 0 ? studentsCount.toString() : '0', icon: Users, color: 'bg-red-700' },
   ];
 
   if (loading) {

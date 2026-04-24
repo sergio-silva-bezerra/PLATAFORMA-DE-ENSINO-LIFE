@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   BarChart, 
   Bar, 
@@ -21,22 +21,135 @@ import {
   Download,
   Filter
 } from 'lucide-react';
-
-const PERFORMANCE_DATA = [
-  { name: 'Jan', media: 7.5, frequencia: 85 },
-  { name: 'Fev', media: 8.2, frequencia: 92 },
-  { name: 'Mar', media: 7.8, frequencia: 88 },
-  { name: 'Abr', media: 8.4, frequencia: 95 },
-];
-
-const GRADE_DISTRIBUTION = [
-  { name: 'Excelente (9-10)', value: 25, color: '#10B981' },
-  { name: 'Bom (7-8)', value: 45, color: '#3B82F6' },
-  { name: 'Regular (5-6)', value: 20, color: '#F59E0B' },
-  { name: 'Abaixo (0-4)', value: 10, color: '#EF4444' },
-];
+import { getCollection } from '../lib/firebase';
+import { where } from 'firebase/firestore';
 
 export function PedagogicalPerformance() {
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    mediaGeral: '-',
+    frequencia: '-',
+    engajamento: '-',
+    alunosAlerta: '-',
+    performanceData: [] as any[],
+    gradeDistribution: [] as any[]
+  });
+
+  useEffect(() => {
+    async function fetchRealData() {
+      try {
+        setLoading(true);
+        
+        // Fetch students
+        const students = await getCollection('users', [where('role', '==', 'student')]) as any[];
+        
+        // Fetch all grades
+        const allGrades = await getCollection('grades') as any[];
+        
+        // Fetch submissions and assessments for engagement
+        const submissions = await getCollection('submissions') as any[];
+        const assessments = await getCollection('assessments') as any[];
+
+        if (students.length === 0) {
+          setStats({
+            mediaGeral: '-',
+            frequencia: '-',
+            engajamento: '-',
+            alunosAlerta: '-',
+            performanceData: [],
+            gradeDistribution: []
+          });
+          setLoading(false);
+          return;
+        }
+
+        // Calculate Average Grade
+        let totalSum = 0;
+        let count = 0;
+        allGrades.forEach(g => {
+          const val = parseFloat(g.value);
+          if (!isNaN(val)) {
+            totalSum += val;
+            count++;
+          }
+        });
+        const mediaGeralVal = count > 0 ? (totalSum / count).toFixed(1) : '-';
+
+        // Calculate Alunos em Alerta (Average < 6.0)
+        const studentAverages = students.map(student => {
+          const studentGrades = allGrades.filter(g => g.studentId === student.uid);
+          if (studentGrades.length === 0) return null;
+          const sum = studentGrades.reduce((acc, curr) => acc + (parseFloat(curr.value) || 0), 0);
+          return sum / studentGrades.length;
+        });
+
+        const alertCount = studentAverages.filter(avg => avg !== null && avg < 6.0).length;
+
+        // Calculate Engagement (Submissions / (Students * Assessments))
+        let engagementVal = '-';
+        if (students.length > 0 && assessments.length > 0) {
+          const totalPossibleSubmissions = students.length * assessments.length;
+          const actualSubmissions = submissions.length;
+          engagementVal = `${Math.min(100, Math.round((actualSubmissions / totalPossibleSubmissions) * 100))}%`;
+        }
+
+        // Grade Distribution
+        const distribution = [
+          { name: 'Excelente (9-10)', value: 0, color: '#10B981' },
+          { name: 'Bom (7-8)', value: 0, color: '#3B82F6' },
+          { name: 'Regular (5-6)', value: 0, color: '#F59E0B' },
+          { name: 'Abaixo (0-4)', value: 0, color: '#EF4444' },
+        ];
+
+        allGrades.forEach(g => {
+          const v = parseFloat(g.value);
+          if (v >= 9) distribution[0].value++;
+          else if (v >= 7) distribution[1].value++;
+          else if (v >= 5) distribution[2].value++;
+          else distribution[3].value++;
+        });
+
+        // Convert distribution to percentages for chart
+        const totalDistribution = distribution.reduce((acc, curr) => acc + curr.value, 0);
+        const gradeDistribution = distribution.map(d => ({
+          ...d,
+          value: totalDistribution > 0 ? Math.round((d.value / totalDistribution) * 100) : 0
+        }));
+
+        // Performance Data (Monthly evolution - Mocked for now as we don't have historical snapshots stored)
+        // In a real app, this would come from a 'monthly_statistics' collection
+        const performanceData = [
+          { name: 'Meta', media: 7.0, frequencia: 90 },
+          { name: 'Atual', media: count > 0 ? parseFloat(mediaGeralVal) : 0, frequencia: 0 },
+        ];
+
+        setStats({
+          mediaGeral: mediaGeralVal,
+          frequencia: '-', // We don't have frequency data in blueprint
+          engajamento: engagementVal,
+          alunosAlerta: alertCount.toString(),
+          performanceData,
+          gradeDistribution
+        });
+
+      } catch (error) {
+        console.error("Error fetching performance data:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchRealData();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#E31E24]"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -59,19 +172,21 @@ export function PedagogicalPerformance() {
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         {[
-          { label: 'Média Geral', value: '8.4', icon: Award, color: 'bg-blue-500', trend: '+0.5' },
-          { label: 'Frequência', value: '92%', icon: Users, color: 'bg-green-500', trend: '+2%' },
-          { label: 'Engajamento', value: '78%', icon: TrendingUp, color: 'bg-purple-500', trend: '-3%' },
-          { label: 'Alunos em Alerta', value: '12', icon: AlertCircle, color: 'bg-red-500', trend: '-2' },
+          { label: 'Média Geral', value: stats.mediaGeral, icon: Award, color: 'bg-blue-500', trend: '' },
+          { label: 'Frequência', value: stats.frequencia, icon: Users, color: 'bg-green-500', trend: '' },
+          { label: 'Engajamento', value: stats.engajamento, icon: TrendingUp, color: 'bg-purple-500', trend: '' },
+          { label: 'Alunos em Alerta', value: stats.alunosAlerta, icon: AlertCircle, color: 'bg-red-500', trend: '' },
         ].map((stat, idx) => (
           <div key={idx} className="bg-white p-6 rounded-sm border border-gray-100 shadow-sm space-y-4">
             <div className="flex items-center justify-between">
               <div className={`${stat.color} p-3 rounded-sm text-white`}>
                 <stat.icon className="w-5 h-5" />
               </div>
-              <span className={`text-xs font-bold ${stat.trend.startsWith('+') ? 'text-green-500' : 'text-red-500'}`}>
-                {stat.trend}
-              </span>
+              {stat.trend && (
+                <span className={`text-xs font-bold ${stat.trend.startsWith('+') ? 'text-green-500' : 'text-red-500'}`}>
+                  {stat.trend}
+                </span>
+              )}
             </div>
             <div>
               <p className="text-sm font-medium text-gray-500">{stat.label}</p>
@@ -87,16 +202,22 @@ export function PedagogicalPerformance() {
           <h2 className="text-xl font-bold text-gray-900">Evolução de Desempenho</h2>
           <div className="h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={PERFORMANCE_DATA}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#9ca3af' }} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#9ca3af' }} />
-                <Tooltip 
-                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
-                />
-                <Line type="monotone" dataKey="media" stroke="#E31E24" strokeWidth={3} dot={{ r: 6, fill: '#E31E24' }} />
-                <Line type="monotone" dataKey="frequencia" stroke="#3B82F6" strokeWidth={3} dot={{ r: 6, fill: '#3B82F6' }} />
-              </LineChart>
+              {stats.performanceData.length > 0 ? (
+                <LineChart data={stats.performanceData}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#9ca3af' }} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#9ca3af' }} />
+                  <Tooltip 
+                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                  />
+                  <Line type="monotone" dataKey="media" stroke="#E31E24" strokeWidth={3} dot={{ r: 6, fill: '#E31E24' }} />
+                  <Line type="monotone" dataKey="frequencia" stroke="#3B82F6" strokeWidth={3} dot={{ r: 6, fill: '#3B82F6' }} />
+                </LineChart>
+              ) : (
+                <div className="flex items-center justify-center h-full text-gray-400 font-bold italic uppercase tracking-widest text-xs bg-gray-50 rounded-sm">
+                  Dados insuficientes para gerar gráfico
+                </div>
+              )}
             </ResponsiveContainer>
           </div>
           <div className="flex justify-center gap-6">
@@ -117,24 +238,30 @@ export function PedagogicalPerformance() {
           <div className="flex flex-col md:flex-row items-center gap-8">
             <div className="h-[240px] w-full md:w-1/2">
               <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={GRADE_DISTRIBUTION}
-                    innerRadius={60}
-                    outerRadius={80}
-                    paddingAngle={5}
-                    dataKey="value"
-                  >
-                    {GRADE_DISTRIBUTION.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
+                {stats.gradeDistribution.some(d => d.value > 0) ? (
+                  <PieChart>
+                    <Pie
+                      data={stats.gradeDistribution}
+                      innerRadius={60}
+                      outerRadius={80}
+                      paddingAngle={5}
+                      dataKey="value"
+                    >
+                      {stats.gradeDistribution.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                ) : (
+                  <div className="flex items-center justify-center h-full text-gray-400 font-bold italic uppercase tracking-widest text-xs bg-gray-50 rounded-full border-4 border-dashed border-gray-100">
+                    Sem Dados
+                  </div>
+                )}
               </ResponsiveContainer>
             </div>
             <div className="w-full md:w-1/2 space-y-3">
-              {GRADE_DISTRIBUTION.map((item, idx) => (
+              {stats.gradeDistribution.map((item, idx) => (
                 <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-sm">
                   <div className="flex items-center gap-2">
                     <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }}></div>
