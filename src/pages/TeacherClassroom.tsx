@@ -27,7 +27,7 @@ import {
   Send,
   Filter
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { getCollection, publishContent, createAssessment, auth, getTeacherSubjects, updateDocument, addDocument, getUserProfile } from '../lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -39,6 +39,7 @@ import LabManagement from './LabManagement';
 
 export function TeacherClassroom() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState<'inicio' | 'conteudo' | 'avaliacoes' | 'alunos' | 'forum' | 'cronograma' | 'laboratorios'>('inicio');
   const [selectedSubject, setSelectedSubject] = useState<any>(null);
   const [subjects, setSubjects] = useState<any[]>([]);
@@ -53,7 +54,7 @@ export function TeacherClassroom() {
   const [user, setUser] = useState<any>(null);
   const [userProfile, setUserProfile] = useState<any>(null);
 
-  const isSuperVisionMode = userProfile?.role === 'pedagogical' || userProfile?.role === 'admin';
+  const isSuperVisionMode = userProfile?.role === 'pedagogical' || userProfile?.role === 'admin' || location.pathname.startsWith('/pedagogico');
 
   // Modals & Forum States
   const [showContentModal, setShowContentModal] = useState(false);
@@ -114,31 +115,34 @@ export function TeacherClassroom() {
   useEffect(() => {
     // 1. Check for firebase auth first
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      // Check if we have a provisional session in localStorage
-      const altEmail = localStorage.getItem('p_teacher_email');
-      const altName = localStorage.getItem('p_teacher_name');
-
       if (currentUser) {
         // Fetch profile to check role
         const profile = await getUserProfile(currentUser.uid);
         setUserProfile(profile);
 
-        // If it's an anonymous/provisional session or we have an altEmail saved
-        if (currentUser.isAnonymous && altEmail) {
+        // Check if we have a real staff profile
+        const isStaff = profile?.role === 'pedagogical' || profile?.role === 'admin';
+
+        // Check for provisional session in localStorage
+        const altEmail = localStorage.getItem('p_teacher_email');
+        const altName = localStorage.getItem('p_teacher_name');
+
+        if (currentUser.isAnonymous && altEmail && !isStaff) {
           const altUser = { email: altEmail, displayName: altName, uid: currentUser.uid };
           setUser(altUser);
           fetchTeacherDataByEmail(altEmail);
         } else {
-          // Standard Google Login
+          // Standard Login or Staff Supervision
           setUser(currentUser);
-          if (profile?.role === 'pedagogical' || profile?.role === 'admin') {
+          if (isStaff) {
             fetchAuditorData();
           } else {
             fetchTeacherData(currentUser.uid);
           }
         }
       } else {
-        // 2. Fallback if not even guest
+        const altEmail = localStorage.getItem('p_teacher_email');
+        const altName = localStorage.getItem('p_teacher_name');
         if (altEmail) {
           const altUser = { email: altEmail, displayName: altName, uid: altEmail };
           setUser(altUser);
@@ -676,8 +680,11 @@ export function TeacherClassroom() {
                     </>
                   )}
                   {isSuperVisionMode && (
-                    <div className="px-4 py-2 bg-gray-900 text-white rounded-sm text-[10px] font-black uppercase tracking-widest">
-                      Modo Somente Leitura / Auditoria
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-2 px-6 py-3 bg-red-600 text-white rounded-sm shadow-lg shadow-red-600/20">
+                        <Eye className="w-4 h-4" />
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em]">Modo Supervisão Ativo</span>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -740,7 +747,9 @@ export function TeacherClassroom() {
                               <span className="w-1 h-1 bg-gray-300 rounded-full" />
                               <Clock className="w-3 h-3" /> {(item as any).hours || 0}h
                             </span>
-                            <span className="font-black text-[#E31E24] uppercase">Tutor: {item.tutorName}</span>
+                            <span className="font-black text-[#E31E24] uppercase">
+                              {isSuperVisionMode ? `Docente: ${item.tutorName}` : `Tutor: ${item.tutorName}`}
+                            </span>
                           </div>
 
                           {/* Matriz Curricular Section for Teacher */}
@@ -900,7 +909,7 @@ export function TeacherClassroom() {
                                     <p className="text-[9px] font-black text-blue-600 uppercase tracking-widest">Sua Resposta:</p>
                                     <p className="text-xs text-blue-800 italic">{file.teacherReply}</p>
                                   </div>
-                                ) : (
+                                ) : !isSuperVisionMode && (
                                   <button 
                                     onClick={() => setReplyingTo(file)}
                                     className="mt-2 text-[9px] font-black text-[#E31E24] uppercase hover:underline"

@@ -24,7 +24,7 @@ const menuItems = [
   { icon: MapPin, label: 'Preceptoria', path: '/pedagogico/preceptoria' },
   { icon: ShieldAlert, label: 'Biossegurança', path: '/pedagogico/biosseguranca' },
   { icon: Microscope, label: 'Laboratórios', path: '/pedagogico/laboratorios' },
-  { icon: BookOpen, label: 'Ambiente Virtual', path: '/professor/sala-virtual' },
+  { icon: BookOpen, label: 'Ambiente Virtual', path: '/pedagogico/sala-virtual' },
 ];
 
 import { logOut } from '../lib/firebase';

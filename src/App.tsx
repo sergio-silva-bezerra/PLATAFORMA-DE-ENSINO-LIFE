@@ -182,6 +182,7 @@ export default function App() {
         <Route path="/pedagogico/desempenho" element={<PedagogicalLayout><PedagogicalPerformance /></PedagogicalLayout>} />
         <Route path="/pedagogico/preceptoria" element={<PedagogicalLayout><PreceptorshipPortal /></PedagogicalLayout>} />
         <Route path="/pedagogico/biosseguranca" element={<PedagogicalLayout><BiosafetyModule /></PedagogicalLayout>} />
+        <Route path="/pedagogico/sala-virtual" element={<TeacherClassroom />} />
         <Route path="/pedagogico/laboratorios" element={<PedagogicalLayout><LabManagement /></PedagogicalLayout>} />
 
         {/* Student Routes */}
